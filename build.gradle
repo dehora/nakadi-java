@@ -1,0 +1,76 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    jcenter()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    classpath 'org.apache.ant:ant:1.9.7' // resolve shadow and nebula deps
+    classpath "com.netflix.nebula:nebula-publishing-plugin:4.9.1"
+    classpath "com.netflix.nebula:nebula-project-plugin:3.3.0"
+    classpath "com.netflix.nebula:nebula-release-plugin:4.1.0"
+    classpath "com.netflix.nebula:nebula-bintray-plugin:3.5.0"
+    classpath "com.netflix.nebula:gradle-git-scm-plugin:3.0.1"
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'nebula.project'
+apply plugin: 'nebula.dependency-lock'
+apply plugin: 'nebula.maven-publish'
+apply plugin: 'nebula.javadoc-jar'
+apply plugin: 'nebula.source-jar'
+apply plugin: "nebula.nebula-bintray"
+apply plugin: "nebula.gradle-git-scm"
+//apply plugin: 'nebula.release'
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '3.1'
+}
+
+apply from: "$rootDir/gradle/libs.gradle"
+
+allprojects {
+
+  sourceCompatibility = 1.8
+
+  repositories {
+    mavenCentral()
+    jcenter()
+  }
+
+  apply plugin: 'java'
+  apply plugin: 'idea'
+  apply plugin: 'nebula.project'
+  apply plugin: 'nebula.dependency-lock'
+  apply plugin: 'nebula.maven-publish'
+  apply plugin: 'nebula.javadoc-jar'
+  apply plugin: 'nebula.source-jar'
+  apply plugin: "nebula.nebula-bintray"
+  apply plugin: "nebula.gradle-git-scm"
+  //apply plugin: 'nebula.release'
+
+  idea {
+    module {
+      downloadSources = true
+      downloadJavadoc = true
+    }
+  }
+}
+
+/*
+* Allows bintrayUpload to run from the project root without gradle complaining (the root project
+* doesn't have a bintrayUpload task).
+*/
+project.afterEvaluate {
+  //noinspection GrUnresolvedAccess
+  //noinspection GroovyAssignabilityCheck
+  task bintrayUpload(group: "publishing", overwrite: true) {
+    def projects = subprojects.findAll { it.name != "client-spike" }
+    dependsOn projects.bintrayUpload
+  }
+}

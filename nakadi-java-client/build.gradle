@@ -1,0 +1,130 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    mavenLocal()
+    jcenter()
+  }
+}
+
+apply plugin: "application"
+apply plugin: "com.github.johnrengelman.shadow"
+
+dependencies {
+  compile project.libs.guava
+  compile project.libs.gson
+  compile project.libs.okhttp3
+  compile project.libs.okhttp3log
+  compile project.libs.rxjava
+  compile project.libs.slf4j
+
+  testCompile project.libs.junit
+  testCompile project.libs.logback_core
+  testCompile project.libs.logback_classic
+}
+
+sourceSets {
+  test {
+    java {
+      srcDir 'src/test/resources'
+    }
+  }
+}
+
+/*
+* shadowJar needs `mainClassName` to complete
+*/
+//noinspection GroovyUnusedAssignment
+mainClassName = "nakadi.NakadiClientMain"
+
+/*
+* Don't publish spike classes for source or java doc
+*/
+javadoc {
+  exclude "**/spike/**"
+}
+
+sourceJar {
+  exclude "**/spike/**"
+}
+
+/*
+* Shade our dependencies; rx, gson, guava and okhttp3 have no transitive
+* dependencies to cascade into
+*/
+shadowJar {
+  relocate "com.google.gson", "nakadi.shadow.com.google.gson"
+  relocate "com.google.common", "nakadi.shadow.com.google.common"
+  relocate "com.google.thirdparty", "nakadi.shadow.com.google.thirdparty"
+  relocate "rx", "nakadi.shadow.rx"
+  relocate "okhttp3", "nakadi.shadow.okhttp3"
+  relocate "okio", "nakadi.shadow.okio"
+  classifier = '' // remove the default all suffix to name it like a regular lib jar
+  exclude 'net/dehora/nakadi/client/spike/**'
+  exclude 'org/slf4j/**'
+  exclude 'META-INF/maven/com.google.code.gson/**'
+  exclude 'META-INF/maven/com.google.guava/**'
+  exclude 'META-INF/maven/com.squareup.okhttp3/**'
+  exclude 'META-INF/maven/com.squareup.okio/**'
+  exclude 'rxjava.properties'
+}
+
+/*
+* Give the bintray task our shadow jar via `shadowedJar`. This has all its dependencies embedded and
+* shaded. We have to add the source and javadoc artifacts as well.
+*/
+publishing {
+  publications {
+    shadowedJar(MavenPublication) {
+      from components.shadow
+      groupId project.group
+      artifactId = project.name
+      version = project.version
+
+      artifact(sourceJar) {
+      }
+      artifact(javadocJar) {
+      }
+    }
+  }
+}
+
+/*
+ * nebula/bintray gets stuck sometimes; `gradle --stop; gradle clean` can help
+*/
+bintray {
+  // verbose to let these eval to empty when not being used; `project.property` isn't lazy
+  user = project.hasProperty('bintray_user') ? project.property('bintray_user') :
+    System.getenv('BINTRAY_USER')
+  key = project.hasProperty('bintray_key') ? project.property('bintray_key') :
+    System.getenv('BINTRAY_KEY')
+
+  publications = ['shadowedJar'] // use our publishing setup from above
+  dryRun = false
+  publish = true
+
+  pkg {
+    repo = 'maven'
+    userOrg = 'dehora'
+    name = 'nakadi-java-client'
+    desc = 'Java driver for the Nakadi API'
+    websiteUrl = 'https://github.com/dehora/nakadi-java'
+    issueTrackerUrl = 'https://github.com/dehora/nakadi-java/issues'
+    vcsUrl = 'https://github.com/dehora/nakadi-java.git'
+    licenses = ['MIT']
+    labels = ['nakadi', 'java', 'api']
+    publicDownloadNumbers = true
+
+    //noinspection GroovyAssignabilityCheck
+    version {
+      name = project.version
+      vcsTag = project.version
+      attributes = [:]
+      gpg {
+        //noinspection GroovyAssignabilityCheck
+        sign = true // todo: bintray is demanding a passphrase even if this is false
+        passphrase = project.hasProperty('bintray_gpg_passphrase') ?
+          project.property('bintray_gpg_passphrase') : System.getenv('BINTRAY_GPG_PASSPHRASE')
+      }
+    }
+  }
+}

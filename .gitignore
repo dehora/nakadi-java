@@ -1,5 +1,8 @@
+.DS_Store
+.idea/
 .gradle
 build/
+*/**/Spike*
 
 # Ignore Gradle GUI config
 gradle-app.setting
