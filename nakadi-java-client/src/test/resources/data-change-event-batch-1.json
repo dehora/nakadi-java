@@ -1,0 +1,23 @@
+{
+  "cursor": {
+    "partition": "0",
+    "offset": "95"
+  },
+  "events": [
+    {
+      "metadata": {
+        "occurred_at": "2016-09-20T21:52:00Z",
+        "eid": "a2ab0b7c-ee58-48e5-b96a-d13bce73d857",
+        "event_type": "et-1",
+        "partition": "0",
+        "received_at": "2016-10-26T18:12:20.712Z",
+        "flow_id": "Nt0oU70k3UCNp2NKugrIF0QU"
+      },
+      "data_op": "C",
+      "data": {
+        "id": "1"
+      },
+      "data_type": "et-1"
+    }
+  ]
+}
