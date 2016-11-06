@@ -1,0 +1,13 @@
+{
+  "cursor": {
+    "partition": "0",
+    "offset": "36"
+  },
+  "events": [
+    {
+      "bar": "3",
+      "foo": "2",
+      "id": "1"
+    }
+  ]
+}
