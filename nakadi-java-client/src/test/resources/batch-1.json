@@ -1,0 +1,22 @@
+{
+  "cursor": {
+    "partition": "0",
+    "offset": "4"
+  },
+  "events": [
+    {
+      "order_number": "24873243241",
+      "metadata": {
+        "eid": "d765de34-09c0-4bbb-8b1e-7160a33a0791",
+        "occurred_at": "2016-03-15T23:47:15+01:00"
+      }
+    },
+    {
+      "order_number": "24873243242",
+      "metadata": {
+        "eid": "a7671c51-49d1-48e6-bb03-b50dcf14f3d3",
+        "occurred_at": "2016-03-15T23:47:16+01:00"
+      }
+    }
+  ]
+}
