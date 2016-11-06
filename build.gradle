@@ -63,13 +63,14 @@ allprojects {
 }
 
 /*
-* Allows bintrayUpload to run from the project root with gradle complaining (the root project
+* Allows bintrayUpload to run from the project root without gradle complaining (the root project
 * doesn't have a bintrayUpload task).
 */
 project.afterEvaluate {
   //noinspection GrUnresolvedAccess
   //noinspection GroovyAssignabilityCheck
   task bintrayUpload(group: "publishing", overwrite: true) {
-    dependsOn subprojects.bintrayUpload
+    def projects = subprojects.findAll { it.name != "client-spike" }
+    dependsOn projects.bintrayUpload
   }
 }
