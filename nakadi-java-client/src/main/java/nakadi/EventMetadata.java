@@ -1,6 +1,7 @@
 package nakadi;
 
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -65,8 +66,8 @@ public class EventMetadata {
     return parentEids;
   }
 
-  public EventMetadata parentEids(List<String> parentEids) {
-    this.parentEids = parentEids;
+  public EventMetadata parentEids(String... parentEids) {
+    this.parentEids = Arrays.asList(parentEids);
     return this;
   }
 

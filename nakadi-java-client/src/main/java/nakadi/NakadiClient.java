@@ -23,7 +23,7 @@ public class NakadiClient {
           "java.vm.name", "java.vm.version"
       ).stream().collect(Collectors.toMap(String::toString, System::getProperty)));
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
-  private static final String VERSION = "0.0.0";
+  private static final String VERSION = Version.VERSION;
   static final String USER_AGENT = "nakadi-java/" + NakadiClient.VERSION;
   private final URI baseURI;
   private final JsonSupport jsonSupport;
@@ -195,6 +195,7 @@ public class NakadiClient {
     /**
      * Optionally set the JSON support class.
      */
+    @Deprecated
     public Builder jsonSupport(JsonSupport jsonSupport) {
       this.jsonSupport = jsonSupport;
       return this;

@@ -43,12 +43,25 @@ public class EventResource {
     }
   }
 
-  @SafeVarargs public final Response send(EventRecord<? extends Event>... events) {
-    if (events.length == 0) {
+  @SafeVarargs public final <T extends Event> Response send(String eventTypeName, T... evts) {
+    return send(eventTypeName, Arrays.asList(evts));
+  }
+
+  public final Response send(String eventTypeName, List<? extends Event> events) {
+    if (events.size() == 0) {
       throw new NakadiException(Problem.localProblem("event send called with zero events", ""));
     }
 
-    List<EventRecord<? extends Event>> records = Arrays.asList(events);
+    List<EventRecord<? extends Event>> collect =
+        events.stream().map(e -> new EventRecord<>(eventTypeName, e)
+        ).collect(Collectors.toList());
+
+    return send(collect);
+  }
+
+
+  public final Response send(List<EventRecord<? extends Event>> records) {
+
     String topic = records.get(0).topic();
     List<Object> eventList =
         records.stream().map(this::mapEventRecordToSerdes).collect(Collectors.toList());
@@ -60,6 +73,15 @@ public class EventResource {
                     Resource.POST, collectionUri(topic).buildString(), options(), eventList),
         client,
         eventList.size());
+  }
+
+  @SafeVarargs public final Response send(EventRecord<? extends Event>... events) {
+    if (events.length == 0) {
+      throw new NakadiException(Problem.localProblem("event send called with zero events", ""));
+    }
+
+    List<EventRecord<? extends Event>> records = Arrays.asList(events);
+    return send(records);
   }
 
   @VisibleForTesting
