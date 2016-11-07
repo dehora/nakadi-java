@@ -195,6 +195,7 @@ public class NakadiClient {
     /**
      * Optionally set the JSON support class.
      */
+    @Deprecated
     public Builder jsonSupport(JsonSupport jsonSupport) {
       this.jsonSupport = jsonSupport;
       return this;
