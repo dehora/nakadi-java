@@ -431,7 +431,7 @@ processor.start();
 
 There are some notable differences: 
 
-- The `StreamConfiguration` is configured with an `subscriptionId`  instead of an `eventTypeName`.
+- The `StreamConfiguration` is configured with a `subscriptionId`  instead of an `eventTypeName`.
 
 - The inbuilt offset observer for a subscription stream will call Nakadi's checkpointing API to update the offset. You can replace this with your own implementation if you wish.
 
@@ -605,7 +605,7 @@ Client exceptions are runtime exceptions by default. They extend from
 `NakadiException` which allows you to catch all errors under one type. The 
 `NakadiException` embeds a `Problem` object which can be examined. Nakadi's 
 API uses Problem JSON ([RFC7807](https://tools.ietf.org/html/rfc7807)) to 
-describe errors). Local errors also contain Problem descriptions. 
+describe errors. Local errors also contain Problem descriptions. 
 
 The client will also throw an `IllegalArgumentException` in a number of places 
 where null fields are not accepted or sensible as values, such as required 
