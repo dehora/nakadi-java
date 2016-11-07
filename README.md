@@ -611,19 +611,20 @@ exception will have `Problem` information that can be examined.
 
 ### Exceptions
 
-Client exceptions are runtime exceptions by default. They extending from 
+Client exceptions are runtime exceptions by default. They extend from 
 `NakadiException` which allows you to catch all errors under one type. The 
-`NakadiException` embeds a `Problem` object which can be examined (Nakadi's 
-API used problem json to describe errors). Local errors also contain 
-Problem descriptions. 
+`NakadiException` embeds a `Problem` object which can be examined. Nakadi's 
+API uses Problem JSON ([RFC7807](https://tools.ietf.org/html/rfc7807)) to 
+describe errors). Local errors also contain Problem descriptions. 
 
 The client will also throw an `IllegalArgumentException` in a number of places 
 where null fields are not accepted or sensible as values, such as required 
 parameters for builder classes. However the client performs no real data 
 validation for API requests, leaving that to the server. Invalid server 
-requests resulting in 422s will cause an `InvalidException` to be thrown.
+requests resulting in 422s will cause an `InvalidException` to be thrown 
+instead.
 
-In a handfule of circumstances the API exposes a checked exception where 
+In a handful of circumstances the API exposes a checked exception where 
 it's neccessary the user handles the error; for example some exceptions 
 from `StreamOffsetObserver` are checked.
 
