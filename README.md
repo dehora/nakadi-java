@@ -142,7 +142,7 @@ and resolve bearer tokens if they are sent but will accept requests with no
 bearer token present. 
 
 You can define a token provider by implementing the `ResourceTokenProvider` 
-interface, which will upplies the client with a `ResourceToken` that will be 
+interface, which will supply the client with a `ResourceToken` that will be 
 sent to the server as an OAuth bearer token. The `ResourceTokenProvider` is 
 called on each request and thus can be implemented as a dynamic provider to 
 handle token refreshes and recycling.
