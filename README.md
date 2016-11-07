@@ -2,16 +2,15 @@
 
 # nakadi-java
 
-----
-
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *[DocToc](https://github.com/thlorenz/doctoc)*
 
 - [About](#about)
-- [Requirements](#requirements)
-- [Resources](#resources)
+- [Requirements and Getting Started](#requirements-and-getting-started)
+- [Status](#status)
 - [Usage](#usage)
+  - [Available Resources](#available-resources)
   - [Creating a client](#creating-a-client)
     - [Authorization](#authorization)
     - [Metric Collector](#metric-collector)
@@ -46,6 +45,7 @@
     - [Observer and Offset Observer Interaction](#observer-and-offset-observer-interaction)
     - [Resumption](#resumption)
 - [Contributing](#contributing)
+- [TODO](#todo)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -64,18 +64,44 @@ Nakadi-java is a client driver for the [Nakadi Event Broker](https://github.com/
 A number of existing clients already exist and are in use. Nakadi-java is not meant to compete with or replace them. The existing JVM clients looked at as a whole provide focused but partial implementations, with larger dependencies, whereas the aim of nakadi-java is to provide a 
 full client with a reduced dependency footprint. 
 
-## Requirements
+## Requirements and Getting Started
 
-Java 1.8 or later. If you want to build the project you'll also need Gradle. 
-The client uses SLFJ4 for logging; you may want to provide an implementation 
-binding that works with your local setup. 
+See the [installation section](#installation) on how to add the client library 
+to your project as a maven dependency.
 
-See the [installation section](#installation) on how to add the client to 
-your project.
+The client uses Java 1.8 or later. If you want to build the project you'll 
+also need Gradle. 
 
-## Resources
+## Status
 
-API resources this client supports:
+The client is pre 1.0.0, with the aim of getting to 1.0.0 quickly. 
+
+The client API is relatively stable and unlikely to see massive sweeping 
+changes, though some changes should be expected. The entire Nakadi API is 
+implemented, and confirming this will be part of a 1.0.0 release.
+
+The client's had some basic testing to verify it can handle things like 
+consumer stream connection/network failures and retries. It should not be 
+deemed robust yet, but it is a goal to produce a well-behaved production 
+level client especially for producing and consuming events for 1.0.0.
+
+Apart from code, a separate
+[nakadi-java-examples](https://github.com/dehora/nakadi-java-examples) project 
+will be created to provide runnable samples in Java along with a github pages 
+site.
+
+The [TODO](#todo) section has a list of things to get done.
+
+As a client that aims to provide a full implementation, it will post 1.0.0 
+continue to track the development of the Nakadi Event Broker's API.
+
+## Usage
+
+This section summarizes what you can do with the client. 
+
+### Available Resources
+
+The API resources this client supports are:
 
 - [Event Types](#event-types)
 - [Events](#producing-events)
@@ -85,9 +111,6 @@ API resources this client supports:
 - [Healthchecks](#healthchecks)
 - [Metrics](#metrics)
 
-## Usage
-
-The sections summarizes what you can do with the client. The [nakadi-java-examples](https://github.com/dehora/nakadi-java-examples) project provides runnable examples in Java.
 
 ### Creating a client
 
@@ -763,6 +786,26 @@ Please see the issue tracker for things to work on.
 Before making a contribution, please let us know by posting a comment to the 
 relevant issue. If you would like to propose a new feature, create a new issue 
 first explaining the feature you’d like to contribute or bug you want to fix.
+
+The codebase follows [Square's code style](https://github.com/square/java-code-styles) 
+for Java and Android projects.
+
+## TODO
+
+A set of issues and milestones will be opened, but for now:
+
+- [ ] Add a Github pages under the `docs` folder.
+- [ ] Complete Javadoc on API classes
+- [ ] A [nakadi-java-examples](https://github.com/dehora/nakadi-java-examples) project 
+- [ ] More system level/negative testing
+- [ ] More test coverage (serdes, internal classes)
+- [ ] Harden subscription consumer checkpointer
+- [ ] Add checked exception forced handling to `StreamOffsetObserver`.
+- [ ] Handle errors (eg 429) on auto-paginators
+- [ ] Add a Zign `ResourceTokenProvider` extension 
+- [ ] Move to incubator
+- [ ] DynamoDB based `StreamOffsetObserver` extension checkpointer (post 1.0.0)
+- [ ] Publish on maven (post 1.0.0)
 
 ----
 
