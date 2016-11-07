@@ -1,4 +1,4 @@
-🌀 [![CircleCI](https://circleci.com/gh/dehora/nakadi-java.svg?style=svg&circle-token=441a537c321834aaf46223d017ced8d9d043e5e0)](https://circleci.com/gh/dehora/nakadi-java)
+[![CircleCI](https://circleci.com/gh/dehora/nakadi-java.svg?style=svg&circle-token=441a537c321834aaf46223d017ced8d9d043e5e0)](https://circleci.com/gh/dehora/nakadi-java)
 
 # nakadi-java
 
@@ -56,11 +56,12 @@ Nakadi-java is a client driver for the [Nakadi Event Broker](https://github.com/
 
 - To provide a complete reference implementation of the Nakadi API for producers and consumers, that can be used as is, or as the engine for higher level abstractions.
 
-- Minimise dependencies. The project doesn't force a dependency on frameworks or libraries. The sole dependency is on the SLFJ4 API.
+- Minimise dependencies. The client doesn't force a dependency on frameworks or libraries. The sole dependency is on the SLFJ4 API.
 
-- To pay attention to production level HTTP handling. Runtime behaviour, error handling, logging and instrumentation matter as much as functionality. 
+- To pay attention to production level HTTP handling. Runtime behaviour, error handling, logging,  instrumentation and consumer stream handling are given the same importance as functionality. 
 
-A number of existing clients already exist and are in use. Nakadi-java is not meant to compete with or replace them. But the existing JVM clients, looked at as a whole provide focused but partial implementations or have larger dependencies. 
+A number of existing clients already exist and are in use. Nakadi-java is not meant to compete with or replace them. The existing JVM clients looked at as a whole provide focused but partial implementations, with larger dependencies, whereas the aim of nakadi-java is to provide a 
+full client with a reduced dependency footprint. 
 
 ## Requirements
 
