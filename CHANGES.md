@@ -21,5 +21,14 @@ supported by the Nakadi server.
 
 - Health. Exception and HTTP based healthcheck calls.
 
+#### 0.0.1
+
+- Add an overview to the readme
+
+- Deprecate setting JSON support (will be rm'd for 1.0.0)
+
+- Provide convenience methods for event posting
+
+- Use varargs for setting parent eids
 
 
