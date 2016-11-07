@@ -354,8 +354,7 @@ batch to plain strings.
 The API also supports a `StreamOffsetObserver` - the offset observer is given 
 to the `StreamObserver` object with each `onNext` call. Typically the offset 
 observer is used to provide checkpointing of a consumer's partition in the 
-stream. If no offset observer is given, the default observer used is 
-`LoggingStreamOffsetObserver` which simply logs when it is invoked.
+stream. 
 
 #### Named Event Type Streaming
 
@@ -406,6 +405,8 @@ StreamProcessor boundedProcessor = client.resources().streamBuilder()
 boundedProcessor.start(); 
 ```
 
+If no offset observer is given, the default observer used is 
+`LoggingStreamOffsetObserver` which simply logs when it is invoked.
 
 #### Subscription Streaming
 
