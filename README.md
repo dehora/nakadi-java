@@ -59,18 +59,15 @@ Nakadi-java is a client driver for the [Nakadi Event Broker](https://github.com/
 
 A number of JVM clients already exist and are in use - nakadi-java is not meant 
 to compete with or replace them. In certain respects they solve different 
-goals. The existing JVM clients looked at as a whole provide partial 
-implementations, with larger dependencies, but which are idiomatic to certain 
-framworks, whereas the aim of nakadi-java is to provide a full client with a 
+goals. The existing JVM clients looked at as a whole, provide partial 
+implementations with larger dependencies, but which are idiomatic to certain 
+frameworks, whereas the aim of nakadi-java is to provide a full client with a 
 reduced dependency footprint to allow portability. 
 
 ## Requirements and Getting Started
 
 See the [installation section](#installation) on how to add the client library 
-to your project as a jar dependency.
-
-The client uses Java 1.8 or later. If you want to build the project you'll also 
-need Gradle. 
+to your project as a jar dependency. The client uses Java 1.8 or later. 
 
 ## Status
 
