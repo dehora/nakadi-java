@@ -653,7 +653,7 @@ for Java and Android projects.
 
 A set of issues and milestones will be opened, but for now:
 
-- [ ] Add a Github pages under the `docs` folder.
+- [x] ~~Add Github pages~~
 - [ ] Complete Javadoc on API classes
 - [ ] A [nakadi-java-examples](https://github.com/dehora/nakadi-java-examples) project 
 - [ ] More system level/negative testing
