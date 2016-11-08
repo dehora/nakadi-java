@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ import rx.schedulers.Schedulers;
 public class StreamProcessor implements StreamProcessorManaged {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
+  private static final int DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS = 90;
 
   private final NakadiClient client;
   private final StreamConfiguration streamConfiguration;
@@ -30,9 +32,10 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final JsonBatchSupport jsonBatchSupport;
   private final AtomicBoolean started = new AtomicBoolean(false);
   private final Scheduler computeScheduler;
-  private final Scheduler ioScheduler;
+  private final Scheduler monoScheduler;
   private final long maxRetryDelay;
   private final int maxRetryAttempts;
+
   // non builder supplied
   private Subscription subscription;
 
@@ -44,8 +47,8 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.streamOffsetObserver = null;
     this.executorService = null;
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
-    this.ioScheduler = Schedulers.io();
     this.computeScheduler = Schedulers.computation();
+    this.monoScheduler = Schedulers.from(Executors.newSingleThreadExecutor());
     this.maxRetryDelay = StreamConnectionRetry.DEFAULT_MAX_DELAY_SECONDS;
     this.maxRetryAttempts = StreamConnectionRetry.DEFAULT_MAX_ATTEMPTS;
   }
@@ -57,8 +60,8 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.streamOffsetObserver = builder.streamOffsetObserver;
     this.executorService = builder.executorService;
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
-    this.ioScheduler = Schedulers.io();
     this.computeScheduler = Schedulers.computation();
+    this.monoScheduler = Schedulers.from(Executors.newSingleThreadExecutor());
     this.maxRetryDelay = streamConfiguration.maxRetryDelaySeconds();
     this.maxRetryAttempts = streamConfiguration.maxRetryAttempts();
   }
@@ -100,72 +103,107 @@ public class StreamProcessor implements StreamProcessorManaged {
     StreamObserver<T> observer = observerProvider.createStreamObserver();
     TypeLiteral<T> typeLiteral = observerProvider.typeLiteral();
     Observable<StreamBatchRecord<T>> observable =
-        this.createStreamBatchRecordObservable(observer, sc, offsetObserver, typeLiteral);
+        this.buildStreamObservable(observer, sc, offsetObserver, typeLiteral);
 
     /*
       if the stream observer wants buffering set that up; it will still see
       discrete batches but the rx observer wrapping around it here will be given
       buffered up lists
      */
+
+    /*
+     todo: might be possible to use computation() instead, but mono is easier to reason
+     about wrt to ordering/sequential batch processing.
+      */
+
     Optional<Integer> maybeBuffering = observer.requestBuffer();
     if (maybeBuffering.isPresent()) {
       logger.info("Creating buffering subscriber buffer={} {}", maybeBuffering.get(), sc);
       subscription = observable
+          .observeOn(monoScheduler)
           .buffer(maybeBuffering.get())
           .subscribe(
               new StreamBatchRecordBufferingSubscriber<>(observer, client.metricCollector()));
     } else {
       logger.info("Creating regular subscriber {}", sc);
       subscription = observable
-          .observeOn(computeScheduler)
+          .observeOn(monoScheduler)
           .subscribe(new StreamBatchRecordSubscriber<>(
               observer, client.metricCollector()));
     }
   }
 
-  private <T> Observable<StreamBatchRecord<T>> createStreamBatchRecordObservable(
-      StreamObserver<T> observer,
-      StreamConfiguration sc,
+  private <T> Observable<StreamBatchRecord<T>> buildStreamObservable(
+      StreamObserver<T> streamObserver,
+      StreamConfiguration streamConfiguration,
       StreamOffsetObserver streamOffsetObserver,
       TypeLiteral<T> typeLiteral) {
 
-    Observable<StreamBatchRecord<T>> observable = Observable.using(
-        resourceFactory(sc),
-        observableFactory(streamOffsetObserver, typeLiteral, sc),
-        observableDispose());
+    /*
+     compute a timeout after which we assume the server's gone away or we're on
+     one end of a half-open connection. this is a big downside trying to emulate
+     a streaming model over http get; you really need bidirectional comms instead
+     todo: make these configurable
+     */
+    TimeUnit halfOpenUnit = TimeUnit.SECONDS;
+    long halfOpenGrace = DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS;
+    long batchFlushTimeoutSeconds = this.streamConfiguration.batchFlushTimeoutSeconds();
+    long halfOpenKick = halfOpenUnit.toSeconds(batchFlushTimeoutSeconds + halfOpenGrace);
+    logger.info(
+        "configuring half open timeout, batch_flush_timeout={}, grace_period={}, disconnect_after={} {}",
+        batchFlushTimeoutSeconds, halfOpenGrace, halfOpenKick, halfOpenUnit.name().toLowerCase());
 
+    /*
+    monoScheduler: okhttp needs to be closed on the same thread that opened; using a
+    single thread scheduler allows that to happen whereas the default/io/compute schedulers
+    all use multiple threads which can cause resource leaks: http://bit.ly/2fe4UZH
+    */
+
+    return Observable
+        .defer(() ->
+            // defer waits for the subscription before emitting
+            Observable.using(
+                resourceFactory(streamConfiguration),
+                observableFactory(streamOffsetObserver, typeLiteral, streamConfiguration),
+                observableDispose()
+            )
+        )
+        .subscribeOn(monoScheduler)
+        .unsubscribeOn(monoScheduler)
+        .timeout(halfOpenKick, halfOpenUnit)
+        .doOnSubscribe(streamObserver::onStart)
+        .doOnUnsubscribe(streamObserver::onStop)
+        .compose(buildRetryHandler(streamConfiguration))
+        .compose(buildRestartHandler());
+  }
+
+  private <T> Observable.Transformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRetryHandler(
+      StreamConfiguration streamConfiguration) {
     int initialDelay = StreamConnectionRetry.DEFAULT_INITIAL_DELAY_SECONDS;
     TimeUnit unit = StreamConnectionRetry.DEFAULT_TIME_UNIT;
+    final Func1<Throwable, Boolean> isRetryable = buildRetryFunction(streamConfiguration);
+    return new StreamConnectionRetry()
+        .retryWhenWithBackoff(
+            maxRetryAttempts, initialDelay, maxRetryDelay, unit, monoScheduler, isRetryable);
+  }
 
-    // todo: make these configurable
+  private <T> Observable.Transformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRestartHandler() {
     long restartDelay = StreamConnectionRestart.DEFAULT_DELAY_SECONDS;
     TimeUnit restartDelayUnit = StreamConnectionRestart.DEFAULT_DELAY_UNIT;
     int maxRestarts = StreamConnectionRestart.DEFAULT_MAX_RESTARTS;
+    return new StreamConnectionRestart()
+        .repeatWhenWithDelayAndUntil(
+            stopRepeatingPredicate(), restartDelay, restartDelayUnit, maxRestarts);
+  }
 
+  private Func1<Throwable, Boolean> buildRetryFunction(StreamConfiguration sc) {
     final Func1<Throwable, Boolean> isRetryable;
     if (sc.isSubscriptionStream()) {
       isRetryable = StreamExceptionSupport::isSubscriptionRetryable;
     } else {
       isRetryable = StreamExceptionSupport::isRetryable;
     }
-
-    observable = observable
-        .subscribeOn(ioScheduler)
-        .unsubscribeOn(ioScheduler)
-        .doOnSubscribe(observer::onStart)
-        .doOnUnsubscribe(observer::onStop)
-        .compose(
-            new StreamConnectionRetry()
-                .retryWhenWithBackoff(
-                    maxRetryAttempts, initialDelay, maxRetryDelay, unit, ioScheduler, isRetryable)
-        )
-        .compose(
-            new StreamConnectionRestart()
-                .repeatWhenWithDelayAndUntil(
-                    stopRepeatingPredicate(), restartDelay, restartDelayUnit, maxRestarts)
-        )
-    ;
-    return observable;
+    return isRetryable;
   }
 
   private Func1<Long, Boolean> stopRepeatingPredicate() {
@@ -186,11 +224,12 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private Action1<? super Response> observableDispose() {
     return (response) -> {
-      logger.info("dispose " + response.hashCode());
+      logger.info("disposing connection {} {}", response.hashCode(), response);
       try {
         response.responseBody().close();
       } catch (IOException e) {
-        e.printStackTrace();
+        throw new NakadiException(
+            Problem.networkProblem("failed to close stream response", e.getMessage()), e);
       }
     };
   }
@@ -215,14 +254,20 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private Func0<Response> resourceFactory(StreamConfiguration sc) {
     return () -> {
-
       String eventTypeName = resolveEventTypeName(sc);
-
       String url = StreamResourceSupport.buildStreamUrl(client.baseURI(), sc);
       ResourceOptions options = StreamResourceSupport.buildResourceOptions(client, sc);
-      logger.info(String.format("resourceFactory mode=%s resolved_event_name=%s url=%s",
-          sc.isEventTypeStream() ? "eventStream" : "subscriptionStream", eventTypeName, url));
-      return buildResource(sc).requestThrowing(Resource.GET, url, options);
+      logger.info("resourceFactory mode={} resolved_event_name={} url={}",
+          sc.isEventTypeStream() ? "eventStream" : "subscriptionStream", eventTypeName, url);
+      Resource resource = buildResource(sc);
+      /*
+       sometimes we can get a 409 from here (Conflict; No free slots) on the subscription; this
+       can happen when we disconnect if we think there's a zombie connection and throw a timeout.
+       the retry/restarts will handle it
+      */
+      Response response = resource.requestThrowing(Resource.GET, url, options);
+      logger.info("opening connection {} {}", response.hashCode(), response);
+      return response;
     };
   }
 
