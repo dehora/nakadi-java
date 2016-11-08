@@ -36,7 +36,7 @@ public class LoggingStreamObserver extends StreamObserverBackPressure<String> {
       final StreamBatch<String> batch = record.streamBatch();
       final StreamCursorContext context = record.streamCursorContext();
 
-      MDC.put("cursor", context.toString());
+      MDC.put("cursor_context", context.toString());
       try {
         if (batch.isEmpty()) {
           logger.info("LoggingStreamObserver: keepalive");
@@ -53,7 +53,7 @@ public class LoggingStreamObserver extends StreamObserverBackPressure<String> {
               "LoggingStreamObserver events processed =====================================");
         }
       } finally {
-        MDC.remove("cursor");
+        MDC.remove("cursor_context");
       }
     } catch (NakadiException e) {
       throw e;
