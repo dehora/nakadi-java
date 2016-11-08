@@ -109,13 +109,13 @@ public class StreamProcessor implements StreamProcessorManaged {
      */
     Optional<Integer> maybeBuffering = observer.requestBuffer();
     if (maybeBuffering.isPresent()) {
-      logger.info("Creating buffering subscriber, buffer={}", maybeBuffering.get());
+      logger.info("Creating buffering subscriber buffer={} {}", maybeBuffering.get(), sc);
       subscription = observable
           .buffer(maybeBuffering.get())
           .subscribe(
               new StreamBatchRecordBufferingSubscriber<>(observer, client.metricCollector()));
     } else {
-      logger.info("Creating regular subscriber");
+      logger.info("Creating regular subscriber {}", sc);
       subscription = observable
           .observeOn(computeScheduler)
           .subscribe(new StreamBatchRecordSubscriber<>(
