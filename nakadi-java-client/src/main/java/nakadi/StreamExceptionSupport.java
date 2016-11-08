@@ -65,6 +65,13 @@ class StreamExceptionSupport {
       return false; // todo: investigate if this can be retryable
     }
 
+    if (e instanceof java.util.concurrent.TimeoutException) {
+      logger.warn(
+          "Retryable timeout exception, maybe due to the server not sending keepalives in time {}",
+          e.getMessage());
+      return true;
+    }
+
     logger.warn(
         String.format("Non-retryable exception: %s %s", e.getClass(), e.getMessage()));
 
