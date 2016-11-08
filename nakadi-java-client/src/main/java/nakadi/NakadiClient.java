@@ -131,6 +131,14 @@ public class NakadiClient {
 
       logger.info("Loaded resource token provider {}", resourceTokenProvider.getClass().getName());
 
+      if (metricCollector == null) {
+        metricCollector = new MetricCollectorDevnull();
+      }
+
+      logger.info("Loaded metric collector {}", metricCollector.getClass().getName());
+
+      metricCollector = new MetricCollectorSafely(metricCollector);
+
       if (resourceProvider == null) {
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
@@ -146,14 +154,6 @@ public class NakadiClient {
         resourceProvider =
             new OkHttpResourceProvider(baseURI, builder.build(), jsonSupport, metricCollector);
       }
-
-      if (metricCollector == null) {
-        metricCollector = new MetricCollectorDevnull();
-      }
-
-      logger.info("Loaded metric collector {}", metricCollector.getClass().getName());
-
-      metricCollector = new MetricCollectorSafely(metricCollector);
 
       return new NakadiClient(this);
     }
