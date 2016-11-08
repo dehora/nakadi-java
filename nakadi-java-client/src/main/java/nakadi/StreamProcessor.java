@@ -97,9 +97,6 @@ public class StreamProcessor implements StreamProcessorManaged {
       StreamObserverProvider<T> observerProvider,
       StreamOffsetObserver offsetObserver) {
 
-    // todo: replace with per event tracking; this doesn't work if subs ever allow multiple types
-    String eventTypeName = resolveEventTypeName(sc);
-
     StreamObserver<T> observer = observerProvider.createStreamObserver();
     TypeLiteral<T> typeLiteral = observerProvider.typeLiteral();
     Observable<StreamBatchRecord<T>> observable =
@@ -218,10 +215,13 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private Func0<Response> resourceFactory(StreamConfiguration sc) {
     return () -> {
+
+      String eventTypeName = resolveEventTypeName(sc);
+
       String url = StreamResourceSupport.buildStreamUrl(client.baseURI(), sc);
       ResourceOptions options = StreamResourceSupport.buildResourceOptions(client, sc);
-      logger.info(String.format("resourceFactory mode=%s url=%s",
-          sc.isEventTypeStream() ? "eventStream" : "subscriptionStream", url));
+      logger.info(String.format("resourceFactory mode=%s resolved_event_name=%s url=%s",
+          sc.isEventTypeStream() ? "eventStream" : "subscriptionStream", eventTypeName, url));
       return buildResource(sc).requestThrowing(Resource.GET, url, options);
     };
   }
