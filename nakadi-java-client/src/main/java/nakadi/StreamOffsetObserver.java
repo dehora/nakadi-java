@@ -20,7 +20,6 @@ public interface StreamOffsetObserver {
    *
    * @param streamCursorContext the batch's {@link StreamCursorContext}.
    *
-   * todo: see if we need to declare checked exceptions here to force the observer to handle.
    */
   void onNext(StreamCursorContext streamCursorContext) throws NakadiException;
 }
