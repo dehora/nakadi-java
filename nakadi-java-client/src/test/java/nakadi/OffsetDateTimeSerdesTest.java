@@ -25,12 +25,13 @@ public class OffsetDateTimeSerdesTest {
     try {
       /*
       this date is from https://tools.ietf.org/html/rfc3339 and
-      represents a leap second (note the 60 at the end). Java doesn't
-      handle this so it adding it here as a memo
+      represents a leap second (note the 60 at the end). Our default
+      iso formatter doesn't handle this so it adding it here as a memo
+      that we cater for it
        */
-      serdes.toOffsetDateTime("1990-12-31T23:59:60Z");
-      fail();
+      serdes.toOffsetDateTime("2016-12-31T23:59:60Z");
     } catch (Exception ignored) {
+      fail();
     }
   }
 }
