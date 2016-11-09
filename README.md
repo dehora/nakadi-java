@@ -663,7 +663,7 @@ A set of issues and milestones will be opened, but for now:
 - [ ] Handle errors (eg 429) on auto-paginators
 - [x] Handle half-open/zombie streams [ef0f9c2](https://github.com/dehora/nakadi-java/commit/ef0f9c2f49238fc80e990063b62795e708ef6ddf)
 - [ ] Add a Zign `ResourceTokenProvider` extension 
-- [ ] Move to incubator
+- [x] Move to incubator
 - [ ] DynamoDB based `StreamOffsetObserver` extension checkpointer (post 1.0.0)
 - [ ] Publish on maven (post 1.0.0)
 
