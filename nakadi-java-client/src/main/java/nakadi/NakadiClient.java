@@ -193,15 +193,6 @@ public class NakadiClient {
     }
 
     /**
-     * Optionally set the JSON support class.
-     */
-    @Deprecated
-    public Builder jsonSupport(JsonSupport jsonSupport) {
-      this.jsonSupport = jsonSupport;
-      return this;
-    }
-
-    /**
      * Optionally set the token provider. Not setting a provider will mean no bearer tokens are
      * sent to the server by default.
      */
