@@ -673,7 +673,7 @@ A set of issues and milestones will be opened, but for now:
 
 MIT License
 
-Copyright (c) 2016 Bill de hÓra
+Copyright (c) 2016 Zalando SE, https://tech.zalando.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
