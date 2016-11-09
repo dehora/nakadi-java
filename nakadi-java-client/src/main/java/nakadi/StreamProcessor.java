@@ -31,13 +31,17 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final ExecutorService executorService;
   private final JsonBatchSupport jsonBatchSupport;
   private final AtomicBoolean started = new AtomicBoolean(false);
-  private final Scheduler computeScheduler;
-  private final Scheduler monoScheduler;
+  private final Scheduler monoIoScheduler;
+  private final Scheduler monoComputeScheduler;
   private final long maxRetryDelay;
   private final int maxRetryAttempts;
 
   // non builder supplied
   private Subscription subscription;
+
+  // todo: give these an orderly shutdown via ExecutorServiceSupport
+  private final ExecutorService monoIoExecutor;
+  private final ExecutorService monoComputeExecutor;
 
   @VisibleForTesting
   @SuppressWarnings("unused") StreamProcessor(NakadiClient client) {
@@ -47,8 +51,10 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.streamOffsetObserver = null;
     this.executorService = null;
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
-    this.computeScheduler = Schedulers.computation();
-    this.monoScheduler = Schedulers.from(Executors.newSingleThreadExecutor());
+    this.monoIoExecutor = Executors.newSingleThreadExecutor();
+    this.monoComputeExecutor = Executors.newSingleThreadExecutor();
+    this.monoIoScheduler = Schedulers.from(monoIoExecutor);
+    this.monoComputeScheduler = Schedulers.from(monoComputeExecutor);
     this.maxRetryDelay = StreamConnectionRetry.DEFAULT_MAX_DELAY_SECONDS;
     this.maxRetryAttempts = StreamConnectionRetry.DEFAULT_MAX_ATTEMPTS;
   }
@@ -60,8 +66,10 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.streamOffsetObserver = builder.streamOffsetObserver;
     this.executorService = builder.executorService;
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
-    this.computeScheduler = Schedulers.computation();
-    this.monoScheduler = Schedulers.from(Executors.newSingleThreadExecutor());
+    this.monoIoExecutor = Executors.newSingleThreadExecutor();
+    this.monoComputeExecutor = Executors.newSingleThreadExecutor();
+    this.monoIoScheduler = Schedulers.from(monoIoExecutor);
+    this.monoComputeScheduler = Schedulers.from(monoComputeExecutor);
     this.maxRetryDelay = streamConfiguration.maxRetryDelaySeconds();
     this.maxRetryAttempts = streamConfiguration.maxRetryAttempts();
   }
@@ -112,22 +120,25 @@ public class StreamProcessor implements StreamProcessorManaged {
      */
 
     /*
-     todo: might be possible to use computation() instead, but mono is easier to reason
-     about wrt to ordering/sequential batch processing.
+    Do processing on monoComputeScheduler; if these also use monoIoScheduler (or any shared
+    single thread executor), the pipeline can lock up as the thread is dominated by io and
+    never frees to process batches. monoComputeScheduler is a single thread executor to make
+    things easier to reason about for now wrt to ordering/sequential batch processing (but the
+    regular computation scheduler could work as well maybe).
       */
 
     Optional<Integer> maybeBuffering = observer.requestBuffer();
     if (maybeBuffering.isPresent()) {
       logger.info("Creating buffering subscriber buffer={} {}", maybeBuffering.get(), sc);
       subscription = observable
-          .observeOn(monoScheduler)
+          .observeOn(monoComputeScheduler)
           .buffer(maybeBuffering.get())
           .subscribe(
               new StreamBatchRecordBufferingSubscriber<>(observer, client.metricCollector()));
     } else {
       logger.info("Creating regular subscriber {}", sc);
       subscription = observable
-          .observeOn(monoScheduler)
+          .observeOn(monoComputeScheduler)
           .subscribe(new StreamBatchRecordSubscriber<>(
               observer, client.metricCollector()));
     }
@@ -154,27 +165,27 @@ public class StreamProcessor implements StreamProcessorManaged {
         batchFlushTimeoutSeconds, halfOpenGrace, halfOpenKick, halfOpenUnit.name().toLowerCase());
 
     /*
-    monoScheduler: okhttp needs to be closed on the same thread that opened; using a
+    monoIoScheduler: okhttp needs to be closed on the same thread that opened; using a
     single thread scheduler allows that to happen whereas the default/io/compute schedulers
     all use multiple threads which can cause resource leaks: http://bit.ly/2fe4UZH
     */
 
-    return Observable
-        .defer(() ->
-            // defer waits for the subscription before emitting
+    return
+        Observable.defer(() ->
             Observable.using(
                 resourceFactory(streamConfiguration),
                 observableFactory(streamOffsetObserver, typeLiteral, streamConfiguration),
                 observableDispose()
             )
-        )
-        .subscribeOn(monoScheduler)
-        .unsubscribeOn(monoScheduler)
-        .timeout(halfOpenKick, halfOpenUnit)
-        .doOnSubscribe(streamObserver::onStart)
-        .doOnUnsubscribe(streamObserver::onStop)
-        .compose(buildRetryHandler(streamConfiguration))
-        .compose(buildRestartHandler());
+                .subscribeOn(monoIoScheduler)
+                .unsubscribeOn(monoIoScheduler)
+                .doOnSubscribe(streamObserver::onStart)
+                .doOnUnsubscribe(streamObserver::onStop)
+                .timeout(halfOpenKick, halfOpenUnit)
+                .compose(buildRetryHandler(streamConfiguration))
+                .compose(buildRestartHandler()
+                )
+        );
   }
 
   private <T> Observable.Transformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRetryHandler(
@@ -184,7 +195,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     final Func1<Throwable, Boolean> isRetryable = buildRetryFunction(streamConfiguration);
     return new StreamConnectionRetry()
         .retryWhenWithBackoff(
-            maxRetryAttempts, initialDelay, maxRetryDelay, unit, monoScheduler, isRetryable);
+            maxRetryAttempts, initialDelay, maxRetryDelay, unit, monoIoScheduler, isRetryable);
   }
 
   private <T> Observable.Transformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRestartHandler() {
@@ -277,6 +288,8 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private <T> StreamBatchRecord<T> lineToStreamBatchRecord(String line,
       TypeLiteral<T> typeLiteral, Response response, StreamConfiguration sc) {
+
+    logger.debug("tokenized line from stream {}, {}", line, response);
 
     if (sc.isSubscriptionStream()) {
       String xNakadiStreamId = response.headers().get("X-Nakadi-StreamId").get(0);
