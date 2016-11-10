@@ -224,12 +224,15 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private <T> Observable.Transformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRetryHandler(
       StreamConfiguration streamConfiguration) {
-    int initialDelay = StreamConnectionRetry.DEFAULT_INITIAL_DELAY_SECONDS;
     TimeUnit unit = StreamConnectionRetry.DEFAULT_TIME_UNIT;
+    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
+        .initialInterval(StreamConnectionRetry.DEFAULT_INITIAL_DELAY_SECONDS, unit)
+        .maxInterval(maxRetryDelay, unit)
+        .build();
+
     final Func1<Throwable, Boolean> isRetryable = buildRetryFunction(streamConfiguration);
     return new StreamConnectionRetry()
-        .retryWhenWithBackoff(
-            maxRetryAttempts, initialDelay, maxRetryDelay, unit, monoIoScheduler, isRetryable);
+        .retryWhenWithBackoff(backoff, monoIoScheduler, isRetryable);
   }
 
   private <T> Observable.Transformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRestartHandler() {
