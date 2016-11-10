@@ -1,5 +1,7 @@
 ### Changes
 
+#### 0.0.3
+
 #### 0.0.2
 
 - Make UndefinedEventMapped and BusinessEventMapped generic [#18](https://github.com/zalando-incubator/nakadi-java/issues/18)
