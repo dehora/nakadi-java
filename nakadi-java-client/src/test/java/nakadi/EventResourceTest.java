@@ -26,10 +26,10 @@ public class EventResourceTest {
   public void serdesUndefinedEventMapped() {
     EventResource eventResource = new EventResource(null);
 
-    UndefinedEventMapped ue = new UndefinedEventMapped();
     Map<String, Object> uemap = Maps.newHashMap();
     uemap.put("a", "1");
-    ue.data(uemap);
+    UndefinedEventMapped<Map<String, Object>> ue =
+        new UndefinedEventMapped<Map<String, Object>>().data(uemap);
     EventRecord<UndefinedEventMapped> er = new EventRecord<>("topic", ue);
     Map<String, Object> outmap = (Map<String, Object>) eventResource.mapEventRecordToSerdes(er);
     assertTrue(outmap.size() == 1);

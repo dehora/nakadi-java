@@ -4,25 +4,63 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class JsonBatchSupportTest {
 
   private final GsonSupport jsonSupport = new GsonSupport();
   private final JsonBatchSupport support = new JsonBatchSupport(jsonSupport);
+  private final StreamOffsetObserver observer = e -> {
+  };
+  private final String undefinedLine = TestSupport.load("undefined-event-batch-1.json");
+  private final String businessLine = TestSupport.load("business-event-batch-1.json");
+  private final String dataLine = TestSupport.load("data-change-event-batch-1.json");
 
   @Test
-  public void testUndefinedMarshal() {
+  public void testUndefinedMarshalNotParameterized() {
 
-    final String line = TestSupport.load("undefined-event-batch-1.json");
+    // the type literal is fine, but the UndefinedEventMapped has no parameter
+    TypeLiteral<UndefinedEventMapped> literal = new TypeLiteral<UndefinedEventMapped>() {};
 
-    TypeLiteral<UndefinedEventMapped> eventType =
-        new TypeLiteral<UndefinedEventMapped>() {
+    try {
+      StreamBatchRecord<UndefinedEventMapped> sbr =
+          support.lineToEventStreamBatchRecord(undefinedLine, literal.type(), observer);
+      fail("An un-parameterized UndefinedEventMapped type literal should not be processed");
+    } catch (IllegalArgumentException ignored) {
+    }
+  }
+
+  @Test
+  public void testUndefinedCanMarshalAGeneric() {
+
+    TypeLiteral<UndefinedEventMapped<UndefinedPayload>> eventType =
+        new TypeLiteral<UndefinedEventMapped<UndefinedPayload>>() {
         };
 
-    StreamBatchRecord<UndefinedEventMapped> sbr =
-        support.lineToEventStreamBatchRecord(line, eventType.type(), e -> {
-        });
+    StreamBatchRecord<UndefinedEventMapped<UndefinedPayload>> sbr =
+        support.lineToEventStreamBatchRecord(undefinedLine, eventType.type(), observer);
+
+    assertEquals("36", sbr.streamBatch().cursor().offset());
+    assertEquals("0", sbr.streamBatch().cursor().partition());
+
+    UndefinedEventMapped<UndefinedPayload> event = sbr.streamBatch().events().get(0);
+    UndefinedPayload data = event.data();
+    assertEquals("1", data.id);
+    assertEquals("2", data.foo);
+    assertEquals("3", data.bar);
+  }
+
+  @Test
+  public void testUndefinedCanMarshalAGenericMap() {
+
+    TypeLiteral<UndefinedEventMapped<Map<String, Object>>> eventType =
+        new TypeLiteral<UndefinedEventMapped<Map<String, Object>>>() {
+        };
+
+    StreamBatchRecord<UndefinedEventMapped<Map<String, Object>>> sbr =
+        support.lineToEventStreamBatchRecord(undefinedLine, eventType.type(), observer);
 
     assertEquals("36", sbr.streamBatch().cursor().offset());
     assertEquals("0", sbr.streamBatch().cursor().partition());
@@ -32,24 +70,65 @@ public class JsonBatchSupportTest {
     expected.put("foo", "2");
     expected.put("bar", "3");
 
-    UndefinedEventMapped event = sbr.streamBatch().events().get(0);
+    UndefinedEventMapped<Map<String, Object>> event = sbr.streamBatch().events().get(0);
     assertEquals(expected, event.data());
   }
 
   @Test
-  public void testBusinessMarshal() {
+  public void testBusinessMarshalRejectsNotParameterized() {
 
-    final String line = TestSupport.load("business-event-batch-1.json");
+    // the type literal is fine, but the BusinessEventMapped has no parameter
+    TypeLiteral<BusinessEventMapped> literal = new TypeLiteral<BusinessEventMapped>() {};
 
-    TypeLiteral<BusinessEventMapped> eventType =
-        new TypeLiteral<BusinessEventMapped>() {
+    try {
+      StreamBatchRecord<BusinessEventMapped> sbr =
+          support.lineToEventStreamBatchRecord(businessLine, literal.type(), observer);
+      fail("An un-parameterized BusinessEventMapped type literal should not be processed");
+    } catch (IllegalArgumentException ignored) {
+    }
+  }
+
+  @Test
+  public void testBusinessCanMarshalAGeneric() {
+
+
+    TypeLiteral<BusinessEventMapped<UndefinedPayload>> eventType =
+        new TypeLiteral<BusinessEventMapped<UndefinedPayload>>() {
         };
 
-    StreamBatchRecord<BusinessEventMapped> sbr =
-        support.lineToEventStreamBatchRecord(line, eventType.type(), e -> {
-        });
+    StreamBatchRecord<BusinessEventMapped<UndefinedPayload>> sbr =
+        support.lineToEventStreamBatchRecord(businessLine, eventType.type(), observer);
 
-    BusinessEventMapped event = sbr.streamBatch().events().get(0);
+    BusinessEventMapped<UndefinedPayload> event = sbr.streamBatch().events().get(0);
+
+    assertEquals("36", sbr.streamBatch().cursor().offset());
+    assertEquals("0", sbr.streamBatch().cursor().partition());
+
+    EventMetadata metadata = event.metadata();
+    assertEquals("2016-09-20T21:52Z", metadata.occurredAt().toString());
+    assertEquals("a2ab0b7c-ee58-48e5-b96a-d13bce73d857", metadata.eid());
+    assertEquals("et-1", metadata.eventType());
+    assertEquals("0", metadata.partition());
+    assertEquals("2016-10-26T18:12:20.712Z", metadata.receivedAt().toString());
+    assertEquals("Nt0oU70k3UCNp2NKugrIF0QU", metadata.flowId());
+
+    UndefinedPayload data = event.data();
+    assertEquals("1", data.id);
+    assertEquals("2", data.foo);
+    assertEquals("3", data.bar);
+  }
+
+  @Test
+  public void testBusinessCanMarshalAGenericMap() {
+
+    TypeLiteral<BusinessEventMapped<Map<String, Object>>> eventType =
+        new TypeLiteral<BusinessEventMapped<Map<String, Object>>>() {
+        };
+
+    StreamBatchRecord<BusinessEventMapped<Map<String, Object>>> sbr =
+        support.lineToEventStreamBatchRecord(businessLine, eventType.type(), observer);
+
+    BusinessEventMapped<Map<String, Object>> event = sbr.streamBatch().events().get(0);
 
     assertEquals("36", sbr.streamBatch().cursor().offset());
     assertEquals("0", sbr.streamBatch().cursor().partition());
@@ -71,16 +150,14 @@ public class JsonBatchSupportTest {
   }
 
   @Test
-  public void testTypeLiteralMarshal() {
-
-    final String line = TestSupport.load("data-change-event-batch-1.json");
+  public void testDataChangeEventCanMarshalAGeneric() {
 
     TypeLiteral<DataChangeEvent<ID>> eventType =
         new TypeLiteral<DataChangeEvent<ID>>() {
         };
 
     StreamBatchRecord<DataChangeEvent<ID>> sbr =
-        support.lineToEventStreamBatchRecord(line, eventType.type(),
+        support.lineToEventStreamBatchRecord(dataLine, eventType.type(),
             new LoggingStreamOffsetObserver());
 
     assertEquals("95", sbr.streamBatch().cursor().offset());
@@ -98,7 +175,7 @@ public class JsonBatchSupportTest {
   }
 
   @Test
-  public void testTypeLiteralMarshalEmptyBatch() {
+  public void testTypeLiteralCanMarshalAnEmptyBatch() {
     TypeLiteral<DataChangeEvent<ID>> eventType =
         new TypeLiteral<DataChangeEvent<ID>>() {
         };
@@ -113,7 +190,22 @@ public class JsonBatchSupportTest {
     assertTrue(sbr1.streamBatch().events().size() == 0);
   }
 
+  private static class UndefinedPayload {
+    String id;
+    String foo;
+    String bar;
+
+
+    UndefinedPayload(String id, String foo, String bar) {
+      this.id = id;
+      this.foo = foo;
+      this.bar = bar;
+    }
+
+  }
+
   private static class ID {
     String id;
   }
+
 }

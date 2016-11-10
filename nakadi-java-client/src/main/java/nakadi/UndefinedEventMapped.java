@@ -11,22 +11,29 @@ import java.util.Objects;
  * object for it that isn't a HashMap or something like a raw string. </p>
  *
  * <p>{@link UndefinedEventMapped} works around this by marshalling custom fields found on the top
- * level JSON event into the {@link UndefinedEventMapped#data} Map. As such it doesn't exactly
+ * level JSON event into the {@link UndefinedEventMapped#data} field. As such it doesn't exactly
  * represent the data on the wire; instead the on wire representation is in the data field. </p>
  */
-public class UndefinedEventMapped implements Event {
+public class UndefinedEventMapped<T> implements Event {
 
-  private Map<String, Object> data;
+  private T data;
+
+  public UndefinedEventMapped() {
+  }
+
+  public UndefinedEventMapped(T data) {
+    this.data = data;
+  }
 
   /**
    * The mapped data
    */
-  public UndefinedEventMapped data(Map<String, Object> data) {
+  public UndefinedEventMapped<T> data(T data) {
     this.data = data;
     return this;
   }
 
-  public Map<String, Object> data() {
+  public T data() {
     return data;
   }
 
