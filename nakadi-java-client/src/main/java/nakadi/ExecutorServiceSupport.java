@@ -12,13 +12,6 @@ class ExecutorServiceSupport {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
-  static ExecutorService newExecutorService() {
-    final ThreadFactory tf =
-        new ThreadFactoryBuilder().setNameFormat("nakadi-java").build();
-    // todo: cached thread pool maybe better for multi-shard handling
-    return Executors.newFixedThreadPool(2, tf);
-  }
-
   static void shutdown(ExecutorService executorService) {
     executorService.shutdown();
 

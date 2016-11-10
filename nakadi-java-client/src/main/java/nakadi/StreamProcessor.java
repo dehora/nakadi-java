@@ -1,12 +1,14 @@
 package nakadi;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
@@ -28,20 +30,20 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final StreamConfiguration streamConfiguration;
   private final StreamObserverProvider streamObserverProvider;
   private final StreamOffsetObserver streamOffsetObserver;
-  private final ExecutorService executorService;
+  private final ExecutorService streamProcessorExecutorService;
   private final JsonBatchSupport jsonBatchSupport;
-  private final AtomicBoolean started = new AtomicBoolean(false);
-  private final Scheduler monoIoScheduler;
-  private final Scheduler monoComputeScheduler;
   private final long maxRetryDelay;
   private final int maxRetryAttempts;
 
   // non builder supplied
+  private final AtomicBoolean started = new AtomicBoolean(false);
   private Subscription subscription;
-
-  // todo: give these an orderly shutdown via ExecutorServiceSupport
-  private final ExecutorService monoIoExecutor;
-  private final ExecutorService monoComputeExecutor;
+  private final ExecutorService monoIoExecutor = Executors.newSingleThreadExecutor(
+      new ThreadFactoryBuilder().setNameFormat("nakadi-java-io").build());
+  private final ExecutorService monoComputeExecutor = Executors.newSingleThreadExecutor(
+      new ThreadFactoryBuilder().setNameFormat("nakadi-java-compute").build());
+  private final Scheduler monoIoScheduler = Schedulers.from(monoIoExecutor);
+  private final Scheduler monoComputeScheduler=  Schedulers.from(monoComputeExecutor);
 
   @VisibleForTesting
   @SuppressWarnings("unused") StreamProcessor(NakadiClient client) {
@@ -49,12 +51,8 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.streamConfiguration = null;
     this.streamObserverProvider = null;
     this.streamOffsetObserver = null;
-    this.executorService = null;
+    this.streamProcessorExecutorService = null;
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
-    this.monoIoExecutor = Executors.newSingleThreadExecutor();
-    this.monoComputeExecutor = Executors.newSingleThreadExecutor();
-    this.monoIoScheduler = Schedulers.from(monoIoExecutor);
-    this.monoComputeScheduler = Schedulers.from(monoComputeExecutor);
     this.maxRetryDelay = StreamConnectionRetry.DEFAULT_MAX_DELAY_SECONDS;
     this.maxRetryAttempts = StreamConnectionRetry.DEFAULT_MAX_ATTEMPTS;
   }
@@ -64,12 +62,8 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.client = builder.client;
     this.streamObserverProvider = builder.streamObserverProvider;
     this.streamOffsetObserver = builder.streamOffsetObserver;
-    this.executorService = builder.executorService;
+    this.streamProcessorExecutorService = builder.executorService;
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
-    this.monoIoExecutor = Executors.newSingleThreadExecutor();
-    this.monoComputeExecutor = Executors.newSingleThreadExecutor();
-    this.monoIoScheduler = Schedulers.from(monoIoExecutor);
-    this.monoComputeScheduler = Schedulers.from(monoComputeExecutor);
     this.maxRetryDelay = streamConfiguration.maxRetryDelaySeconds();
     this.maxRetryAttempts = streamConfiguration.maxRetryAttempts();
   }
@@ -87,6 +81,8 @@ public class StreamProcessor implements StreamProcessorManaged {
   public void stop() {
     if (started.getAndSet(false)) {
       subscription.unsubscribe();
+      ExecutorServiceSupport.shutdown(monoIoExecutor);
+      ExecutorServiceSupport.shutdown(monoComputeExecutor);
       ExecutorServiceSupport.shutdown(executorService());
     }
   }
@@ -97,7 +93,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   private ExecutorService executorService() {
-    return executorService;
+    return streamProcessorExecutorService;
   }
 
   private void startStreaming() {
@@ -320,6 +316,12 @@ public class StreamProcessor implements StreamProcessorManaged {
     return eventTypeName;
   }
 
+  private static ExecutorService newStreamProcessorExecutorService() {
+    final ThreadFactory tf =
+        new ThreadFactoryBuilder().setNameFormat("nakadi-java").build();
+    return Executors.newFixedThreadPool(1, tf);
+  }
+
   @SuppressWarnings("WeakerAccess")
   public static class Builder {
 
@@ -359,7 +361,7 @@ public class StreamProcessor implements StreamProcessorManaged {
       }
 
       if (executorService == null) {
-        this.executorService = ExecutorServiceSupport.newExecutorService();
+        this.executorService = newStreamProcessorExecutorService();
       }
 
       return new StreamProcessor(this);
