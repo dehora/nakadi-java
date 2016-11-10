@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/dehora/nakadi-java.svg?style=svg&circle-token=441a537c321834aaf46223d017ced8d9d043e5e0)](https://circleci.com/gh/dehora/nakadi-java)
+[![CircleCI](https://circleci.com/gh/zalando-incubator/nakadi-java.svg?style=svg)](https://circleci.com/gh/zalando-incubator/nakadi-java)
 
 # nakadi-java
 
@@ -522,7 +522,7 @@ and add the project declaration to `pom.xml`:
 <dependency>
   <groupId>net.dehora.nakadi</groupId>
   <artifactId>nakadi-java</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
 </dependency>
 ```
 ### Gradle
@@ -539,7 +539,7 @@ and add the project to the `dependencies` block in `build.gradle`:
 
 ```groovy
 dependencies {
-  compile 'net.dehora.nakadi:nakadi-java:0.0.1'
+  compile 'net.dehora.nakadi:nakadi-java:0.0.2'
 }  
 ```
 
@@ -554,7 +554,7 @@ resolvers += "jcenter" at "http://jcenter.bintray.com"
 and add the project to `libraryDependencies` in `build.sbt`:
 
 ```scala
-libraryDependencies += "net.dehora.nakadi" % "nakadi-java" % "0.0.1"
+libraryDependencies += "net.dehora.nakadi" % "nakadi-java" % "0.0.2"
 ```
 
 
