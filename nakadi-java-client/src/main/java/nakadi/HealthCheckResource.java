@@ -1,5 +1,7 @@
 package nakadi;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Supports API operations related to health checks.
  */
@@ -41,11 +43,15 @@ public class HealthCheckResource {
   @SuppressWarnings("JavaDoc") public Response healthcheckThrowing()
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
-
+    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
+        .initialInterval(900, TimeUnit.MILLISECONDS)
+        .maxAttempts(5)
+        .maxInterval(6000, TimeUnit.MILLISECONDS)
+        .build();
     Resource resource = client.resourceProvider().newResource();
-    return resource.requestThrowing("GET",
+    return resource.requestRetryThrowing("GET",
         UriBuilder.builder(client.baseURI()).path("health").buildString(),
         ResourceSupport.options("*/*").tokenProvider(client.resourceTokenProvider()),
-        Response.class);
+        Response.class, backoff);
   }
 }
