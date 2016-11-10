@@ -666,16 +666,16 @@ for Java and Android projects.
 A set of issues and milestones will be opened, but for now:
 
 - [x] ~~Add Github pages~~
-- [ ] Complete Javadoc on API classes
+- [x] ~~Complete Javadoc on API classes~~
 - [ ] A [nakadi-java-examples](https://github.com/dehora/nakadi-java-examples) project 
 - [ ] More system level/negative testing
 - [ ] More test coverage (serdes, internal classes)
 - [ ] Harden subscription consumer checkpointer
-- [ ] Add checked exception forced handling to `StreamOffsetObserver`.
+- [x] ~~Add checked exception forced handling to `StreamOffsetObserver`.~~
 - [ ] Handle errors (eg 429) on auto-paginators
-- [x] Handle half-open/zombie streams [ef0f9c2](https://github.com/dehora/nakadi-java/commit/ef0f9c2f49238fc80e990063b62795e708ef6ddf)
-- [ ] Add a Zign `ResourceTokenProvider` extension 
-- [x] Move to incubator
+- [x] ~~Handle half-open/zombie streams [ef0f9c2](https://github.com/dehora/nakadi-java/commit/ef0f9c2f49238fc80e990063b62795e708ef6ddf)~~
+- [x] ~~Add a Zign `ResourceTokenProvider` extension~~ tracking in [#19](https://github.com/zalando-incubator/nakadi-java/issues/19) 
+- [x] ~~Move to incubator~~
 - [ ] DynamoDB based `StreamOffsetObserver` extension checkpointer (post 1.0.0)
 - [ ] Publish on maven (post 1.0.0)
 
