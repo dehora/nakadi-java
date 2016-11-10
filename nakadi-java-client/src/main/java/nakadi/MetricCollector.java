@@ -7,11 +7,12 @@ import java.util.concurrent.TimeUnit;
  *
  * <p>
  * There are two kinds of metric:
+ * </p>
  * <ul>
  * <li><code>Meter</code>: records discrete occurrences as a number.</li>
  * <li><code>Timer</code>: records durations based on a {@link TimeUnit}.</li>
  * </ul>
- * </p>
+ *
  *
  * <p>
  * Each emitted metric is an enum. Implementations can look at the enum and record as they wish.

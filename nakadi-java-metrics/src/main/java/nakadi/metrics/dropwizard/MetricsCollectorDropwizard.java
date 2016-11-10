@@ -13,10 +13,11 @@ import nakadi.VisibleForTesting;
 /**
  * Routes metrics to a MetricRegistry. The collector can be supplied to the client via
  * {@link NakadiClient#metricCollector()}
- * <p/>
+ * <p>
  * Metrics are prefixed with a supplied namespace. This allows multiple clients to use the same
  * underlying system used to capture the metrics. The metric name is emitted as dotted string, but
  * the event type's name uses hyphens to replace ' ', ':' and '.'.
+ * </p>
  */
 public class MetricsCollectorDropwizard implements MetricCollector {
 
