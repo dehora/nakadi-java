@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/dehora/nakadi-java.svg?style=svg&circle-token=441a537c321834aaf46223d017ced8d9d043e5e0)](https://circleci.com/gh/dehora/nakadi-java)
+[![CircleCI](https://circleci.com/gh/zalando-incubator/nakadi-java.svg?style=svg)](https://circleci.com/gh/zalando-incubator/nakadi-java)
 
 # nakadi-java
 
