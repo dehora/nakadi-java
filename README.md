@@ -1,5 +1,5 @@
 
-## Status
+**Status**
 
 - Build: [![CircleCI](https://circleci.com/gh/zalando-incubator/nakadi-java.svg?style=svg)](https://circleci.com/gh/zalando-incubator/nakadi-java)
 - Latest Release: [0.0.2](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.0.2)
