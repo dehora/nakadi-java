@@ -46,7 +46,6 @@
 - [Build and Development](#build-and-development)
 - [Internals](#internals)
 - [Contributing](#contributing)
-- [TODO](#todo)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -99,7 +98,8 @@ Apart from code, a separate
 will be created to provide runnable samples in Java along with a github pages 
 site.
 
-The [TODO](#todo) section has a list of things to get done.
+See the [open issues](https://github.com/zalando-incubator/nakadi-java/issues) section for a 
+list of things to get done.
 
 As a client that aims to provide a full implementation, it will post 1.0.0 
 continue to track the development of the Nakadi Event Broker's API.
@@ -652,7 +652,8 @@ has details on how the client works under the hood.
 
 ## Contributing
 
-Please see the issue tracker for things to work on.
+Please see the [issue tracker](https://github.com/zalando-incubator/nakadi-java/issues) 
+for things to work on.
 
 Before making a contribution, please let us know by posting a comment to the 
 relevant issue. If you would like to propose a new feature, create a new issue 
@@ -660,22 +661,6 @@ first explaining the feature you’d like to contribute or bug you want to fix.
 
 The codebase follows [Square's code style](https://github.com/square/java-code-styles) 
 for Java and Android projects.
-
-## TODO
-
-A set of issues and milestones will be opened, but for now:
-
-- [x] ~~Add Github pages~~
-- [x] ~~Complete Javadoc on API classes~~
-- [ ] ~~A [nakadi-java-examples](https://github.com/dehora/nakadi-java-examples) project~~ will do in a different repo to allow pulling in the published jar 
-- [ ] ~~Harden subscription consumer checkpointer~~ tracking in [#28](https://github.com/zalando-incubator/nakadi-java/issues/28)
-- [x] ~~Add checked exception forced handling to `StreamOffsetObserver`.~~
-- [ ] ~~Handle errors (eg 429) on auto-paginators~~ tracking in [#27](https://github.com/zalando-incubator/nakadi-java/issues/27)
-- [x] ~~Handle half-open/zombie streams [ef0f9c2](https://github.com/dehora/nakadi-java/commit/ef0f9c2f49238fc80e990063b62795e708ef6ddf)~~
-- [x] ~~Add a Zign `ResourceTokenProvider` extension~~ tracking in [#19](https://github.com/zalando-incubator/nakadi-java/issues/19) 
-- [x] ~~Move to incubator~~
-- [ ] ~~DynamoDB based `StreamOffsetObserver` extension checkpointer (post 1.0.0)~~ tracking in [#29](https://github.com/zalando-incubator/nakadi-java/issues/29)
-- [ ] ~~Publish on maven (post 1.0.0)~~ tracking in [30](https://github.com/zalando-incubator/nakadi-java/issues/30)
 
 ----
 
