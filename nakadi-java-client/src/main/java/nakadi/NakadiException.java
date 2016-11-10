@@ -1,14 +1,24 @@
 package nakadi;
 
+/**
+ * An exception representing an error from the client. All client API exceptions extend this one.
+ */
 public class NakadiException extends RuntimeException {
 
   private Problem problem;
 
+  /**
+   * @param problem the Problem detail
+   */
   public NakadiException(Problem problem) {
     super(problem.toMessage());
     this.problem = problem;
   }
 
+  /**
+   * @param problem the Problem detail
+   * @param cause the cause
+   */
   public NakadiException(Problem problem, Throwable cause) {
     super(problem.toMessage(), cause);
   }
@@ -28,6 +38,9 @@ public class NakadiException extends RuntimeException {
     return arg;
   }
 
+  /**
+   * @return the problem detail
+   */
   public Problem problem() {
     return problem;
   }
