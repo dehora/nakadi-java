@@ -1,4 +1,11 @@
-[![CircleCI](https://circleci.com/gh/zalando-incubator/nakadi-java.svg?style=svg)](https://circleci.com/gh/zalando-incubator/nakadi-java)
+
+## Status
+
+- Build: [![CircleCI](https://circleci.com/gh/zalando-incubator/nakadi-java.svg?style=svg)](https://circleci.com/gh/zalando-incubator/nakadi-java)
+- Latest Release: [0.0.2](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.0.2)
+- Contact: [maintainers](https://github.com/zalando-incubator/nakadi-java/blob/master/MAINTAINERS)
+
+
 
 # nakadi-java
 
@@ -7,6 +14,7 @@
 **Table of Contents**  *[DocToc](https://github.com/thlorenz/doctoc)*
 
 - [About](#about)
+  - [Background](#background)
 - [Requirements and Getting Started](#requirements-and-getting-started)
 - [Status](#status)
 - [Usage](#usage)
@@ -43,6 +51,7 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 ----
 
+
 ## About
 
 Nakadi-java is a client driver for the [Nakadi Event Broker](https://github.com/zalando/nakadi). It was created for the following reasons:
@@ -56,6 +65,8 @@ Nakadi-java is a client driver for the [Nakadi Event Broker](https://github.com/
 - Operational visibility. Error handling, stream retries, logging and instrumentation are given the same importance as functionality. 
 
 - Be easy to use. The client should be straighforward to use as is, or as an engine for higher level abstractions.
+
+### Background
 
 A number of JVM clients already exist and are in use - nakadi-java is not meant 
 to compete with or replace them. In certain respects they solve different 
