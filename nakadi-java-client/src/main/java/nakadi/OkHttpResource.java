@@ -6,6 +6,8 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import rx.Observable;
+import rx.schedulers.Schedulers;
 
 class OkHttpResource implements Resource {
 
@@ -83,10 +85,34 @@ class OkHttpResource implements Resource {
   }
 
   @Override
+  public <Req> Response requestRetryThrowing(String method, String url, ResourceOptions options, Req body , PolicyBackoff backoff)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, NakadiException {
+    // defer gives us a chance to register a retry (requestThrowing results in a hot observable)
+    Observable<Response> observable = Observable.defer(
+        () -> Observable.just(requestThrowing(method, url, options, body))
+    ).compose(buildRetry(backoff));
+
+    return observable.toBlocking().first();
+  }
+
+  @Override
+  public <Res> Res requestRetryThrowing(
+      String method, String url, ResourceOptions options, Class<Res> res, PolicyBackoff backoff) {
+    // defer gives us a chance to register a retry (requestThrowing results in a hot observable)
+    Observable<Response> observable = Observable.defer(() ->
+        Observable.just(throwIfError(request(method, url, options)))
+    ).compose(buildRetry(backoff));
+
+    return marshalResponse(observable.toBlocking().first(), res);
+  }
+
+  @Override
   public <Res> Res requestThrowing(String method, String url, ResourceOptions options,
       Class<Res> res) throws NakadiException {
     return marshalResponse(throwIfError(request(method, url, options)), res);
   }
+
 
   @Override
   public <Res, Req> Res requestThrowing(String method, String url, ResourceOptions options,
@@ -94,6 +120,12 @@ class OkHttpResource implements Resource {
       Class<Res> res) {
     Response request = request(method, url, options, body);
     return marshalResponse(throwIfError(request), res);
+  }
+
+  private Observable.Transformer<Response, Response> buildRetry(PolicyBackoff backoff) {
+    return new StreamConnectionRetry()
+        .retryWhenWithBackoff(
+            backoff, Schedulers.computation(), StreamExceptionSupport::isRetryable);
   }
 
   private okhttp3.Response okHttpCall(Request.Builder builder) throws IOException {
