@@ -1,5 +1,8 @@
 package nakadi;
 
+/**
+ * Supports API operations related to health checks.
+ */
 public class HealthCheckResource {
 
   private final NakadiClient client;

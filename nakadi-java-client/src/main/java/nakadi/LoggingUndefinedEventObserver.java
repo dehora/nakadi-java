@@ -5,6 +5,9 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Helper class to log {@link UndefinedEventMapped} events.
+ */
 public class LoggingUndefinedEventObserver
     extends StreamObserverBackPressure<UndefinedEventMapped> {
 

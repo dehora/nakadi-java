@@ -21,6 +21,17 @@ import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
+/**
+ * API support for streaming events to a consumer.
+ * <p>
+ *   Supports both the name event type streams and the more recent subscription based streams.
+ *   The API's connection streaming models are fundamentally the same, but have some differences
+ *   in  detail, such as request parameters and the structure of the batch cursor. Users
+ *   should consult the Nakadi API documentation and {@link StreamConfiguration} for details
+ *   on the streaming options.
+ * </p>
+ * @see nakadi.StreamConfiguration
+ */
 public class StreamProcessor implements StreamProcessorManaged {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
@@ -68,16 +79,43 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.maxRetryAttempts = streamConfiguration.maxRetryAttempts();
   }
 
+  /**
+   * Provide a new builder for creating a stream processor.
+   *
+   * @param client the client
+   * @return a builder
+   */
   public static StreamProcessor.Builder newBuilder(NakadiClient client) {
     return new StreamProcessor.Builder().client(client);
   }
 
+  /**
+   * Start consuming the stream. This runs in a background executor and will not block the
+   * calling thread. Callers must hold onto a reference in order to be able to shut it down.
+   *
+   * <p>
+   * Calling start multiple times is the same as calling it once, when stop is not also called
+   * or interleaved with.
+   * </p>
+   * @see #stop()
+   */
   public void start() {
     if (!started.getAndSet(true)) {
       executorService().submit(this::startStreaming);
     }
   }
 
+  /**
+   * Perform a controlled shutdown of the stream. The {@link StreamObserver} will have
+   * its onCompleted or onError called under normal circumstances. The {@link StreamObserver}
+   * in turn can call its {@link StreamOffsetObserver} to perform cleanup.
+   *
+   * <p>
+   * Calling stop multiple times is the same as calling it once, when start is not also called
+   * or interleaved with.
+   *</p>
+   * @see #start()
+   */
   public void stop() {
     if (started.getAndSet(false)) {
       subscription.unsubscribe();

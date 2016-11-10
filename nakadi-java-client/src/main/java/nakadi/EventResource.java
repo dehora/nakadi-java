@@ -62,7 +62,7 @@ public class EventResource {
 
   public final Response send(List<EventRecord<? extends Event>> records) {
 
-    String topic = records.get(0).topic();
+    String topic = records.get(0).eventType();
     List<Object> eventList =
         records.stream().map(this::mapEventRecordToSerdes).collect(Collectors.toList());
 

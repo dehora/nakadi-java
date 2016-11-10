@@ -3,15 +3,26 @@ package nakadi;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Represents the event tyoe stats for an API {@link Subscription}.
+ *
+ * @see nakadi.Subscription
+ */
 public class SubscriptionEventTypeStats {
 
   private String eventType;
   private List<Partition> partitions;
 
+  /**
+   * @return the event type
+   */
   public String eventType() {
     return eventType;
   }
 
+  /**
+   * @return the partitions
+   */
   public List<Partition> partitions() {
     return partitions;
   }

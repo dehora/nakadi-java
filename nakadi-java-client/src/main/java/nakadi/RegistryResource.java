@@ -5,6 +5,9 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
 
+/**
+ * Supports API operations related to the registry.
+ */
 public class RegistryResource {
 
   private static final String PATH = "registry";
@@ -20,11 +23,16 @@ public class RegistryResource {
     this.client = client;
   }
 
-  // todo: documented api resulting in 404
+  /**
+   * @return the validation strategies on the server.
+   */
   public ValidationStrategyCollection listValidationStrategies() {
     return loadValidationPage(collection(PATH, PATH_VALIDATION_STRATEGIES).buildString());
   }
 
+  /**
+   * @return the enrichment strategies on the server.
+   */
   public EnrichmentStrategyCollection listEnrichmentStrategies() {
     return loadEnrichmentPage(collection(PATH, PATH_ENRICHMENT_STRATEGIES).buildString());
   }

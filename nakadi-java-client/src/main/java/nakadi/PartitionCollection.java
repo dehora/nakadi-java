@@ -2,6 +2,9 @@ package nakadi;
 
 import java.util.List;
 
+/**
+ * Represents the partitions for an event type.
+ */
 public class PartitionCollection extends ResourceCollection<Partition> {
 
   private final EventTypeResource eventTypeResource;

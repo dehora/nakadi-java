@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Represents a Problem, either sent by the server as Problem JSON, or created locally.
+ */
 public class Problem {
 
   private static final URI DEFAULT_TYPE = URI.create("about:blank");

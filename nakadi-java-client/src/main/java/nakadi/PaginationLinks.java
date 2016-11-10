@@ -2,15 +2,24 @@ package nakadi;
 
 import java.util.Objects;
 
+/**
+ * A list of link objects from the server.
+ */
 public class PaginationLinks {
 
   private PaginationLink prev;
   private PaginationLink next;
 
+  /**
+   * @return the previous page link, or null
+   */
   public PaginationLink prev() {
     return prev;
   }
 
+  /**
+   * @return the next page link, or null
+   */
   public PaginationLink next() {
     return next;
   }

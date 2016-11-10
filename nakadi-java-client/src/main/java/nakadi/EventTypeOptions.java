@@ -3,14 +3,27 @@ package nakadi;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Represents an event type's options as supported by the API.
+ */
 public class EventTypeOptions {
 
   private long retentionTime;
 
+  /**
+   * @return how long to retain events
+   */
   public long retentionTimeMillis() {
     return retentionTime;
   }
 
+  /**
+   * Set how long to retain events. Will be converted to millis by the supplied TimeUnit.
+   *
+   * @param retentionTime the time
+   * @param unit the unit of time
+   * @return this
+   */
   public EventTypeOptions retentionTime(long retentionTime, TimeUnit unit) {
     NakadiException.throwNonNull(retentionTime, "Please provide a retention time unit");
     this.retentionTime = unit.toMillis(retentionTime);

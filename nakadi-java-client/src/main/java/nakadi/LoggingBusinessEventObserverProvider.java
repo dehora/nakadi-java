@@ -1,5 +1,8 @@
 package nakadi;
 
+/**
+ * Helper class to provide {@link LoggingBusinessEventObserver}
+ */
 public class LoggingBusinessEventObserverProvider implements StreamObserverProvider {
 
   @Override public StreamObserver createStreamObserver() {

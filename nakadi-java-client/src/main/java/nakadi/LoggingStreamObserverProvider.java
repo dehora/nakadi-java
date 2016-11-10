@@ -1,5 +1,8 @@
 package nakadi;
 
+/**
+ * Helper class to provide {@link LoggingStreamObserver}.
+ */
 public class LoggingStreamObserverProvider implements StreamObserverProvider {
 
   @Override public StreamObserver createStreamObserver() {

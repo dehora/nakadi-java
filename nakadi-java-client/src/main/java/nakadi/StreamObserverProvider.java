@@ -22,5 +22,8 @@ public interface StreamObserverProvider<T> {
    */
   StreamObserver<T> createStreamObserver();
 
+  /**
+   * @return the captured generic type for consuming events.
+   */
   TypeLiteral<T> typeLiteral();
 }

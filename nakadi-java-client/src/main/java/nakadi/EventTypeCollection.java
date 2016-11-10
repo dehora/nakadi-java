@@ -2,6 +2,9 @@ package nakadi;
 
 import java.util.List;
 
+/**
+ * A collection of event types
+ */
 public class EventTypeCollection extends ResourceCollection<EventType> {
 
   private final EventTypeResource eventTypeResource;

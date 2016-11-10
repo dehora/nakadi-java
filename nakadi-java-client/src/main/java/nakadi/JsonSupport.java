@@ -6,9 +6,8 @@ import java.lang.reflect.Type;
 /**
  * Provides JSON support for the client.
  *
- * The implementation can be changed when the client is being built.
  */
-public interface JsonSupport {
+interface JsonSupport {
 
   /**
    * Convert the object to a JSON String removing newlines and whitespace.
