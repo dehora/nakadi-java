@@ -12,30 +12,38 @@ import java.util.Objects;
  * like a raw string.
  * <p></p>
  * {@link BusinessEventMapped} works around this by marshalling custom fields found on the top level
- * JSON event into the {@link BusinessEventMapped#data} Map. As such it doesn't exactly represent
+ * JSON event into the {@link BusinessEventMapped#data} field. As such it doesn't exactly represent
  * the data on the wire.
  */
-public class BusinessEventMapped implements Event {
+public class BusinessEventMapped<T> implements Event {
 
-  private Map<String, Object> data;
+  private T data;
   private EventMetadata metadata;
+
+  public BusinessEventMapped() {
+  }
+
+  public BusinessEventMapped(T data, EventMetadata metadata) {
+    this.data = data;
+    this.metadata = metadata;
+  }
 
   /**
    * The mapped data
    */
-  public BusinessEventMapped data(Map<String, Object> data) {
+  public BusinessEventMapped<T> data(T data) {
     this.data = data;
     return this;
   }
 
-  public Map<String, Object> data() {
+  public T data() {
     return data;
   }
 
   /**
    * The event metadata
    */
-  public BusinessEventMapped metadata(EventMetadata metadata) {
+  public BusinessEventMapped<T> metadata(EventMetadata metadata) {
     this.metadata = metadata;
     return this;
   }
