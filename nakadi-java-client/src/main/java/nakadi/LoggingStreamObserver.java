@@ -6,6 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+/**
+ * Helper class to log events from a stream.
+ */
 public class LoggingStreamObserver extends StreamObserverBackPressure<String> {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());

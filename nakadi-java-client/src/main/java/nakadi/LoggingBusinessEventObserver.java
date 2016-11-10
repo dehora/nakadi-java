@@ -4,6 +4,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Helper class to log business events from a stream.
+ */
 public class LoggingBusinessEventObserver extends StreamObserverBackPressure<BusinessEventMapped> {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());

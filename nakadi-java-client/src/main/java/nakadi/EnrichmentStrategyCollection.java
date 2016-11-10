@@ -2,6 +2,9 @@ package nakadi;
 
 import java.util.List;
 
+/**
+ * Represents the enrichments supported by the server.
+ */
 public class EnrichmentStrategyCollection extends ResourceCollection<String> {
 
   private final RegistryResource registryResource;

@@ -2,6 +2,9 @@ package nakadi;
 
 import java.util.List;
 
+/**
+ * Represents the server validation strategies.
+ */
 public class ValidationStrategyCollection extends ResourceCollection<String> {
 
   private final RegistryResource registryResource;

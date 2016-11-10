@@ -2,6 +2,11 @@ package nakadi;
 
 import java.util.List;
 
+/**
+ * Represents the event type stats for an API {@link Subscription}.
+ *
+ * @see nakadi.Subscription
+ */
 public class SubscriptionEventTypeStatsCollection
     extends ResourceCollection<SubscriptionEventTypeStats> {
   private final SubscriptionResource subscriptionResource;

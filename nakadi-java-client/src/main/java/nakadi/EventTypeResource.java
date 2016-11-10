@@ -5,6 +5,9 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
 
+/**
+ * Supports API operations related to event types.
+ */
 public class EventTypeResource {
 
   private static final String PATH_EVENT_TYPES = "event-types";

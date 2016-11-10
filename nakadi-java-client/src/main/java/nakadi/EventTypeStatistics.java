@@ -2,6 +2,9 @@ package nakadi;
 
 import java.util.Objects;
 
+/**
+ * The API event type statistics.
+ */
 public class EventTypeStatistics {
 
   private int messagesPerMinute;
@@ -9,30 +12,32 @@ public class EventTypeStatistics {
   private int readParallelism;
   private int writeParallelism;
 
+  /**
+   * @return the messages per minute
+   */
   public int messagesPerMinute() {
     return messagesPerMinute;
   }
 
+  /**
+   * @return the message size
+   */
   public int messageSize() {
     return messageSize;
   }
 
+  /**
+   * @return the read parallelism
+   */
   public int readParallelism() {
     return readParallelism;
   }
 
-  public EventTypeStatistics readParallelism(int readParallelism) {
-    this.readParallelism = readParallelism;
-    return this;
-  }
-
+  /**
+   * @return the write parallelism
+   */
   public int writeParallelism() {
     return writeParallelism;
-  }
-
-  public EventTypeStatistics writeParallelism(int writeParallelism) {
-    this.writeParallelism = writeParallelism;
-    return this;
   }
 
   @Override public int hashCode() {

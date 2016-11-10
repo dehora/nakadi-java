@@ -3,10 +3,16 @@ package nakadi;
 import java.net.URI;
 import java.util.Objects;
 
+/**
+ * A link object from the server.
+ */
 public class PaginationLink {
 
   private URI href;
 
+  /**
+   * @return The URI of the link
+   */
   public URI href() {
     return href;
   }

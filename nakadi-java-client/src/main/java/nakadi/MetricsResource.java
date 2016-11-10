@@ -4,6 +4,9 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.Map;
 
+/**
+ * Supports API operations related to metrics.
+ */
 public class MetricsResource {
 
   public static final String PATH = "metrics";
@@ -17,6 +20,17 @@ public class MetricsResource {
     this.client = client;
   }
 
+  /**
+   * Fetch server metrics.
+   *
+   * @return server metrics.
+   * @throws AuthorizationException
+   * @throws ClientException
+   * @throws ServerException
+   * @throws InvalidException
+   * @throws RateLimitException
+   * @throws NakadiException
+   */
   public Metrics get()
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {

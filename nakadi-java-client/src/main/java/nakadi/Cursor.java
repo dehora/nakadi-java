@@ -5,7 +5,7 @@ import java.util.Optional;
 
 /**
  * Represent a Nakadi cursor.
- * <p/>
+ * <p>
  * This class also implements the SubscriptionCursor model used in the Subscription API. All
  * cursors have a partition and offset, the SubscriptionCursor also has an eventType and
  * cursorToken.  The {@link #isSubscriptionCursor} method can be used to check.
@@ -45,42 +45,87 @@ public class Cursor {
     this.cursorToken = cursorToken;
   }
 
+  /**
+   * @return the event type if a named event stream, or {@link Optional#empty}
+   */
   public Optional<String> eventType() {
     return Optional.ofNullable(eventType);
   }
 
+  /**
+   * Set the event type name.
+   *
+   * @param eventType the event type name
+   * @return this cursor
+   */
   public Cursor eventType(String eventType) {
     this.eventType = eventType;
     return this;
   }
 
+  /**
+   * @return the token is a subscription stream, or {@link Optional#empty}
+   */
   public Optional<String> cursorToken() {
     return Optional.ofNullable(cursorToken);
   }
 
+  /**
+   * Set the token.
+   *
+   * @param cursorToken the token
+   * @return this cursor
+   */
   public Cursor cursorToken(String cursorToken) {
     this.cursorToken = cursorToken;
     return this;
   }
 
+  /**
+   * The partition for this batch.
+   *
+   * @return the partition
+   */
   public String partition() {
     return partition;
   }
 
+  /**
+   * The offset of this batch.
+   *
+   * @return the offset
+   */
   public String offset() {
     return offset;
   }
 
+  /**
+   * Set the batch partition
+   *
+   * @param partition the partition
+   * @return this cursor
+   */
   public Cursor partition(String partition) {
     this.partition = partition;
     return this;
   }
 
+  /**
+   * Set the cursor offset
+   *
+   * @param offset the offset
+   * @return this cursor
+   */
   public Cursor offset(String offset) {
     this.offset = offset;
     return this;
   }
 
+  /**
+   * Detect if this is a cursorfor a susbcription stream.
+   *
+   * @return true if a subscription, false if a named event stream
+   */
   boolean isSubscriptionCursor() {
     return eventType().isPresent() && cursorToken().isPresent();
   }

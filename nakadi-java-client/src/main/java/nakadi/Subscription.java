@@ -6,6 +6,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Represents an API subscription.
+ *
+ * <p>Subscriptions are used to consume event streams in conjunction with
+ * support for checkpointing offsets on the server.</p>
+ *
+ * @see nakadi.StreamProcessor
+ */
 public class Subscription {
 
   private String id;
@@ -15,51 +23,117 @@ public class Subscription {
   private List<String> eventTypes = Lists.newArrayList();
   private OffsetDateTime createdAt;
 
+  /**
+   * @return the subscription id
+   */
   public String id() {
     return id;
   }
 
+  /**
+   * @return the owning application for the subscription
+   */
   public String owningApplication() {
     return owningApplication;
   }
 
+  /**
+   * Set the owning application for the subscription.
+   *
+   * @param owningApplication the owning application for the subscription
+   * @return this
+   */
   public Subscription owningApplication(String owningApplication) {
+    NakadiException.throwNonNull(owningApplication, "Please supply a non-null cowning application");
     this.owningApplication = owningApplication;
     return this;
   }
 
+  /**
+   * @return the name of the subscription's consumer group
+   */
   public String consumerGroup() {
     return consumerGroup;
   }
 
+  /**
+   * Set the name of the subscription's consumer group.
+   *
+   * @param consumerGroup the name of the subscription's consumer group
+   * @return this
+   */
   public Subscription consumerGroup(String consumerGroup) {
+    NakadiException.throwNonNull(consumerGroup, "Please supply a non-null consumer group name");
     this.consumerGroup = consumerGroup;
     return this;
   }
 
+  /**
+   * Where to read from.
+   *
+   * @return Where to read from, eg 'begin' 'end'.
+   */
   public String readFrom() {
     return readFrom;
   }
 
+  /**
+   * Set where to read from.
+   *
+   * <p>2016-11-10: Known values are:
+   *
+   * <ul>
+   *   <li><code>begin</code>: read from the oldest available event.</li>
+   *   <li><code>end</code>: read from the most recent offset. </li>
+   * </ul>
+   *</p>
+   * @param readFrom where to read from.
+   * @return this
+   */
   public Subscription readFrom(String readFrom) {
+    NakadiException.throwNonNull(readFrom, "Please supply a non-null read from value");
     this.readFrom = readFrom;
     return this;
   }
 
+  /**
+   * @return The event types the subscription wants.
+   */
   public List<String> eventTypes() {
     return eventTypes;
   }
 
+  /**
+   * Add the event types the subscription wants.
+   * <p>
+   *   2016-11-10: the API only supports working with a single event.
+   * </p>
+   * @param eventTypeNames
+   * @return
+   */
   public Subscription eventTypes(String... eventTypeNames) {
+    NakadiException.throwNonNull(eventTypeNames, "Please supply a non-null list of event type names");
     this.eventTypes.addAll(Arrays.asList(eventTypeNames));
     return this;
   }
 
+  /**
+   * Add an event types the subscription wants.
+   * <p>
+   *   2016-11-10: the API only supports working with a single event.
+   * </p>
+   * @param eventTypeName
+   * @return
+   */
   public Subscription eventType(String eventTypeName) {
+    NakadiException.throwNonNull(eventTypeName, "Please supply a non-null event type name");
     this.eventTypes.add(eventTypeName);
     return this;
   }
 
+  /**
+   * @return the time the subscription was created.
+   */
   public OffsetDateTime createdAt() {
     return createdAt;
   }

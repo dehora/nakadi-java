@@ -4,8 +4,19 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Objects;
 
-/*
-the 3 event type structures are disjoint
+/**
+ * Represents a batch of events emitted from a Stream. Assumes all batches are of a common single
+ * type.
+ * <p>
+ *   Currently the three category types supported by the API are disjoint. The client marks them
+ *   with the {@link Event} interface but the are all handled differently when it comes to internal
+ *   serdes operations. Even so, this class can carry all three kinds and also to allow users to
+ *   define their own data models for events in the stream if they wish.
+ * </p>
+ * @see nakadi.DataChangeEvent
+ * @see nakadi.BusinessEventMapped
+ * @see nakadi.UndefinedEventMapped
+ * @param <T> the type of the event data contained in the batch.
  */
 public class EventStreamBatch<T> {
 
@@ -22,10 +33,16 @@ public class EventStreamBatch<T> {
     this.events = events;
   }
 
+  /**
+   * @return The cursor for this batch.
+   */
   public Cursor cursor() {
     return cursor;
   }
 
+  /**
+   * @return the stream information for this batch.
+   */
   public StreamInfo info() {
     // gson doesn't use the constructor, check this here
     if (info == null) {
@@ -34,10 +51,17 @@ public class EventStreamBatch<T> {
     return info;
   }
 
+  /**
+   *
+   * @return true if the batch is empty (signals a keep-alive batch).
+   */
   public boolean isEmpty() {
     return events().isEmpty();
   }
 
+  /**
+   * @return the list of events in this batch.
+   */
   public List<T> events() {
     // gson doesn't use the constructor, check this here
     if (events == null) {
