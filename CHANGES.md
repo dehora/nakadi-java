@@ -1,5 +1,7 @@
 ### Changes
 
+#### 0.0.4
+
 #### 0.0.3
 
 - Add Javadoc to API. [#19](https://github.com/zalando-incubator/nakadi-java/issues/19)
