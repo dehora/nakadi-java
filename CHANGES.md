@@ -2,6 +2,11 @@
 
 #### 0.0.3
 
+- Add Javadoc to API. [#19](https://github.com/zalando-incubator/nakadi-java/issues/19)
+- Shutdown all stream processing executors.
+- Remove unused class SubscriptionList.
+- Publishing to jcenter instead of dl.bintray
+
 #### 0.0.2
 
 - Make UndefinedEventMapped and BusinessEventMapped generic [#18](https://github.com/zalando-incubator/nakadi-java/issues/18)
