@@ -68,6 +68,10 @@ public class EventResourceTest {
       this.b = b;
     }
 
+    @Override public Object data() {
+      return null;
+    }
+
     @Override public int hashCode() {
       return Objects.hash(a, b);
     }
