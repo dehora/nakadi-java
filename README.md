@@ -3,6 +3,7 @@
 
 - Build: [![CircleCI](https://circleci.com/gh/zalando-incubator/nakadi-java.svg?style=svg)](https://circleci.com/gh/zalando-incubator/nakadi-java)
 - Latest Release: [0.0.2](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.0.2)
+- Release Download: [ ![Download](https://api.bintray.com/packages/dehora/maven/nakadi-java-client/images/download.svg) ](https://bintray.com/dehora/maven/nakadi-java-client/_latestVersion)
 - Contact: [maintainers](https://github.com/zalando-incubator/nakadi-java/blob/master/MAINTAINERS)
 
 
