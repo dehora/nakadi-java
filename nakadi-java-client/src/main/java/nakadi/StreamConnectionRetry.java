@@ -25,6 +25,21 @@ class StreamConnectionRetry {
   static TimeUnit DEFAULT_TIME_UNIT = TimeUnit.SECONDS;
   private int attemptCount;
 
+  <T> Observable.Transformer<T, T> retryWhenWithBackoff(
+      PolicyBackoff backoff, Scheduler scheduler, Func1<Throwable, Boolean> isRetryable) {
+
+    return new Observable.Transformer<T, T>() {
+      @Override
+      public Observable<T> call(final Observable<T> observable) {
+        return observable.retryWhen(
+            eboRetry(backoff, isRetryable),
+            scheduler
+        );
+      }
+    };
+  }
+
+
   /**
    * Allow an {@link rx.Observable} to be retried via {@link Observable#retryWhen} using a
    * backoff. If the backoff is exceeded, the original observer's onError will be invoked.
@@ -40,26 +55,20 @@ class StreamConnectionRetry {
   <T> Observable.Transformer<T, T> retryWhenWithBackoff(int maxAttempts, int initialDelay,
       long maxDelay, final TimeUnit unit, Scheduler scheduler,
       Func1<Throwable, Boolean> isRetryable) {
-    // todo: maxAttempts doesn't reset between successes; could replace with a supplier
-    //noinspection Convert2Lambda
-    return new Observable.Transformer<T, T>() {
-      @Override
-      public Observable<T> call(final Observable<T> observable) {
-        return observable.retryWhen(
-            eboRetry(maxAttempts, initialDelay, maxDelay, unit, isRetryable),
-            scheduler
-        );
-      }
-    };
+
+    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
+        .initialInterval(initialDelay, unit)
+        .maxInterval(maxDelay, unit)
+        .maxAttempts(maxAttempts)
+        .build();
+
+    return retryWhenWithBackoff(backoff, scheduler, isRetryable);
   }
 
   private Func1<? super Observable<? extends Throwable>, ? extends Observable<?>>
-  eboRetry(int maxAttempts, int initialDelay, long maxDelay, TimeUnit unit,
-      Func1<Throwable, Boolean> isRetryable) {
+  eboRetry(PolicyBackoff backoff, Func1<Throwable, Boolean> isRetryable) {
 
-    logger.info(
-        String.format("Retry loading with, max_attempts=%s initial_delay=%s max_delay=%s time=%s",
-            maxAttempts, initialDelay, maxDelay, unit.toString().toLowerCase()));
+    logger.info("Retry loading with, backoff={}", backoff);
 
     //noinspection Convert2Lambda
     return new Func1<Observable<? extends Throwable>, Observable<?>>() {
@@ -78,7 +87,7 @@ class StreamConnectionRetry {
                   gives up after the number of attempts. the propagation will end up in the client
                   supplied streamobserver's onError callback.
                   */
-                Observable.range(1, maxAttempts),
+                Observable.range(1, backoff.maxAttempts()),
                 new Func2<Throwable, Integer, Narp>() {
 
                   @Override
@@ -108,53 +117,43 @@ class StreamConnectionRetry {
                       String.format(
                           "StreamConnectionRetry: not retryable, propagating error %s, %s",
                           throwable.getClass().getSimpleName(), throwable.getMessage()));
-
-                  // This means onComplete will never be called from here because flatmap itself
-                  // doesn't complete.
+                  // onComplete will never be called from here because flatmap doesn't complete.
                   return Observable.error(throwable);
                 }
 
-                long delay = computeDelay(attemptCount, initialDelay, maxDelay, unit);
-
-                if (attemptCount >= maxAttempts) {
+                if (backoff.isFinished()) {
                   logger.warn(
                       String.format(
                           "StreamConnectionRetry: cycle failed after %d attempts, propagating error %s, %s",
                           attemptCount, throwable.getClass().getSimpleName(),
                           throwable.getMessage()));
-
-                  // This means onComplete will never be called from here because flatmap itself
-                  // doesn't complete.
+                  // onComplete will never be called from here because flatmap doesn't complete.
                   return Observable.error(throwable);
                 } else {
 
-                  logger.warn(
+                  long delay = backoff.nextBackoffMillis();
+
+                  if(delay == PolicyBackoff.STOP) {
+                    logger.warn(
+                        String.format(
+                            "StreamConnectionRetry: cycle failed after %d attempts, propagating error %s, %s",
+                            attemptCount, throwable.getClass().getSimpleName(),
+                            throwable.getMessage()));
+                    // onComplete will never be called from here because flatmap doesn't complete.
+                    return Observable.error(throwable);
+                  }
+
+                  logger.info(
                       String.format(
                           "StreamConnectionRetry: will sleep for a bit, sleep=%s attempt=%d/%d error=%s",
                           delay, attemptCount,
-                          maxAttempts, throwable.getMessage()));
-                  return Observable.timer(delay, unit, Schedulers.computation()); // returns 0L
+                          backoff.maxAttempts(), throwable.getMessage()));
+                  return Observable.timer(delay, TimeUnit.MILLISECONDS, Schedulers.computation()); // returns 0L
                 }
               }
             });
       }
     };
-  }
-
-  @SuppressWarnings("WeakerAccess")
-  @VisibleForTesting
-  long computeDelay(long attemptCount, int initialDelay, long maxDelay, TimeUnit unit) {
-    long delay = unit.toSeconds(initialDelay) * (attemptCount * attemptCount);
-
-    if (delay < 0) {
-      delay = unit.toSeconds(maxDelay);
-    }
-
-    if (delay > unit.toSeconds(maxDelay)) {
-      delay = unit.toSeconds(maxDelay);
-    }
-
-    return delay;
   }
 
   private static class Narp {
