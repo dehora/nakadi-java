@@ -171,9 +171,10 @@ public class NakadiClient {
     /**
      * Optionally set the default connect timeout for new connections. If 0, no timeout, otherwise
      * values must be between 1 and {@link Integer#MAX_VALUE}. The default is 20s.
-     * <p></p>
+     * <p>
      * For consuming streams, the read timeout may be independently set via a
-     * {@link StreamConfiguration}, otherwise streams default to this setting,
+     * {@link StreamConfiguration}, otherwise streams default to this setting.
+     * </p>
      */
     public Builder connectTimeout(long timeout, TimeUnit unit) {
       connectTimeout = unit.toMillis(timeout);
@@ -183,9 +184,10 @@ public class NakadiClient {
     /**
      * Optionally set the default read timeout for connections. If 0, no timeout, otherwise
      * values must be between 1 and {@link Integer#MAX_VALUE}. The default is 20s.
-     * <p></p>
+     * <p>
      * For consuming streams, the read timeout may be independently set via a
-     * {@link StreamConfiguration}, otherwise streams default to this setting,
+     * {@link StreamConfiguration}, otherwise streams default to this setting.
+     * </p>
      */
     public Builder readTimeout(long timeout, TimeUnit unit) {
       readTimeout = unit.toMillis(timeout);

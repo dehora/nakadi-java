@@ -80,13 +80,13 @@ public class Subscription {
   /**
    * Set where to read from.
    *
-   * <p>2016-11-10: Known values are:
+   * <p>2016-11-10: Known values are:</p>
    *
    * <ul>
    *   <li><code>begin</code>: read from the oldest available event.</li>
    *   <li><code>end</code>: read from the most recent offset. </li>
    * </ul>
-   *</p>
+   *
    * @param readFrom where to read from.
    * @return this
    */
