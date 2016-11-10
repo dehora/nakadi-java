@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public class SubscriptionResource {
   public static final String PATH_CURSORS = "cursors";
@@ -93,8 +94,14 @@ public class SubscriptionResource {
     ResourceOptions options = prepareOptions();
     options.header(StreamResourceSupport.X_NAKADI_STREAM_ID, streamId);
 
+    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
+        .initialInterval(900, TimeUnit.MILLISECONDS)
+        .maxAttempts(3)
+        .maxInterval(2000, TimeUnit.MILLISECONDS)
+        .build();
+
     Response response = client.resourceProvider().newResource()
-        .requestThrowing(Resource.POST, url, options, requestMap);
+        .requestRetryThrowing(Resource.POST, url, options, requestMap, backoff);
 
     if (response.statusCode() == 204) {
       return sentinelCursorCommitResultCollection;
