@@ -57,10 +57,7 @@ class OkHttpResource implements Resource {
   }
 
   private void applyAuthHeaderIfPresent(ResourceOptions options, Request.Builder builder) {
-    String token = options.supplyToken();
-    if(token != null && !"".equals(token.trim())) {
-      builder.header(HEADER_AUTHORIZATION, token);
-    }
+    options.supplyToken().ifPresent(t -> builder.header(HEADER_AUTHORIZATION, t));
   }
 
   @Override
