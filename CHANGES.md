@@ -2,6 +2,11 @@
 
 #### 0.0.4
 
+- Handle retryable errors on subscription consumer checkpointer [#28](https://github.com/zalando-incubator/nakadi-java/issues/28)
+- Run healthcheck with a backoff.
+- Extract a common data field interface for all Event categories. 
+
+
 #### 0.0.3
 
 - Add Javadoc to API. [#19](https://github.com/zalando-incubator/nakadi-java/issues/19)
