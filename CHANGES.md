@@ -4,7 +4,8 @@
 
 - Handle retryable errors on subscription consumer checkpointer [#28](https://github.com/zalando-incubator/nakadi-java/issues/28)
 - Run healthcheck with a backoff.
-- Extract a common data field interface for all Event categories. 
+- Extract a common data field interface for all Event categories.
+- Fix event type setter checks
 
 
 #### 0.0.3
