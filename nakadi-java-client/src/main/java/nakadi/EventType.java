@@ -39,7 +39,7 @@ public class EventType {
    * @return this
    */
   public EventType name(String name) {
-    NakadiException.throwNonNull(options, "Please provide a non-null name");
+    NakadiException.throwNonNull(name, "Please provide a non-null name");
     this.name = name;
     return this;
   }
@@ -58,7 +58,7 @@ public class EventType {
    * @return this
    */
   public EventType owningApplication(String owningApplication) {
-    NakadiException.throwNonNull(options, "Please provide a non-null owning application");
+    NakadiException.throwNonNull(owningApplication, "Please provide a non-null owning application");
     this.owningApplication = owningApplication;
     return this;
   }
@@ -77,7 +77,7 @@ public class EventType {
    * @return this
    */
   public EventType category(Category category) {
-    NakadiException.throwNonNull(options, "Please provide a non-null category");
+    NakadiException.throwNonNull(category, "Please provide a non-null category");
     this.category = category;
     return this;
   }
@@ -103,7 +103,7 @@ public class EventType {
    * @return this
    */
   public EventType partitionStrategy(String partitionStrategy) {
-    NakadiException.throwNonNull(options, "Please provide a non-null partition strategy");
+    NakadiException.throwNonNull(partitionStrategy, "Please provide a non-null partition strategy");
     this.partitionStrategy = partitionStrategy;
     return this;
   }
@@ -122,7 +122,7 @@ public class EventType {
    * @return this
    */
   public EventType schema(EventTypeSchema schema) {
-    NakadiException.throwNonNull(options, "Please provide non-null schema");
+    NakadiException.throwNonNull(schema, "Please provide non-null schema");
     this.schema = schema;
     return this;
   }
@@ -141,7 +141,7 @@ public class EventType {
    * @return this
    */
   public EventType partitionKeyFields(String... partitionKeyFields) {
-    NakadiException.throwNonNull(options, "Please provide non-null partition key fields");
+    NakadiException.throwNonNull(partitionKeyFields, "Please provide non-null partition key fields");
     this.partitionKeyFields = Arrays.asList(partitionKeyFields);
     return this;
   }
@@ -192,7 +192,7 @@ public class EventType {
    * @return this.
    */
   public EventType enrichmentStrategy(String enrichmentStrategy) {
-    NakadiException.throwNonNull(options, "Please provide a non-null enrichment strategy");
+    NakadiException.throwNonNull(enrichmentStrategy, "Please provide a non-null enrichment strategy");
     this.enrichmentStrategies.add(enrichmentStrategy);
     return this;
   }
@@ -211,7 +211,7 @@ public class EventType {
    * @return this
    */
   public EventType readScopes(String... readScopes) {
-    NakadiException.throwNonNull(options, "Please provide non-null read scopes");
+    NakadiException.throwNonNull(readScopes, "Please provide non-null read scopes");
     this.readScopes = Arrays.asList(readScopes);
     return this;
   }
@@ -232,7 +232,7 @@ public class EventType {
    * @return this
    */
   public EventType writeScopes(String... writeScopes) {
-    NakadiException.throwNonNull(options, "Please provide non-null write scopes");
+    NakadiException.throwNonNull(writeScopes, "Please provide non-null write scopes");
     this.writeScopes = Arrays.asList(writeScopes);
     return this;
   }

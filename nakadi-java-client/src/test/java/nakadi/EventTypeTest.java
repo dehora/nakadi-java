@@ -6,8 +6,30 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 public class EventTypeTest {
+
+
+  @Test
+  public void testFields() {
+
+    try {
+      EventType et = new EventType();
+      et.name("ff");
+      et.category(EventType.Category.business);
+      et.enrichmentStrategies("dd");
+      et.enrichmentStrategy("dd");
+      et.owningApplication("dd");
+      et.partitionStrategy("dd");
+      et.partitionKeyFields("dd");
+      et.readScopes("a");
+      et.writeScopes("a");
+      et.schema(new EventTypeSchema());
+    } catch (Exception e) {
+      fail("broken field check " +e.getMessage());
+    }
+  }
 
   @Test
   public void testMarshal() {
