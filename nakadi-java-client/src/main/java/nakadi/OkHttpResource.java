@@ -47,11 +47,19 @@ class OkHttpResource implements Resource {
       Request.Builder builder = applyMethodForNoBody(method, new Request.Builder().url(url));
       options.headers().entrySet()
           .forEach(e -> builder.addHeader(e.getKey(), e.getValue().toString()));
-      options.supplyToken()
-          .ifPresent(t -> builder.header(HEADER_AUTHORIZATION, t.asAuthorizationHeaderValue()));
+
+      applyAuthHeaderIfPresent(options, builder);
+
       return new OkHttpResponse(okHttpCall(builder));
     } catch (IOException e) {
       throw new NetworkException(Problem.networkProblem(e.getMessage(), ""), e);
+    }
+  }
+
+  private void applyAuthHeaderIfPresent(ResourceOptions options, Request.Builder builder) {
+    String token = options.supplyToken();
+    if(token != null && !"".equals(token.trim())) {
+      builder.header(HEADER_AUTHORIZATION, token);
     }
   }
 
@@ -65,8 +73,7 @@ class OkHttpResource implements Resource {
       Request.Builder builder = new Request.Builder().url(url).method(method, requestBody);
       options.headers().entrySet()
           .forEach(e -> builder.addHeader(e.getKey(), e.getValue().toString()));
-      options.supplyToken()
-          .ifPresent(t -> builder.header(HEADER_AUTHORIZATION, t.asAuthorizationHeaderValue()));
+      applyAuthHeaderIfPresent(options, builder);
       return new OkHttpResponse(okHttpCall(builder));
     } catch (IOException e) {
       throw new NetworkException(Problem.networkProblem(e.getMessage(), ""), e);
