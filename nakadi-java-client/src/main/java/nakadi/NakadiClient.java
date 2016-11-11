@@ -28,7 +28,7 @@ public class NakadiClient {
   private final URI baseURI;
   private final JsonSupport jsonSupport;
   private final ResourceProvider resourceProvider;
-  private final ResourceTokenProvider resourceTokenProvider;
+  private final TokenProvider tokenProvider;
   private final MetricCollector metricCollector;
   private final Resources resources;
 
@@ -37,7 +37,7 @@ public class NakadiClient {
     this.baseURI = builder.baseURI;
     this.jsonSupport = builder.jsonSupport;
     this.resourceProvider = builder.resourceProvider;
-    this.resourceTokenProvider = builder.resourceTokenProvider;
+    this.tokenProvider = builder.tokenProvider;
     this.metricCollector = builder.metricCollector;
     this.resources = new Resources(this);
   }
@@ -66,10 +66,10 @@ public class NakadiClient {
   }
 
   /**
-   * The {@link ResourceTokenProvider} used by the client.
+   * The {@link TokenProvider} used by the client.
    */
-  public ResourceTokenProvider resourceTokenProvider() {
-    return resourceTokenProvider;
+  public TokenProvider resourceTokenProvider() {
+    return tokenProvider;
   }
 
   /**
@@ -99,7 +99,7 @@ public class NakadiClient {
     private URI baseURI;
     private JsonSupport jsonSupport;
     private ResourceProvider resourceProvider;
-    private ResourceTokenProvider resourceTokenProvider;
+    private TokenProvider tokenProvider;
     private MetricCollector metricCollector;
     private long connectTimeout;
     private long readTimeout;
@@ -111,7 +111,7 @@ public class NakadiClient {
     }
 
     /**
-     * Construct the client. The {@link ResourceProvider}, {@link ResourceTokenProvider},
+     * Construct the client. The {@link ResourceProvider}, {@link TokenProvider},
      * {@link JsonSupport}, connection and read timeouts will use defaults if not
      * supplied. The base URI must be provided.
      *
@@ -125,11 +125,11 @@ public class NakadiClient {
         jsonSupport = new GsonSupport();
       }
 
-      if (resourceTokenProvider == null) {
-        resourceTokenProvider = new EmptyResourceTokenProvider();
+      if (tokenProvider == null) {
+        tokenProvider = new EmptyTokenProvider();
       }
 
-      logger.info("Loaded resource token provider {}", resourceTokenProvider.getClass().getName());
+      logger.info("Loaded resource token provider {}", tokenProvider.getClass().getName());
 
       if (metricCollector == null) {
         metricCollector = new MetricCollectorDevnull();
@@ -198,8 +198,8 @@ public class NakadiClient {
      * Optionally set the token provider. Not setting a provider will mean no bearer tokens are
      * sent to the server by default.
      */
-    public Builder resourceTokenProvider(ResourceTokenProvider resourceTokenProvider) {
-      this.resourceTokenProvider = resourceTokenProvider;
+    public Builder resourceTokenProvider(TokenProvider tokenProvider) {
+      this.tokenProvider = tokenProvider;
       return this;
     }
 

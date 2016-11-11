@@ -2,7 +2,6 @@ package nakadi;
 
 import com.google.common.collect.Maps;
 import java.util.Map;
-import java.util.Optional;
 
 class ResourceOptions {
 
@@ -11,9 +10,9 @@ class ResourceOptions {
    is less than an edge case
     */
   private final Map<String, Object> headers = Maps.newHashMap();
-  private ResourceTokenProvider provider;
+  private TokenProvider provider;
 
-  public ResourceOptions tokenProvider(ResourceTokenProvider provider) {
+  public ResourceOptions tokenProvider(TokenProvider provider) {
     this.provider = provider;
     return this;
   }
@@ -32,7 +31,7 @@ class ResourceOptions {
     return headers;
   }
 
-  public Optional<ResourceToken> supplyToken() {
-    return provider.supplyToken();
+  public String supplyToken() {
+    return provider.authHeaderValue();
   }
 }

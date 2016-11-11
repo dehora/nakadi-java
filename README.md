@@ -140,7 +140,7 @@ Here's a fuller configuration:
 NakadiClient client = NakadiClient.newBuilder()
   .baseURI("http://localhost:9080")
   .metricCollector(myMetricsCollector)
-  .resourceTokenProvider(myResourceTokenProvider)
+  .tokenProvider(myResourceTokenProvider)
   .readTimeout(60, TimeUnit.SECONDS)
   .connectTimeout(30, TimeUnit.SECONDS)
   .build();
@@ -162,7 +162,7 @@ handle token refreshes and recycling.
 ```java
 NakadiClient client = NakadiClient.newBuilder()
   .baseURI("http://localhost:9080")
-  .resourceTokenProvider(new MyTokenProvider())
+  .tokenProvider(new MyTokenProvider())
   .build();
 ```
 
