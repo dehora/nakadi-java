@@ -533,7 +533,7 @@ and add the project declaration to `pom.xml`:
 ```xml
 <dependency>
   <groupId>net.dehora.nakadi</groupId>
-  <artifactId>nakadi-java</artifactId>
+  <artifactId>nakadi-java-client</artifactId>
   <version>0.0.3</version>
 </dependency>
 ```
@@ -551,7 +551,7 @@ and add the project to the `dependencies` block in `build.gradle`:
 
 ```groovy
 dependencies {
-  compile 'net.dehora.nakadi:nakadi-java:0.0.3'
+  compile 'net.dehora.nakadi:nakadi-java-client:0.0.3'
 }  
 ```
 
@@ -566,7 +566,7 @@ resolvers += "jcenter" at "http://jcenter.bintray.com"
 and add the project to `libraryDependencies` in `build.sbt`:
 
 ```scala
-libraryDependencies += "net.dehora.nakadi" % "nakadi-java" % "0.0.3"
+libraryDependencies += "net.dehora.nakadi" % "nakadi-java-client" % "0.0.3"
 ```
 
 
