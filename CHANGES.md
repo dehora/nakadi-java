@@ -1,5 +1,9 @@
 ### Changes
 
+#### 0.0.5
+
+ - Fix non-null check on cursors
+
 #### 0.0.4
 
 - Handle retryable errors on subscription consumer checkpointer [#28](https://github.com/zalando-incubator/nakadi-java/issues/28)
