@@ -14,6 +14,6 @@ public interface TokenProvider {
    * @return a value suitable for use in an Authorization header, or null to suppress the
    * Authorization header being set
    */
-  String authHeaderValue();
+  Optional<String> authHeaderValue();
 
 }

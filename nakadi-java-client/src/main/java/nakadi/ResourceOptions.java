@@ -2,6 +2,7 @@ package nakadi;
 
 import com.google.common.collect.Maps;
 import java.util.Map;
+import java.util.Optional;
 
 class ResourceOptions {
 
@@ -31,7 +32,7 @@ class ResourceOptions {
     return headers;
   }
 
-  public String supplyToken() {
+  public Optional<String> supplyToken() {
     return provider.authHeaderValue();
   }
 }
