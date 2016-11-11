@@ -196,7 +196,7 @@ public class StreamConfiguration {
    * todo: how are these spread out across threads?
    */
   public StreamConfiguration cursor(Cursor cursor) {
-    NakadiException.throwNonNull(cursors, "Please provide a cursor");
+    NakadiException.throwNonNull(cursor, "Please provide a cursor");
     return cursors(cursor);
   }
 
