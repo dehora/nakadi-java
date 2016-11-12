@@ -6,9 +6,8 @@ import java.nio.file.Path;
 import java.security.cert.X509Certificate;
 import java.util.Set;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
-import okhttp3.OkHttpClient;
+import okhttp3.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -31,9 +30,17 @@ public class SecuritySupportTest {
 
     try {
       securitySupport.applySslSocketFactory(builder);
-      builder.build();
+      OkHttpClient build = builder.build();
+
+      // 2016-11-12: using the X3 cert, fails unless it's installed
+      Request request = new Request.Builder()
+          .url("https://helloworld.letsencrypt.org")
+          .get()
+          .build();
+
+      okhttp3.Response execute = build.newCall(request).execute();
     } catch (Exception e) {
-      fail("expected custom ssl/trust install to succeed " +e.getMessage());
+      fail("expected custom letsencrypt install to succeed " +e.getMessage());
     }
   }
 
@@ -51,10 +58,11 @@ public class SecuritySupportTest {
 
     X509Certificate[] acceptedIssuers = x509TrustManager.getAcceptedIssuers();
 
-    assertEquals(2, acceptedIssuers.length);
+    assertEquals(3, acceptedIssuers.length);
 
     String issuer1 = "CN=Let's Encrypt Authority X1, O=Let's Encrypt, C=US";
     String issuer2 = "CN=Let's Encrypt Authority X2, O=Let's Encrypt, C=US";
+    String issuer3 = "CN=Let's Encrypt Authority X3, O=Let's Encrypt, C=US";
     Set<String> seen = Sets.newHashSet();
     for (X509Certificate acceptedIssuer : acceptedIssuers) {
       String name = acceptedIssuer.getSubjectDN().getName();
@@ -66,11 +74,16 @@ public class SecuritySupportTest {
       if (issuer2.equals(name)) {
         seen.add(name);
       }
+
+      if (issuer3.equals(name)) {
+        seen.add(name);
+      }
     }
 
-    assertEquals(2, seen.size());
+    assertEquals(3, seen.size());
     assertTrue(seen.contains(issuer1));
     assertTrue(seen.contains(issuer2));
+    assertTrue(seen.contains(issuer3));
   }
 
   @Test
