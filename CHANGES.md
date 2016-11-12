@@ -2,6 +2,7 @@
 
 #### 0.0.6
 
+- Allow self-signed or other non-trusted certificates to be configured [#40](https://github.com/zalando-incubator/nakadi-java/issues/40)
 
 #### 0.0.5
 
