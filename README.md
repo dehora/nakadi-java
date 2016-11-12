@@ -140,7 +140,7 @@ Here's a fuller configuration:
 NakadiClient client = NakadiClient.newBuilder()
   .baseURI("http://localhost:9080")
   .metricCollector(myMetricsCollector)
-  .tokenProvider(myResourceTokenProvider)
+  .resourceTokenProvider(myResourceTokenProvider)
   .readTimeout(60, TimeUnit.SECONDS)
   .connectTimeout(30, TimeUnit.SECONDS)
   .build();
@@ -153,11 +153,11 @@ This is useful for working with a development Nakadi server, which will try
 and resolve bearer tokens if they are sent but will accept requests with no 
 bearer token present. 
 
-You can define a token provider by implementing the `ResourceTokenProvider` 
-interface, which will supply the client with a `ResourceToken` that will be 
-sent to the server as an OAuth bearer token. The `ResourceTokenProvider` is 
-called on each request and thus can be implemented as a dynamic provider to 
-handle token refreshes and recycling.
+You can define a token provider by implementing the `TokenProvider` 
+interface, which will supply the client with a string that will be 
+sent to the server as the value of an Authorization header. The 
+`TokenProvider` is  called on each request and thus can be implemented as 
+a dynamic provider to handle token refreshes and recycling.
 
 ```java
 NakadiClient client = NakadiClient.newBuilder()

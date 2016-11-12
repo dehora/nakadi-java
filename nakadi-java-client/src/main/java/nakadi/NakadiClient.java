@@ -198,7 +198,7 @@ public class NakadiClient {
      * Optionally set the token provider. Not setting a provider will mean no bearer tokens are
      * sent to the server by default.
      */
-    public Builder resourceTokenProvider(TokenProvider tokenProvider) {
+    public Builder tokenProvider(TokenProvider tokenProvider) {
       this.tokenProvider = tokenProvider;
       return this;
     }
