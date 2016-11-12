@@ -23,6 +23,7 @@
   - [Creating a client](#creating-a-client)
     - [Authorization](#authorization)
     - [Metric Collector](#metric-collector)
+    - [HTTPS Security](#https-security)
     - [Resource Classes](#resource-classes)
   - [Event Types](#event-types)
   - [Producing Events](#producing-events)
@@ -196,6 +197,27 @@ Please note that calls to the collector are currently blocking. This may be
 changed to asynchronous for 1.0.0, but in the meantime if your collector is 
 making network calls or hitting disk, you might want to hand off them off 
 as Callables or send them to a queue.
+
+
+#### HTTPS Security
+
+The client checks certificates. If your target server is using a self-signed 
+certificate and for some reason you can't install that cert into the system 
+trust store using something like keytool, you can supply the cert via 
+the builder's `certificatePath` method: 
+
+```java
+NakadiClient client = NakadiClient.newBuilder()
+  .baseURI("http://localhost:9080")
+  .certificatePath("file:///var/certs")
+  .build();
+```
+
+This will cause the client to install any certificates it finds in the 
+supplied directory; files with `*.crt` and `*.pem` extensions are loaded. The 
+path must begin with `"file:///"` or `"classpath:"` to indicate whether the 
+certs are loaded from a file directory or  the classpath. If no 
+`certificatePath` is supplied, the system defaults are used.
 
 #### Resource Classes
 

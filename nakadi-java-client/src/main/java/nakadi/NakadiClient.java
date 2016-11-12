@@ -3,6 +3,9 @@ package nakadi;
 import com.google.common.collect.Lists;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import okhttp3.OkHttpClient;
@@ -31,6 +34,7 @@ public class NakadiClient {
   private final TokenProvider tokenProvider;
   private final MetricCollector metricCollector;
   private final Resources resources;
+  private final String certificatePath;
 
   private NakadiClient(Builder builder) {
     NakadiException.throwNonNull(builder.baseURI, "Please provide a base URI.");
@@ -40,6 +44,7 @@ public class NakadiClient {
     this.tokenProvider = builder.tokenProvider;
     this.metricCollector = builder.metricCollector;
     this.resources = new Resources(this);
+    this.certificatePath = builder.certificatePath;
   }
 
   /**
@@ -86,6 +91,10 @@ public class NakadiClient {
     return metricCollector;
   }
 
+  public String certificatePath() {
+    return certificatePath;
+  }
+
   /**
    * Access API resources from the client.
    */
@@ -104,6 +113,7 @@ public class NakadiClient {
     private long connectTimeout;
     private long readTimeout;
     private boolean enableHttpLogging;
+    private String certificatePath;
 
     Builder() {
       connectTimeout = 20_000;
@@ -140,22 +150,28 @@ public class NakadiClient {
       metricCollector = new MetricCollectorSafely(metricCollector);
 
       if (resourceProvider == null) {
-
-        OkHttpClient.Builder builder = new OkHttpClient.Builder()
-            .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
-            .readTimeout(readTimeout, TimeUnit.MILLISECONDS);
-
-        if (enableHttpLogging) {
-          builder = builder.addNetworkInterceptor(
-              new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY));
-          logger.info("Enabled http tracing");
-        }
-
-        resourceProvider =
-            new OkHttpResourceProvider(baseURI, builder.build(), jsonSupport, metricCollector);
+        resourceProvider =  buildResourceProvider();
       }
 
       return new NakadiClient(this);
+    }
+
+    private ResourceProvider buildResourceProvider() {
+      OkHttpClient.Builder builder = new OkHttpClient.Builder()
+          .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
+          .readTimeout(readTimeout, TimeUnit.MILLISECONDS);
+
+      if(certificatePath != null) {
+        new SecuritySupport(certificatePath).applySslSocketFactory(builder);
+      }
+
+      if (enableHttpLogging) {
+        builder = builder.addNetworkInterceptor(
+            new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY));
+        logger.info("Enabled http tracing");
+      }
+
+      return new OkHttpResourceProvider(baseURI, builder.build(), jsonSupport, metricCollector);
     }
 
     /**
@@ -231,6 +247,11 @@ public class NakadiClient {
         throw new NakadiException(
             Problem.localProblem(String.format("Bad base URI [%s]", baseURI), e.getMessage()), e);
       }
+    }
+
+    public Builder certificatePath(String path) {
+      this.certificatePath = path;
+      return this;
     }
   }
 }
