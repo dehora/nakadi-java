@@ -1,5 +1,8 @@
 ### Changes
 
+#### 0.0.6
+
+
 #### 0.0.5
 
  - Fix non-null check on cursors
