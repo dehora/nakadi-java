@@ -9,7 +9,8 @@ buildscript {
 
 dependencies {
   compile project(':nakadi-java-client')
-  
+  compile project.libs.slf4j
+
   testCompile project.libs.logback_core
   testCompile project.libs.logback_classic
   testCompile project.libs.junit
