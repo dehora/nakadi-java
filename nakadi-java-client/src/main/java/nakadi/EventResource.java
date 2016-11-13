@@ -43,11 +43,18 @@ public class EventResource {
     }
   }
 
-  @SafeVarargs public final <T extends Event> Response send(String eventTypeName, T... evts) {
-    return send(eventTypeName, Arrays.asList(evts));
+  @SafeVarargs
+  public final <T extends Event> Response send(String eventTypeName, T... events) {
+    NakadiException.throwNonNull(eventTypeName, "Please provide an event type name");
+    NakadiException.throwNonNull(events, "Please provide one or more events");
+
+    return send(eventTypeName, Arrays.asList(events));
   }
 
   public final Response send(String eventTypeName, List<? extends Event> events) {
+    NakadiException.throwNonNull(eventTypeName, "Please provide an event type name");
+    NakadiException.throwNonNull(events, "Please provide one or more events");
+
     if (events.size() == 0) {
       throw new NakadiException(Problem.localProblem("event send called with zero events", ""));
     }
@@ -59,23 +66,28 @@ public class EventResource {
     return send(collect);
   }
 
+  public final Response send(List<EventRecord<? extends Event>> events) {
+    NakadiException.throwNonNull(events, "Please provide one or more event records");
 
-  public final Response send(List<EventRecord<? extends Event>> records) {
-
-    String topic = records.get(0).eventType();
+    String topic = events.get(0).eventType();
     List<Object> eventList =
-        records.stream().map(this::mapEventRecordToSerdes).collect(Collectors.toList());
+        events.stream().map(this::mapEventRecordToSerdes).collect(Collectors.toList());
 
-    return timed(() ->
-            client.resourceProvider()
-                .newResource()
-                .requestThrowing(
-                    Resource.POST, collectionUri(topic).buildString(), options(), eventList),
+    return timed(() -> {
+          ResourceOptions options = options().scope(TokenProvider.NAKADI_EVENT_STREAM_WRITE);
+          return client.resourceProvider()
+              .newResource()
+              .requestThrowing(
+                  Resource.POST, collectionUri(topic).buildString(), options, eventList);
+        },
         client,
         eventList.size());
   }
 
-  @SafeVarargs public final Response send(EventRecord<? extends Event>... events) {
+  @SafeVarargs
+  public final Response send(EventRecord<? extends Event>... events) {
+    NakadiException.throwNonNull(events, "Please provide one or more event records");
+
     if (events.length == 0) {
       throw new NakadiException(Problem.localProblem("event send called with zero events", ""));
     }

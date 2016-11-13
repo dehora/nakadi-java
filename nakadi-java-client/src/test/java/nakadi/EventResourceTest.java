@@ -1,14 +1,89 @@
 package nakadi;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import okhttp3.OkHttpClient;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class EventResourceTest {
+
+  static class Happened {
+    String id;
+
+    public Happened(String id) {
+      this.id = id;
+    }
+
+    @Override public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Happened happened = (Happened) o;
+      return Objects.equals(id, happened.id);
+    }
+
+    @Override public int hashCode() {
+      return Objects.hash(id);
+    }
+  }
+
+  @Test
+  public void sendWithScope() {
+
+    final boolean[] askedForToken = {false};
+    NakadiClient client = spy(NakadiClient.newBuilder()
+        .baseURI("http://localhost:9080")
+        .tokenProvider(scope -> {
+          if(TokenProvider.NAKADI_EVENT_STREAM_WRITE.equals(scope)) {
+            askedForToken[0] = true;
+          }
+          return Optional.empty();
+        })
+        .build());
+
+    Resource r = spy(new OkHttpResource(
+        new OkHttpClient.Builder().build(),
+        new GsonSupport(),
+        mock(MetricCollector.class)));
+
+    when(client.resourceProvider()).thenReturn(mock(ResourceProvider.class));
+    when(client.resourceProvider().newResource()).thenReturn(r);
+
+    try {
+      new EventResource(client).send("foo", new Event<Happened>() {
+        public Happened data() {
+          return new Happened("a");
+        }
+      });
+    } catch(NetworkException | NotFoundException ignored) {
+    }
+
+    ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
+
+    verify(r, times(1)).requestThrowing(
+        Matchers.eq(Resource.POST),
+        Matchers.eq("http://localhost:9080/event-types/foo/events"),
+        options.capture(),
+        Matchers.anyList());
+
+    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_WRITE, options.getValue().scope());
+    assertTrue(askedForToken[0]);
+  }
 
   @Test
   public void serdesDomain() {
