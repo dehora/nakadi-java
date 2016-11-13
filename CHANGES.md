@@ -1,5 +1,9 @@
 ### Changes
 
+#### 0.0.8
+
+- Remove dependencies from TokenProviderZign
+
 #### 0.0.7
 
 - Change the TokenProvider interface to accept a scope; breaking interface change with 0.0.6
