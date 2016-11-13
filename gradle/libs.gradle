@@ -12,7 +12,8 @@ versions += [
   okhttp3: "3.+",
   rxjava: "1.+",
   slf4j: "[1.7.+, 1.7.99)",
-  logback: "[1.1.+, 1.1.99)"
+  logback: "[1.1.+, 1.1.99)",
+  mockito: "1.+"
 ]
 
 libs += [
@@ -26,5 +27,6 @@ libs += [
   slf4j: "org.slf4j:slf4j-api:$versions.slf4j",
   slf4jsimple: "org.slf4j:slf4j-simple:$versions.slf4j",
   logback_core: "ch.qos.logback:logback-core:$versions.logback",
-  logback_classic: "ch.qos.logback:logback-classic:$versions.logback"
+  logback_classic: "ch.qos.logback:logback-classic:$versions.logback",
+  mockito_core: "org.mockito:mockito-core:$versions.mockito"
 ]

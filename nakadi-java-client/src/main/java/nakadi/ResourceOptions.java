@@ -46,4 +46,8 @@ class ResourceOptions {
   public Optional<String> supplyToken() {
     return provider.authHeaderValue(this.scope);
   }
+
+  public String scope() {
+    return scope;
+  }
 }
