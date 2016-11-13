@@ -46,6 +46,7 @@ class StreamResourceSupport {
   static ResourceOptions buildResourceOptions(NakadiClient client, StreamConfiguration sc) {
     ResourceOptions options = ResourceSupport
         .options(APPLICATION_X_JSON_STREAM)
+        .scope(TokenProvider.NAKADI_EVENT_STREAM_READ)
         .tokenProvider(client.resourceTokenProvider());
 
     if (sc.isSubscriptionStream()) {

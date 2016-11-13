@@ -1,12 +1,23 @@
 package nakadi;
 
+import java.util.Optional;
+import okhttp3.OkHttpClient;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
+import rx.functions.Func0;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class StreamProcessorTest {
 
@@ -17,6 +28,66 @@ public class StreamProcessorTest {
   @Before
   public void before() {
     processor = new StreamProcessor(client);
+  }
+
+  @Test
+  public void scope() {
+
+    final boolean[] askedForToken = {false};
+
+    NakadiClient client =
+        NakadiClient.newBuilder()
+            .baseURI("http://localhost:9080")
+            .tokenProvider(scope -> {
+              if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
+                askedForToken[0] = true;
+              }
+              return Optional.empty();
+            })
+            .build();
+
+    StreamConfiguration sc = new StreamConfiguration().subscriptionId("s1");
+    StreamProcessor sp = spy(StreamProcessor.newBuilder(client)
+        .streamConfiguration(sc)
+        .streamObserverFactory(new LoggingStreamObserverProvider())
+        .build());
+
+    Resource r = spy(new OkHttpResource(
+        new OkHttpClient.Builder().build(),
+        new GsonSupport(),
+        mock(MetricCollector.class)));
+
+    when(sp.buildResource(sc)).thenReturn(r);
+
+    // just invoke the resource supplier part of the observable, it's where we open the stream
+    Func0<Response> resourceFactory =
+        sp.resourceFactory(new StreamConfiguration().subscriptionId("sub1"));
+
+    try {
+      resourceFactory.call();
+    } catch (NetworkException | NotFoundException ignored) {
+    }
+
+    // check our stream proc was scoped
+    ArgumentCaptor<ResourceOptions> options1 =
+        ArgumentCaptor.forClass(ResourceOptions.class);
+    verify(sp, times(1)).requestStreamConnection(
+        Matchers.eq("http://localhost:9080/subscriptions/sub1/events"),
+        options1.capture(),
+        any());
+    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options1.getValue().scope());
+
+    // check out underlying resource was scoped
+    ArgumentCaptor<ResourceOptions> options2 =
+        ArgumentCaptor.forClass(ResourceOptions.class);
+    verify(r, times(1)).requestThrowing(
+        Matchers.eq(Resource.GET),
+        Matchers.eq("http://localhost:9080/subscriptions/sub1/events"),
+        options2.capture());
+    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options2.getValue().scope());
+
+    // check our token provider was asked for the right scope
+    assertTrue(askedForToken[0]);
   }
 
   @Test

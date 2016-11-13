@@ -300,9 +300,17 @@ public class StreamProcessor implements StreamProcessorManaged {
     };
   }
 
-  private Func0<Response> resourceFactory(StreamConfiguration sc) {
+  @SuppressWarnings("WeakerAccess") @VisibleForTesting
+  Func0<Response> resourceFactory(StreamConfiguration sc) {
     return () -> {
-      String eventTypeName = resolveEventTypeName(sc);
+
+      String eventTypeName = "UNKNOWN";
+      try {
+        eventTypeName = resolveEventTypeName(sc);
+      } catch (NakadiException caughtForTesting) {
+        logger.error("failed to resolve subscription {} {}", caughtForTesting.getMessage(), sc);
+      }
+
       String url = StreamResourceSupport.buildStreamUrl(client.baseURI(), sc);
       ResourceOptions options = StreamResourceSupport.buildResourceOptions(client, sc);
       logger.info("resourceFactory mode={} resolved_event_name={} url={}",
@@ -313,10 +321,15 @@ public class StreamProcessor implements StreamProcessorManaged {
        can happen when we disconnect if we think there's a zombie connection and throw a timeout.
        the retry/restarts will handle it
       */
-      Response response = resource.requestThrowing(Resource.GET, url, options);
+      Response response = requestStreamConnection(url, options, resource);
       logger.info("opening connection {} {}", response.hashCode(), response);
       return response;
     };
+  }
+
+  @SuppressWarnings("WeakerAccess") @VisibleForTesting
+  Response requestStreamConnection(String url, ResourceOptions options, Resource resource) {
+    return resource.requestThrowing(Resource.GET, url, options);
   }
 
   private <T> StreamBatchRecordReal<T> emptyBatch(StreamOffsetObserver observer, List<T> list) {
@@ -338,7 +351,8 @@ public class StreamProcessor implements StreamProcessorManaged {
     }
   }
 
-  private Resource buildResource(StreamConfiguration sc) {
+  @SuppressWarnings("WeakerAccess") @VisibleForTesting
+  Resource buildResource(StreamConfiguration sc) {
     return client.resourceProvider()
         .newResource()
         .readTimeout(sc.readTimeoutMillis(), TimeUnit.MILLISECONDS)
@@ -347,12 +361,11 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private String resolveEventTypeName(StreamConfiguration sc) {
     String eventTypeName;
-    if (sc.isSubscriptionStream()) {
-      nakadi.Subscription subscription =
-          client.resources().subscriptions().find(sc.subscriptionId());
-      eventTypeName = subscription.eventTypes().get(0);
-    } else {
+    if (!sc.isSubscriptionStream()) {
       eventTypeName = sc.eventTypeName();
+    } else {
+      nakadi.Subscription sub = client.resources().subscriptions().find(sc.subscriptionId());
+      eventTypeName = sub.eventTypes().get(0);
     }
     return eventTypeName;
   }
