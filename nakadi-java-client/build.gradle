@@ -107,9 +107,9 @@ bintray {
     userOrg = 'dehora'
     name = 'nakadi-java-client'
     desc = 'Java driver for the Nakadi API'
-    websiteUrl = 'https://github.com/dehora/nakadi-java'
-    issueTrackerUrl = 'https://github.com/dehora/nakadi-java/issues'
-    vcsUrl = 'https://github.com/dehora/nakadi-java.git'
+    websiteUrl = 'https://zalando-incubator.github.io/nakadi-java/'
+    issueTrackerUrl = 'https://github.com/zalando-incubator/nakadi-java/issues'
+    vcsUrl = 'https://github.com/zalando-incubator/nakadi-java.git'
     licenses = ['MIT']
     labels = ['nakadi', 'java', 'api']
     publicDownloadNumbers = true
