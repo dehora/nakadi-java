@@ -2,10 +2,11 @@
 
 #### 0.0.7
 
+- Change the TokenProvider interface to accept a scope; breaking interface change with 0.0.6
 - Add an extension jar, "nakadi-java-zign", for Zign tokens [#20](https://github.com/zalando-incubator/nakadi-java/issues/20)
-- Change the TokenProvider interface to accept a scope.
+- Make ExecutorServiceSupport public (allows the Zign extension to run in the background)
 - Use the event write scope when sending an event
-- Make ExecutorServiceSupport public
+- Use the event read scope when opening an event stream
 
 #### 0.0.6
 

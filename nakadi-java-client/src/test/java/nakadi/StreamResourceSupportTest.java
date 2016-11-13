@@ -11,6 +11,22 @@ public class StreamResourceSupportTest {
       NakadiClient.newBuilder().baseURI("http://localhost:9080").build();
 
   @Test
+  public void testScope() {
+
+    assertEquals(
+        TokenProvider.NAKADI_EVENT_STREAM_READ,
+        StreamResourceSupport.buildResourceOptions(client,
+            new StreamConfiguration().eventTypeName("et")).scope()
+    );
+
+    assertEquals(
+        TokenProvider.NAKADI_EVENT_STREAM_READ,
+        StreamResourceSupport.buildResourceOptions(client,
+            new StreamConfiguration().subscriptionId("sub1")).scope()
+    );
+  }
+
+  @Test
   public void testUrlBuilder() {
 
     StreamConfiguration et = new StreamConfiguration().eventTypeName("et");
