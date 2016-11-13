@@ -1,10 +1,9 @@
 package nakadi.token.zign;
 
-import com.google.common.base.Charsets;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,6 +27,7 @@ public class TokenProviderZign implements TokenProvider {
       LoggerFactory.getLogger(TokenProviderZign.class.getSimpleName());
   private static final int REFRESH_EVERY_SECONDS = 120;
   private static final int WAIT_FOR_ZIGN_SECCONDS = 30;
+  private static final String THREAD_NAME = "nakadi-java-zign";
 
   private final List<String> scopes;
   private long refreshEvery = REFRESH_EVERY_SECONDS;
@@ -60,8 +60,7 @@ public class TokenProviderZign implements TokenProvider {
 
     if (!started.getAndSet(true)) {
       loadTokens(); // first time run, then refresh in the background
-      executorService = Executors.newSingleThreadScheduledExecutor(
-          new ThreadFactoryBuilder().setNameFormat("nakadi-java-zign").build());
+      executorService = Executors.newSingleThreadScheduledExecutor();
       executorService.scheduleAtFixedRate(this::refreshTokens, refreshEvery, refreshEvery,
           TimeUnit.SECONDS);
 
@@ -70,6 +69,7 @@ public class TokenProviderZign implements TokenProvider {
   }
 
   void refreshTokens() {
+    Thread.currentThread().setName(THREAD_NAME);
     logger.info("refreshing tokens {}", scopes);
     loadTokens();
   }
@@ -104,7 +104,7 @@ public class TokenProviderZign implements TokenProvider {
 
       boolean done = proc.waitFor(waitFor, TimeUnit.SECONDS);
       try (InputStream inputStream = proc.getInputStream()) {
-        token = new Scanner(new InputStreamReader(inputStream, Charsets.UTF_8)).next();
+        token = new Scanner(new InputStreamReader(inputStream, Charset.forName("UTF-8"))).next();
       }
 
       if (proc.exitValue() == 0) {
