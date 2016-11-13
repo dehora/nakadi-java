@@ -1,18 +1,15 @@
 package nakadi;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ExecutorServiceSupport {
+public class ExecutorServiceSupport {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
-  static void shutdown(ExecutorService executorService) {
+  public static void shutdown(ExecutorService executorService) {
     executorService.shutdown();
 
     try {
