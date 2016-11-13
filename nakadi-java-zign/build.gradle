@@ -1,0 +1,57 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    mavenLocal()
+    jcenter()
+  }
+}
+
+
+dependencies {
+  compile project(':nakadi-java-client')
+  compile project.libs.logback_core
+  compile project.libs.logback_classic
+
+  testCompile project.libs.junit
+}
+
+bintray {
+  // verbose to let these eval to empty when not being used; `project.property` isn't lazy
+  user = project.hasProperty('bintray_user') ? project.property('bintray_user') :
+    System.getenv('BINTRAY_USER')
+  key = project.hasProperty('bintray_key') ? project.property('bintray_key') :
+    System.getenv('BINTRAY_KEY')
+
+  publications = ['nebula'] // use our publishing setup from above
+  dryRun = false
+  publish = true
+
+  pkg {
+    repo = 'maven'
+    userOrg = 'dehora'
+    name = 'nakadi-java-zign'
+    desc = 'Zign token provider for nakadi-java'
+    websiteUrl = 'https://zalando-incubator.github.io/nakadi-java/'
+    issueTrackerUrl = 'https://github.com/zalando-incubator/nakadi-java/issues'
+    vcsUrl = 'https://github.com/zalando-incubator/nakadi-java.git'
+    licenses = ['MIT']
+    labels = ['nakadi', 'java', 'api', 'zign']
+    publicDownloadNumbers = true
+
+    //noinspection GroovyAssignabilityCheck
+    version {
+      name = project.version
+      vcsTag = project.version
+      attributes = [:]
+      gpg {
+        //noinspection GroovyAssignabilityCheck
+        sign = true // todo: bintray is demanding a passphrase even if this is false
+        passphrase = project.hasProperty('bintray_gpg_passphrase') ?
+          project.property('bintray_gpg_passphrase') : System.getenv('BINTRAY_GPG_PASSPHRASE')
+      }
+    }
+  }
+}
+
+
+
