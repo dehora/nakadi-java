@@ -7,7 +7,7 @@ import java.util.Optional;
  */
 public class EmptyTokenProvider implements TokenProvider {
 
-  @Override public Optional<String> authHeaderValue() {
+  @Override public Optional<String> authHeaderValue(String scope) {
     return Optional.empty();
   }
 }
