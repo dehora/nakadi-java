@@ -147,7 +147,8 @@ class OkHttpResource implements Resource {
     return builder;
   }
 
-  private Response executeRequest(Request.Builder builder) {
+  @SuppressWarnings("WeakerAccess") @VisibleForTesting
+  Response executeRequest(Request.Builder builder) {
     try {
       return new OkHttpResponse(okHttpCall(builder));
     } catch (IOException e) {

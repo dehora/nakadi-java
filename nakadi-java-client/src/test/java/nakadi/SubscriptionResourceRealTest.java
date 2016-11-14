@@ -21,6 +21,63 @@ import static org.mockito.Mockito.when;
 public class SubscriptionResourceRealTest {
 
   @Test
+  public void listSansRetry() {
+    NakadiClient client =
+        spy(NakadiClient.newBuilder()
+            .baseURI("http://localhost:9080")
+            .build());
+
+    OkHttpResource r0 = spy(new OkHttpResource(
+        new OkHttpClient.Builder().build(),
+        new GsonSupport(),
+        mock(MetricCollector.class)));
+
+
+    when(client.resourceProvider()).thenReturn(mock(ResourceProvider.class));
+    when(client.resourceProvider().newResource()).thenReturn(r0);
+
+    try {
+      new SubscriptionResourceReal(client)
+          .list();
+    } catch (NetworkException | NotFoundException ignored) {
+    }
+
+    verify(r0, times(1)).executeRequest(Matchers.anyObject());
+  }
+
+  @Test
+  public void listWithRetry() {
+    NakadiClient client =
+        spy(NakadiClient.newBuilder()
+            .baseURI("http://localhost:9080")
+            .build());
+
+    OkHttpResource r0 = spy(new OkHttpResource(
+        new OkHttpClient.Builder().build(),
+        new GsonSupport(),
+        mock(MetricCollector.class)));
+
+
+    when(client.resourceProvider()).thenReturn(mock(ResourceProvider.class));
+    when(client.resourceProvider().newResource()).thenReturn(r0);
+
+    ExponentialRetry exponentialRetry = ExponentialRetry.newBuilder()
+        .initialInterval(1, TimeUnit.MILLISECONDS)
+        .maxAttempts(3)
+        .maxInterval(3, TimeUnit.MILLISECONDS)
+        .build();
+
+    try {
+      new SubscriptionResourceReal(client)
+          .retryPolicy(exponentialRetry)
+          .list();
+    } catch (NetworkException | NotFoundException ignored) {
+    }
+
+    verify(r0, times(3)).executeRequest(Matchers.anyObject());
+  }
+
+  @Test
   public void listWithScope() {
     final boolean[] askedForDefaultToken = {false};
     final boolean[] askedForCustomToken = {false};
