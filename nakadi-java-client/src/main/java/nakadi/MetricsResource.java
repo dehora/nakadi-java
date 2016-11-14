@@ -15,9 +15,15 @@ public class MetricsResource {
   }.getType();
 
   private final NakadiClient client;
+  private volatile RetryPolicy retryPolicy;
 
   public MetricsResource(NakadiClient client) {
     this.client = client;
+  }
+
+  public MetricsResource retryPolicy(RetryPolicy retryPolicy) {
+    this.retryPolicy = retryPolicy;
+    return this;
   }
 
   /**
@@ -35,7 +41,9 @@ public class MetricsResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
     String url = UriBuilder.builder(client.baseURI()).path(PATH).buildString();
-    Response response = client.resourceProvider().newResource()
+    Response response = client.resourceProvider()
+        .newResource()
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, prepareOptions());
 
     // shift response data into metric items to make it accessible

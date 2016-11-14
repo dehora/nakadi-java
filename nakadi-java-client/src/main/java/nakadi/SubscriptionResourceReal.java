@@ -26,7 +26,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   private final NakadiClient client;
   private CursorCommitResultCollection sentinelCursorCommitResultCollection;
   private String scope;
-  private RetryPolicy retryPolicy;
+  private volatile RetryPolicy retryPolicy;
 
   SubscriptionResourceReal(NakadiClient client) {
     this.client = client;
