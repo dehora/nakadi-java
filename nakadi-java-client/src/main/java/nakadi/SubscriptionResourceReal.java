@@ -26,6 +26,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   private final NakadiClient client;
   private CursorCommitResultCollection sentinelCursorCommitResultCollection;
   private String scope;
+  private RetryPolicy retryPolicy;
 
   SubscriptionResourceReal(NakadiClient client) {
     this.client = client;
@@ -38,15 +39,20 @@ class SubscriptionResourceReal implements SubscriptionResource {
     return this;
   }
 
+  @Override public SubscriptionResource retryPolicy(RetryPolicy retryPolicy) {
+    this.retryPolicy = retryPolicy;
+    return this;
+  }
+
   @Override public Response create(Subscription subscription)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
     //todo:filebug: nakadi.event_stream.read is in the yaml but this is a write action
     NakadiException.throwNonNull(subscription, "Please provide a subscription");
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    RetryPolicy backoff = policyBackoffForCreateOrUpdate();
-    return client.resourceProvider().newResource()
-        .retryPolicy(backoff)
+    return client.resourceProvider()
+        .newResource()
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.POST, collectionUri().buildString(),
             options, subscription);
   }
@@ -57,10 +63,9 @@ class SubscriptionResourceReal implements SubscriptionResource {
     NakadiException.throwNonNull(id, "Please provide an id");
     String url = collectionUri().path(id).buildString();
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    RetryPolicy backoff = policyBackoffForFind();
     return client.resourceProvider()
         .newResource()
-        .retryPolicy(backoff)
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, options, Subscription.class);
   }
 
@@ -84,10 +89,9 @@ class SubscriptionResourceReal implements SubscriptionResource {
     String url = collectionUri().path(id).buildString();
     // todo:filebug: no delete operation in yaml, got with config write as per event type delete
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_CONFIG_WRITE);
-    RetryPolicy backoff = policyBackoffForDelete();
     return client.resourceProvider()
         .newResource()
-        .retryPolicy(backoff)
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.DELETE, url, options);
   }
 
@@ -96,8 +100,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, ContractException, NakadiException {
 
-    RetryPolicy backoff = policyBackoffForCheckpoint();
-    return checkpoint(backoff, context, cursors);
+    return checkpoint(retryPolicy, context, cursors);
   }
 
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
@@ -129,7 +132,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
     Response response = client.resourceProvider()
         .newResource()
-        .retryPolicy(backoff)
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.POST, url, options, requestMap);
 
     if (response.statusCode() == 204) {
@@ -163,10 +166,9 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   SubscriptionEventTypeStatsCollection loadStatsPage(String url) {
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    RetryPolicy backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
-        .retryPolicy(backoff)
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, options);
 
     /*
@@ -182,10 +184,9 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   SubscriptionCursorCollection loadCursorPage(String url) {
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    RetryPolicy backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
-        .retryPolicy(backoff)
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, options);
 
     /*
@@ -201,10 +202,9 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   SubscriptionCollection loadPage(String url) {
     ResourceOptions options = this.prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    RetryPolicy backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
-        .retryPolicy(backoff)
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, options);
 
     /*
@@ -262,52 +262,20 @@ class SubscriptionResourceReal implements SubscriptionResource {
   private List<CursorCommitResult> loadCollection(String url) {
 
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    RetryPolicy backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
-        .retryPolicy(backoff)
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, options);
 
     return client.jsonSupport().fromJson(response.responseBody().asString(), TYPE);
   }
 
-  private RetryPolicy policyBackoffForCreateOrUpdate() {
-    return ExponentialRetry.newBuilder()
-        .initialInterval(900, TimeUnit.MILLISECONDS)
-        .maxAttempts(3)
-        .maxInterval(6000, TimeUnit.MILLISECONDS)
-        .build();
-  }
-
-  private RetryPolicy policyBackoffForFind() {
-    return ExponentialRetry.newBuilder()
-        .initialInterval(600, TimeUnit.MILLISECONDS)
-        .maxAttempts(3)
-        .maxInterval(3000, TimeUnit.MILLISECONDS)
-        .build();
-  }
-
-  private RetryPolicy policyBackoffForDelete() {
-    return ExponentialRetry.newBuilder()
-        .initialInterval(900, TimeUnit.MILLISECONDS)
-        .maxAttempts(3)
-        .maxInterval(3000, TimeUnit.MILLISECONDS)
-        .build();
-  }
-
+  // todo: decide how this gets handling/set within a stream
   private RetryPolicy policyBackoffForCheckpoint() {
     return ExponentialRetry.newBuilder()
         .initialInterval(900, TimeUnit.MILLISECONDS)
         .maxAttempts(3)
         .maxInterval(2000, TimeUnit.MILLISECONDS)
-        .build();
-  }
-
-  private RetryPolicy policyBackoffForCollectionPage() {
-    return ExponentialRetry.newBuilder()
-        .initialInterval(1000, TimeUnit.MILLISECONDS)
-        .maxAttempts(5)
-        .maxInterval(6000, TimeUnit.MILLISECONDS)
         .build();
   }
 

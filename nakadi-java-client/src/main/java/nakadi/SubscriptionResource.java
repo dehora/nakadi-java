@@ -15,6 +15,14 @@ public interface SubscriptionResource {
    */
   SubscriptionResource scope(String scope);
 
+  /**
+   * Set the retry policy to be used for the request. This can be reset between requests. Setting
+   * it to null (the default) disables retries.
+   *
+   * @param retryPolicy the retry policy
+   * @return this
+   */
+  SubscriptionResource retryPolicy(RetryPolicy retryPolicy);
 
   Response create(Subscription subscription)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
