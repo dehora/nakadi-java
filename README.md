@@ -3,7 +3,7 @@
 
 - Build: [![CircleCI](https://circleci.com/gh/zalando-incubator/nakadi-java.svg?style=svg)](https://circleci.com/gh/zalando-incubator/nakadi-java)
 - Release Download: [ ![Download](https://api.bintray.com/packages/dehora/maven/nakadi-java-client/images/download.svg) ](https://bintray.com/dehora/maven/nakadi-java-client/_latestVersion)
-- Source Release: [0.0.9](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.0.9)
+- Source Release: [0.1.0](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.1.0)
 - Contact: [maintainers](https://github.com/zalando-incubator/nakadi-java/blob/master/MAINTAINERS)
 
 
@@ -252,6 +252,27 @@ EventResource resource = client.resources().events();
 
 All calls you make to the server will be done via these resource classes to 
 make network calls distinct from local requests.
+
+#### Retries
+
+A number of the non streaming resource classes support a backoff policy:
+
+- `EventTypeResource`
+- `SubscriptionResource`
+- `EventResource`
+- `RegistryResource`
+- `MetricsResource`
+- `HealthCheckResource`
+
+They each take a `RetryPolicy` via a `retryPolicy` method; there is an inbuilt `ExponentialRetry` 
+that can be be used. Note that the retry policy object is stateful and must be reset between 
+results. You can disable the retries (the default behavior) by setting `retryPolicy` to null, or 
+to start a new retry supplying a fresh `RetryPolicy` instance.  
+
+**Be careful with EventTypeResource**: the ordering and general delivery behaviour for event 
+delivery is **undefined** under retries. That is, a delivery retry may result in out or order 
+batches being sent to the server. Also retrying a partially delivered (207) batch may result 
+in one or more events being delivered multiple times. 
 
 ### Event Types
 
@@ -578,7 +599,7 @@ and add the project declaration to `pom.xml`:
 <dependency>
   <groupId>net.dehora.nakadi</groupId>
   <artifactId>nakadi-java-client</artifactId>
-  <version>0.0.9</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 ### Gradle
@@ -595,7 +616,7 @@ and add the project to the `dependencies` block in `build.gradle`:
 
 ```groovy
 dependencies {
-  compile 'net.dehora.nakadi:nakadi-java-client:0.0.9'
+  compile 'net.dehora.nakadi:nakadi-java-client:0.1.0'
 }  
 ```
 
@@ -610,7 +631,7 @@ resolvers += "jcenter" at "http://jcenter.bintray.com"
 and add the project to `libraryDependencies` in `build.sbt`:
 
 ```scala
-libraryDependencies += "net.dehora.nakadi" % "nakadi-java-client" % "0.0.9"
+libraryDependencies += "net.dehora.nakadi" % "nakadi-java-client" % "0.1.0"
 ```
 
 
