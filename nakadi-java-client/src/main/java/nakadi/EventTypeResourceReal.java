@@ -92,7 +92,9 @@ class EventTypeResourceReal implements EventTypeResource {
     final String url =
         collectionUri().path(eventTypeName).path(PATH_PARTITIONS).path(partitionId).buildString();
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    return client.resourceProvider().newResource()
+    return client.resourceProvider()
+        .newResource()
+        .policyBackoff(policyBackoffForCollectionPage())
         .requestThrowing(Resource.GET, url, options, Partition.class);
   }
 
@@ -103,7 +105,9 @@ class EventTypeResourceReal implements EventTypeResource {
   EventTypeCollection loadPage(String url) {
     // filebug: no scope defined on this resource; work with NAKADI_EVENT_STREAM_READ for now
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    Response response = client.resourceProvider().newResource()
+    Response response = client.resourceProvider()
+        .newResource()
+        .policyBackoff(policyBackoffForCollectionPage())
         .requestThrowing(Resource.GET, url, options);
 
     List<EventType> collection =
@@ -114,7 +118,9 @@ class EventTypeResourceReal implements EventTypeResource {
 
   PartitionCollection loadPartitionPage(String url) {
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    Response response = client.resourceProvider().newResource()
+    Response response = client.resourceProvider()
+        .newResource()
+        .policyBackoff(policyBackoffForCollectionPage())
         .requestThrowing(Resource.GET, url, options);
 
     List<Partition> collection =
@@ -131,5 +137,13 @@ class EventTypeResourceReal implements EventTypeResource {
 
   private UriBuilder collectionUri() {
     return UriBuilder.builder(client.baseURI()).path(PATH_EVENT_TYPES);
+  }
+
+  private PolicyBackoff policyBackoffForCollectionPage() {
+    return ExponentialBackoff.newBuilder()
+        .initialInterval(1000, TimeUnit.MILLISECONDS)
+        .maxAttempts(5)
+        .maxInterval(6000, TimeUnit.MILLISECONDS)
+        .build();
   }
 }
