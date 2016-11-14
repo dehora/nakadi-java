@@ -145,7 +145,7 @@ class StreamConnectionRetry {
 
                   logger.info(
                       String.format(
-                          "StreamConnectionRetry: will sleep for a bit, sleep=%s attempt=%d/%d error=%s",
+                          "connection_retry: will sleep for a bit, sleep=%s attempt=%d/%d error=%s",
                           delay, attemptCount,
                           backoff.maxAttempts(), throwable.getMessage()));
                   return Observable.timer(delay, TimeUnit.MILLISECONDS, Schedulers.computation()); // returns 0L
