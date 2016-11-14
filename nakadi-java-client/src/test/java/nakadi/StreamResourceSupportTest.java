@@ -16,14 +16,27 @@ public class StreamResourceSupportTest {
     assertEquals(
         TokenProvider.NAKADI_EVENT_STREAM_READ,
         StreamResourceSupport.buildResourceOptions(client,
-            new StreamConfiguration().eventTypeName("et")).scope()
+            new StreamConfiguration().eventTypeName("et"), null).scope()
     );
 
     assertEquals(
         TokenProvider.NAKADI_EVENT_STREAM_READ,
         StreamResourceSupport.buildResourceOptions(client,
-            new StreamConfiguration().subscriptionId("sub1")).scope()
+            new StreamConfiguration().subscriptionId("sub1"), null).scope()
     );
+
+    assertEquals(
+        "custom",
+        StreamResourceSupport.buildResourceOptions(client,
+            new StreamConfiguration().eventTypeName("et"), "custom").scope()
+    );
+
+    assertEquals(
+        "custom",
+        StreamResourceSupport.buildResourceOptions(client,
+            new StreamConfiguration().subscriptionId("sub1"), "custom").scope()
+    );
+
   }
 
   @Test

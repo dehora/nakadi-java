@@ -31,7 +31,7 @@ public class StreamProcessorTest {
   }
 
   @Test
-  public void scope() {
+  public void defaultScope() {
 
     final boolean[] askedForToken = {false};
 
@@ -89,6 +89,69 @@ public class StreamProcessorTest {
     // check our token provider was asked for the right scope
     assertTrue(askedForToken[0]);
   }
+
+  @Test
+  public void customScope() {
+
+    final boolean[] askedForToken = {false};
+    String customScope = "custom";
+
+    NakadiClient client =
+        NakadiClient.newBuilder()
+            .baseURI("http://localhost:9080")
+            .tokenProvider(scope -> {
+              if (customScope.equals(scope)) {
+                askedForToken[0] = true;
+              }
+              return Optional.empty();
+            })
+            .build();
+
+    StreamConfiguration sc = new StreamConfiguration().subscriptionId("s1");
+    StreamProcessor sp = spy(StreamProcessor.newBuilder(client)
+        .streamConfiguration(sc)
+        .streamObserverFactory(new LoggingStreamObserverProvider())
+        .scope(customScope)
+        .build());
+
+    Resource r = spy(new OkHttpResource(
+        new OkHttpClient.Builder().build(),
+        new GsonSupport(),
+        mock(MetricCollector.class)));
+
+    when(sp.buildResource(sc)).thenReturn(r);
+
+    // just invoke the resource supplier part of the observable, it's where we open the stream
+    Func0<Response> resourceFactory =
+        sp.resourceFactory(new StreamConfiguration().subscriptionId("sub1"));
+
+    try {
+      resourceFactory.call();
+    } catch (NetworkException | NotFoundException ignored) {
+    }
+
+    // check our stream proc was scoped
+    ArgumentCaptor<ResourceOptions> options1 =
+        ArgumentCaptor.forClass(ResourceOptions.class);
+    verify(sp, times(1)).requestStreamConnection(
+        Matchers.eq("http://localhost:9080/subscriptions/sub1/events"),
+        options1.capture(),
+        any());
+    assertEquals(customScope, options1.getValue().scope());
+
+    // check out underlying resource was scoped
+    ArgumentCaptor<ResourceOptions> options2 =
+        ArgumentCaptor.forClass(ResourceOptions.class);
+    verify(r, times(1)).requestThrowing(
+        Matchers.eq(Resource.GET),
+        Matchers.eq("http://localhost:9080/subscriptions/sub1/events"),
+        options2.capture());
+    assertEquals(customScope, options2.getValue().scope());
+
+    // check our token provider was asked for the right scope
+    assertTrue(askedForToken[0]);
+  }
+
 
   @Test
   public void testOffsetObservers() {
