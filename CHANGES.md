@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.1.0
+
+- Add backoff policy support to methods on Resource/OkHttpResource.
+- Add backoffs to retryable errors on registry, event type, and subscription calls.
+- Add backoffs retryable errors on auto-paginators. [#27](https://github.com/zalando-incubator/nakadi-java/issues/27)
+
 ### 0.0.9
 
 - Allow custom scopes to be set for event streaming.
