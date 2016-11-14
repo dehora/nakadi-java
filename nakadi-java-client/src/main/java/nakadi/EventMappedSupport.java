@@ -16,7 +16,7 @@ class EventMappedSupport {
   private static final String METADATA_FIELD = "metadata";
   private static final GsonSupport gson = new GsonSupport();
 
-  static Object mapEventRecordToSerdes(EventRecord<? extends Event> eventRecord) {
+  static <T> Object mapEventRecordToSerdes(EventRecord<T> eventRecord) {
 
     if (eventRecord.event().getClass().isAssignableFrom(BusinessEventMapped.class)) {
 
