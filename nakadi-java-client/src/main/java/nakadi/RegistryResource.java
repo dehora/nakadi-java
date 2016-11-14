@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Supports API operations related to the registry.
@@ -46,12 +47,22 @@ public class RegistryResource {
   }
 
   private List<String> loadCollection(String url) {
-    Response response = client.resourceProvider().newResource()
-        .requestThrowing(Resource.GET, url,
-            ResourceSupport.options(APPLICATION_JSON)
-                .tokenProvider(client.resourceTokenProvider()));
+    ResourceOptions options = ResourceSupport.options(APPLICATION_JSON)
+        .tokenProvider(client.resourceTokenProvider());
+    Response response = client.resourceProvider()
+        .newResource()
+        .policyBackoff(policyBackoffForCollectionPage())
+        .requestThrowing(Resource.GET, url, options);
 
     return client.jsonSupport().fromJson(response.responseBody().asString(), TYPE);
+  }
+
+  private PolicyBackoff policyBackoffForCollectionPage() {
+    return ExponentialBackoff.newBuilder()
+        .initialInterval(1000, TimeUnit.MILLISECONDS)
+        .maxAttempts(5)
+        .maxInterval(6000, TimeUnit.MILLISECONDS)
+        .build();
   }
 
   private UriBuilder collection(String basePath, String path) {
