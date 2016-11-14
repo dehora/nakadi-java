@@ -1,13 +1,11 @@
 package nakadi;
 
 import com.google.common.collect.ImmutableList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 
 public class EventResourceReal implements EventResource {
 
@@ -16,6 +14,7 @@ public class EventResourceReal implements EventResource {
   private static final String APPLICATION_JSON = "application/json";
 
   private final NakadiClient client;
+  private String scope;
 
   public EventResourceReal(NakadiClient client) {
     this.client = client;
@@ -53,6 +52,11 @@ public class EventResourceReal implements EventResource {
     return send(eventTypeName, ImmutableList.of(event));
   }
 
+  @Override public EventResource scope(String scope) {
+    this.scope = scope;
+    return this;
+  }
+
   @Override
   public final <T> Response send(String eventTypeName, Collection<T> events) {
     NakadiException.throwNonNull(eventTypeName, "Please provide an event type name");
@@ -76,7 +80,8 @@ public class EventResourceReal implements EventResource {
         events.stream().map(this::mapEventRecordToSerdes).collect(Collectors.toList());
 
     return timed(() -> {
-          ResourceOptions options = options().scope(TokenProvider.NAKADI_EVENT_STREAM_WRITE);
+          ResourceOptions options =
+              options().scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));
           return client.resourceProvider()
               .newResource()
               .requestThrowing(
@@ -86,8 +91,7 @@ public class EventResourceReal implements EventResource {
         eventList.size());
   }
 
-  @VisibleForTesting
-  <T> Object mapEventRecordToSerdes(EventRecord<T> er) {
+  @VisibleForTesting <T> Object mapEventRecordToSerdes(EventRecord<T> er) {
     return EventMappedSupport.mapEventRecordToSerdes(er);
   }
 
@@ -100,5 +104,9 @@ public class EventResourceReal implements EventResource {
         .path(PATH_EVENT_TYPES)
         .path(topic)
         .path(PATH_COLLECTION);
+  }
+
+  String applyScope(String fallbackScope) {
+    return scope == null ? fallbackScope : scope;
   }
 }

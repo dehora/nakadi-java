@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 
+import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -43,12 +44,20 @@ public class EventResourceRealTest {
   public void sendWithScope() {
 
     final boolean[] askedForToken = {false};
+    final boolean[] askedForCustomScope = {false};
+    String customScope = "custom";
+
     NakadiClient client = spy(NakadiClient.newBuilder()
         .baseURI("http://localhost:9080")
         .tokenProvider(scope -> {
           if(TokenProvider.NAKADI_EVENT_STREAM_WRITE.equals(scope)) {
             askedForToken[0] = true;
           }
+
+          if(customScope.equals(scope)) {
+            askedForCustomScope[0] = true;
+          }
+
           return Optional.empty();
         })
         .build());
@@ -62,7 +71,11 @@ public class EventResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r);
 
     try {
-      new EventResourceReal(client).send("foo", Lists.newArrayList(new Event<Happened>() {
+      assertFalse(askedForToken[0]);
+      assertFalse(askedForCustomScope[0]);
+
+      new EventResourceReal(client)
+          .send("foo", Lists.newArrayList(new Event<Happened>() {
         public Happened data() {
           return new Happened("a");
         }
@@ -80,6 +93,45 @@ public class EventResourceRealTest {
 
     assertEquals(TokenProvider.NAKADI_EVENT_STREAM_WRITE, options.getValue().scope());
     assertTrue(askedForToken[0]);
+    assertFalse(askedForCustomScope[0]);
+
+
+    r = spy(new OkHttpResource(
+        new OkHttpClient.Builder().build(),
+        new GsonSupport(),
+        mock(MetricCollector.class)));
+
+    when(client.resourceProvider()).thenReturn(mock(ResourceProvider.class));
+    when(client.resourceProvider().newResource()).thenReturn(r);
+
+    try {
+      askedForToken[0] = false;
+      askedForCustomScope[0] = false;
+      assertFalse(askedForToken[0]);
+      assertFalse(askedForCustomScope[0]);
+
+      new EventResourceReal(client)
+          .scope(customScope)
+          .send("foo", Lists.newArrayList(new Event<Happened>() {
+        public Happened data() {
+          return new Happened("a");
+        }
+      }));
+    } catch(NetworkException | NotFoundException ignored) {
+    }
+
+    options = ArgumentCaptor.forClass(ResourceOptions.class);
+
+    verify(r, times(1)).requestThrowing(
+        Matchers.eq(Resource.POST),
+        Matchers.eq("http://localhost:9080/event-types/foo/events"),
+        options.capture(),
+        Matchers.anyList());
+
+    assertEquals(customScope, options.getValue().scope());
+    assertTrue(askedForCustomScope[0]);
+    assertFalse(askedForToken[0]);
+
   }
 
   @Test
