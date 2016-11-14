@@ -1,28 +1,17 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
-import com.google.gson.reflect.TypeToken;
-import java.lang.reflect.Type;
-import java.util.List;
-
 /**
  * Supports API operations related to event types.
  */
-public class EventTypeResource {
+public interface EventTypeResource {
 
-  private static final String PATH_EVENT_TYPES = "event-types";
-  private static final String PATH_PARTITIONS = "partitions";
-  private static final String APPLICATION_JSON = "application/json";
-  private static final Type TYPE = new TypeToken<List<EventType>>() {
-  }.getType();
-  private static final Type TYPE_P = new TypeToken<List<Partition>>() {
-  }.getType();
-
-  private final NakadiClient client;
-
-  EventTypeResource(NakadiClient client) {
-    this.client = client;
-  }
+  /**
+   * Set the OAuth scope to be used for the request. This can be reset between requests.
+   *
+   * @param scope the OAuth scope to be used for the request
+   * @return this
+   */
+  EventTypeResource scope(String scope);
 
   /**
    * Create an event type.
@@ -36,12 +25,9 @@ public class EventTypeResource {
    * @throws RateLimitException
    * @throws NakadiException
    */
-  public Response create(EventType eventType)
+  Response create(EventType eventType)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
-      RateLimitException, NakadiException {
-    return client.resourceProvider().newResource()
-        .requestThrowing(Resource.POST, collectionUri().buildString(), prepareOptions(), eventType);
-  }
+      RateLimitException, NakadiException;
 
   /**
    * Update an existing event type
@@ -53,37 +39,25 @@ public class EventTypeResource {
    * @throws RateLimitException
    * @throws NakadiException
    */
-  public Response update(EventType eventType)
+  Response update(EventType eventType)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
-      RateLimitException, NakadiException {
-    String url = collectionUri().path(eventType.name()).buildString();
-    return client.resourceProvider().newResource()
-        .requestThrowing(Resource.PUT, url, prepareOptions(), eventType);
-  }
+      RateLimitException, NakadiException;
 
   /**
    * @param eventTypeName the event type name
    */
-  public EventType findByName(String eventTypeName)
+  EventType findByName(String eventTypeName)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
-      RateLimitException, NakadiException {
-    String url = collectionUri().path(eventTypeName).buildString();
-    return client.resourceProvider().newResource()
-        .requestThrowing(Resource.GET, url, prepareOptions(), EventType.class);
-  }
+      RateLimitException, NakadiException;
 
   /**
    * Successful deletes return 200 and no body.
    *
    * @return a http response that will have no body
    */
-  public Response delete(String eventTypeName)
+  Response delete(String eventTypeName)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
-      RateLimitException, NakadiException {
-    String url = collectionUri().path(eventTypeName).buildString();
-    return client.resourceProvider().newResource()
-        .requestThrowing(Resource.DELETE, url, prepareOptions());
-  }
+      RateLimitException, NakadiException;
 
   /**
    * @return a collection of event types
@@ -94,58 +68,38 @@ public class EventTypeResource {
    * @throws RateLimitException
    * @throws NakadiException
    */
-  public EventTypeCollection list()
+  EventTypeCollection list()
       throws AuthorizationException, ClientException, ServerException, InvalidException,
-      RateLimitException, NakadiException {
-    return loadPage(collectionUri().buildString());
-  }
+      RateLimitException, NakadiException;
 
-  public PartitionCollection partitions(String eventTypeName)
+  /**
+   * Fetch the partitions for an event type.
+   *
+   * @param eventTypeName the event type
+   * @throws AuthorizationException
+   * @throws ClientException
+   * @throws ServerException
+   * @throws InvalidException
+   * @throws RateLimitException
+   * @throws NakadiException
+   */
+  PartitionCollection partitions(String eventTypeName)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
-      RateLimitException, NakadiException {
-    return loadPartitionPage(
-        collectionUri().path(eventTypeName).path(PATH_PARTITIONS).buildString());
-  }
+      RateLimitException, NakadiException;
 
-  public Partition partition(String eventTypeName, String partitionId)
+  /**
+   * Fetch the partition for an event type.
+   *
+   * @param eventTypeName the event type
+   * @param partitionId the partition
+   * @throws AuthorizationException
+   * @throws ClientException
+   * @throws ServerException
+   * @throws InvalidException
+   * @throws RateLimitException
+   * @throws NakadiException
+   */
+  Partition partition(String eventTypeName, String partitionId)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
-      RateLimitException, NakadiException {
-    final String url =
-        collectionUri().path(eventTypeName).path(PATH_PARTITIONS).path(partitionId).buildString();
-    return client.resourceProvider().newResource()
-        .requestThrowing(Resource.GET, url, prepareOptions(), Partition.class);
-  }
-
-  EventTypeCollection loadPage(String url) {
-    Response response = client.resourceProvider().newResource()
-        .requestThrowing(Resource.GET, url,
-            ResourceSupport.options(APPLICATION_JSON)
-                .tokenProvider(client.resourceTokenProvider()));
-
-    List<EventType> collection =
-        client.jsonSupport().fromJson(response.responseBody().asString(), TYPE);
-
-    return new EventTypeCollection(collection, Lists.newArrayList(), this);
-  }
-
-  PartitionCollection loadPartitionPage(String url) {
-    Response response = client.resourceProvider().newResource()
-        .requestThrowing(Resource.GET, url,
-            ResourceSupport.options(APPLICATION_JSON)
-                .tokenProvider(client.resourceTokenProvider()));
-
-    List<Partition> collection =
-        client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_P);
-
-    return new PartitionCollection(collection, Lists.newArrayList(), this);
-  }
-
-  private ResourceOptions prepareOptions() {
-    return ResourceSupport.options(APPLICATION_JSON)
-        .tokenProvider(client.resourceTokenProvider());
-  }
-
-  private UriBuilder collectionUri() {
-    return UriBuilder.builder(client.baseURI()).path(PATH_EVENT_TYPES);
-  }
+      RateLimitException, NakadiException;
 }

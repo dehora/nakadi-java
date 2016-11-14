@@ -7,10 +7,10 @@ import java.util.List;
  */
 public class PartitionCollection extends ResourceCollection<Partition> {
 
-  private final EventTypeResource eventTypeResource;
+  private final EventTypeResourceReal eventTypeResource;
 
-  public PartitionCollection(List<Partition> items, List<ResourceLink> links,
-      EventTypeResource eventTypeResource) {
+  PartitionCollection(List<Partition> items, List<ResourceLink> links,
+      EventTypeResourceReal eventTypeResource) {
     super(items, links);
     this.eventTypeResource = eventTypeResource;
   }
