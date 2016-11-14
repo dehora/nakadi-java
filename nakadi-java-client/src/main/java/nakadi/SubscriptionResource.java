@@ -7,6 +7,15 @@ import java.util.Map;
  */
 public interface SubscriptionResource {
 
+  /**
+   * Set the OAuth scope to be used for the request. This can be reset between requests.
+   *
+   * @param scope the OAuth scope to be used for the request
+   * @return this
+   */
+  SubscriptionResource scope(String scope);
+
+
   Response create(Subscription subscription)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException;

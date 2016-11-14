@@ -8,9 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-
 
 class SubscriptionResourceReal implements SubscriptionResource {
 
@@ -26,6 +25,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   private final NakadiClient client;
   private CursorCommitResultCollection sentinelCursorCommitResultCollection;
+  private String scope;
 
   SubscriptionResourceReal(NakadiClient client) {
     this.client = client;
@@ -33,22 +33,29 @@ class SubscriptionResourceReal implements SubscriptionResource {
         new CursorCommitResultCollection(Lists.newArrayList(), Lists.newArrayList(), this);
   }
 
+  @Override public SubscriptionResource scope(String scope) {
+    this.scope = scope;
+    return this;
+  }
+
   @Override public Response create(Subscription subscription)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
-    Objects.requireNonNull(subscription);
+    //todo:filebug: nakadi.event_stream.read is in the yaml but this is a write action
+    NakadiException.throwNonNull(subscription, "Please provide a subscription");
     return client.resourceProvider().newResource()
-        .requestThrowing(Resource.POST, collectionUri().buildString(), prepareOptions(),
-            subscription);
+        .requestThrowing(Resource.POST, collectionUri().buildString(),
+            prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ), subscription);
   }
 
   @Override public Subscription find(String id)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
-    Objects.requireNonNull(id);
+    NakadiException.throwNonNull(id, "Please provide an id");
     String url = collectionUri().path(id).buildString();
+    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
     return client.resourceProvider().newResource()
-        .requestThrowing(Resource.GET, url, prepareOptions(), Subscription.class);
+        .requestThrowing(Resource.GET, url, options, Subscription.class);
   }
 
   @Override public SubscriptionCollection list()
@@ -60,7 +67,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   @Override public SubscriptionCollection list(QueryParams params)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
-    Objects.requireNonNull(params);
+    NakadiException.throwNonNull(params, "Please provide query params");
     return loadPage(collectionUri().query(params).buildString());
   }
 
@@ -68,14 +75,28 @@ class SubscriptionResourceReal implements SubscriptionResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
     String url = collectionUri().path(id).buildString();
+    // todo:filebug: no delete operation in yaml, got with config write as per event type delete
+    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_CONFIG_WRITE);
     return client.resourceProvider().newResource()
-        .requestThrowing(Resource.DELETE, url, prepareOptions());
+        .requestThrowing(Resource.DELETE, url, options);
   }
 
   @Override
   public CursorCommitResultCollection checkpoint(Map<String, String> context, Cursor... cursors)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, ContractException, NakadiException {
+
+    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
+        .initialInterval(900, TimeUnit.MILLISECONDS)
+        .maxAttempts(3)
+        .maxInterval(2000, TimeUnit.MILLISECONDS)
+        .build();
+    return checkpoint(backoff, context, cursors);
+  }
+
+  @SuppressWarnings("WeakerAccess") @VisibleForTesting
+  CursorCommitResultCollection checkpoint(PolicyBackoff backoff, Map<String, String> context,
+      Cursor... cursors) {
     NakadiException.throwNonNull(cursors, "Please provide cursors");
     NakadiException.throwNonNull(context, "Please provide a context map");
     NakadiException.throwNonNull(context.get(StreamResourceSupport.X_NAKADI_STREAM_ID),
@@ -94,14 +115,11 @@ class SubscriptionResourceReal implements SubscriptionResource {
         .path(subscriptionId)
         .path(SubscriptionResourceReal.PATH_CURSORS)
         .buildString();
-    ResourceOptions options = prepareOptions();
-    options.header(StreamResourceSupport.X_NAKADI_STREAM_ID, streamId);
 
-    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
-        .initialInterval(900, TimeUnit.MILLISECONDS)
-        .maxAttempts(3)
-        .maxInterval(2000, TimeUnit.MILLISECONDS)
-        .build();
+    // todo:filebug: 'nakadi.event_stream.read' in yaml but this is a write method
+    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+
+    options.header(StreamResourceSupport.X_NAKADI_STREAM_ID, streamId);
 
     Response response = client.resourceProvider().newResource()
         .requestRetryThrowing(Resource.POST, url, options, requestMap, backoff);
@@ -124,22 +142,21 @@ class SubscriptionResourceReal implements SubscriptionResource {
   @Override public SubscriptionCursorCollection cursors(String id)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
-    Objects.requireNonNull(id);
+    NakadiException.throwNonNull(id, "Please provide an id");
     return loadCursorPage(collectionUri().path(id).path(PATH_CURSORS).buildString());
   }
 
   @Override public SubscriptionEventTypeStatsCollection stats(String id)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
-    Objects.requireNonNull(id);
+    NakadiException.throwNonNull(id, "Please provide an id");
     return loadStatsPage(collectionUri().path(id).path(PATH_STATS).buildString());
   }
 
   SubscriptionEventTypeStatsCollection loadStatsPage(String url) {
+    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
     Response response = client.resourceProvider().newResource()
-        .requestThrowing(Resource.GET, url,
-            ResourceSupport.options(APPLICATION_JSON)
-                .tokenProvider(client.resourceTokenProvider()));
+        .requestThrowing(Resource.GET, url, options);
 
     /*
     map response to the local collection api; this allows iterators and iterables to be used
@@ -153,10 +170,9 @@ class SubscriptionResourceReal implements SubscriptionResource {
   }
 
   SubscriptionCursorCollection loadCursorPage(String url) {
+    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
     Response response = client.resourceProvider().newResource()
-        .requestThrowing(Resource.GET, url,
-            ResourceSupport.options(APPLICATION_JSON)
-                .tokenProvider(client.resourceTokenProvider()));
+        .requestThrowing(Resource.GET, url, options);
 
     /*
     map response to the local collection api; this allows iterators and iterables to be used
@@ -170,10 +186,10 @@ class SubscriptionResourceReal implements SubscriptionResource {
   }
 
   SubscriptionCollection loadPage(String url) {
-    Response response = client.resourceProvider().newResource()
-        .requestThrowing(Resource.GET, url,
-            ResourceSupport.options(APPLICATION_JSON)
-                .tokenProvider(client.resourceTokenProvider()));
+    ResourceOptions options = this.prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    Response response = client.resourceProvider()
+        .newResource()
+        .requestThrowing(Resource.GET, url, options);
 
     /*
     map server response to the local collection api; the server yaml doesn't define a direct
@@ -213,8 +229,9 @@ class SubscriptionResourceReal implements SubscriptionResource {
     return subscriptions;
   }
 
-  private ResourceOptions prepareOptions() {
+  private ResourceOptions prepareOptions(String fallbackScope) {
     return ResourceSupport.options(APPLICATION_JSON)
+        .scope(Optional.ofNullable(scope).orElseGet(() -> fallbackScope))
         .tokenProvider(client.resourceTokenProvider());
   }
 
