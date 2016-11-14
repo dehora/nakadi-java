@@ -2,8 +2,6 @@ package nakadi;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,14 +12,13 @@ import org.mockito.Matchers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class EventResourceTest {
+public class EventResourceRealTest {
 
   static class Happened {
     String id;
@@ -65,11 +62,11 @@ public class EventResourceTest {
     when(client.resourceProvider().newResource()).thenReturn(r);
 
     try {
-      new EventResource(client).send("foo", new Event<Happened>() {
+      new EventResourceReal(client).send("foo", Lists.newArrayList(new Event<Happened>() {
         public Happened data() {
           return new Happened("a");
         }
-      });
+      }));
     } catch(NetworkException | NotFoundException ignored) {
     }
 
@@ -87,7 +84,7 @@ public class EventResourceTest {
 
   @Test
   public void serdesDomain() {
-    EventResource eventResource = new EventResource(null);
+    EventResourceReal eventResource = new EventResourceReal(null);
 
     EventThing et = new EventThing("a", "b");
     EventRecord<EventThing> er = new EventRecord<>("topic", et);
@@ -99,7 +96,7 @@ public class EventResourceTest {
 
   @Test
   public void serdesUndefinedEventMapped() {
-    EventResource eventResource = new EventResource(null);
+    EventResourceReal eventResource = new EventResourceReal(null);
 
     Map<String, Object> uemap = Maps.newHashMap();
     uemap.put("a", "1");
@@ -114,7 +111,7 @@ public class EventResourceTest {
 
   @Test
   public void serdesBusinessEventMapped() {
-    EventResource eventResource = new EventResource(null);
+    EventResourceReal eventResource = new EventResourceReal(null);
 
     BusinessEventMapped be = new BusinessEventMapped();
     EventMetadata em = new EventMetadata();

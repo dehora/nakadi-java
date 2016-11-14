@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * @param <E> the type of the event
  */
-public class EventRecord<E extends Event> {
+public class EventRecord<E> {
 
   private final String eventType;
   private final E event;
