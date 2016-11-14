@@ -23,7 +23,9 @@ public class HealthCheckResource {
   public Response healthcheck() throws NakadiException {
 
     Resource resource = client.resourceProvider().newResource();
-    return resource.request("GET",
+    return resource
+        .policyBackoff(newBackoff())
+        .request("GET",
         UriBuilder.builder(client.baseURI()).path("health").buildString(),
         ResourceSupport.options("*/*").tokenProvider(client.resourceTokenProvider()));
   }
@@ -43,15 +45,20 @@ public class HealthCheckResource {
   @SuppressWarnings("JavaDoc") public Response healthcheckThrowing()
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
-    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
-        .initialInterval(900, TimeUnit.MILLISECONDS)
-        .maxAttempts(5)
-        .maxInterval(6000, TimeUnit.MILLISECONDS)
-        .build();
     Resource resource = client.resourceProvider().newResource();
-    return resource.requestRetryThrowing("GET",
+    return resource
+        .policyBackoff(newBackoff())
+        .requestThrowing("GET",
         UriBuilder.builder(client.baseURI()).path("health").buildString(),
         ResourceSupport.options("*/*").tokenProvider(client.resourceTokenProvider()),
-        Response.class, backoff);
+        Response.class);
+  }
+
+  private PolicyBackoff newBackoff() {
+    return ExponentialBackoff.newBuilder()
+          .initialInterval(900, TimeUnit.MILLISECONDS)
+          .maxAttempts(3)
+          .maxInterval(3000, TimeUnit.MILLISECONDS)
+          .build();
   }
 }

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 class EventTypeResourceReal implements EventTypeResource {
 
@@ -30,8 +31,17 @@ class EventTypeResourceReal implements EventTypeResource {
   @Override public Response create(EventType eventType)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
+
+    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
+        .initialInterval(1000, TimeUnit.MILLISECONDS)
+        .maxAttempts(3)
+        .maxInterval(6000, TimeUnit.MILLISECONDS)
+        .build();
+
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_TYPE_WRITE);
-    return client.resourceProvider().newResource()
+    return client.resourceProvider()
+        .newResource()
+        .policyBackoff(backoff)
         .requestThrowing(Resource.POST, collectionUri().buildString(), options, eventType);
   }
 

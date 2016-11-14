@@ -21,6 +21,7 @@ class OkHttpResource implements Resource {
   private long readTimeout = 0;
   private volatile boolean hasPerRequestConnectTimeout;
   private volatile boolean hasPerRequestReadTimeout;
+  private volatile PolicyBackoff policyBackoff;
 
   OkHttpResource(OkHttpClient okHttpClient, JsonSupport jsonSupport, MetricCollector collector) {
     this.okHttpClient = okHttpClient;
@@ -40,16 +41,114 @@ class OkHttpResource implements Resource {
     return this;
   }
 
+  public OkHttpResource policyBackoff(PolicyBackoff policyBackoff) {
+    this.policyBackoff = policyBackoff;
+    return this;
+  }
+
+  @Override
+  public <Req> Response request(String method, String url, ResourceOptions options, Req body)
+      throws NakadiException {
+    if (policyBackoff == null) {
+        return executeRequest(prepareBuilder(method, url, options, body));
+    } else {
+      // defer gives us a chance to register a retry; just results in a hot observable
+      Observable<Response> observable = Observable.defer(
+          () -> Observable.just(
+              executeRequest(prepareBuilder(method, url, options, body)))
+      ).compose(buildRetry(policyBackoff));
+
+      return observable.toBlocking().first();
+    }
+  }
+
   @Override
   public Response request(String method, String url, ResourceOptions options)
       throws NakadiException {
+
+    if (policyBackoff == null) {
+      return throwIfError(executeRequest(prepareBuilder(method, url, options, null)));
+    } else {
+      Observable<Response> observable = Observable.defer(
+          () -> Observable.just(
+              throwIfError(executeRequest(prepareBuilder(method, url, options, null))))
+      ).compose(buildRetry(policyBackoff));
+
+      return observable.toBlocking().first();
+    }
+  }
+
+  @Override public Response requestThrowing(String method, String url, ResourceOptions options)
+      throws NakadiException {
+
+    if (policyBackoff == null) {
+      Response response = executeRequest(prepareBuilder(method, url, options, null));
+      return marshalResponse(response, null);
+    } else {
+      Observable<Response> observable = Observable.defer(
+          () -> Observable.just(
+              throwIfError(executeRequest(prepareBuilder(method, url, options, null))))
+      ).compose(buildRetry(policyBackoff));
+
+      Response response = observable.toBlocking().first();
+      return marshalResponse(response, null);
+    }
+  }
+
+  @Override
+  public <Req> Response requestThrowing(String method, String url, ResourceOptions options,
+      Req body)
+      throws NakadiException {
+
+    if (null == policyBackoff) {
+      return throwIfError(executeRequest(prepareBuilder(method, url, options, body)));
+    } else {
+      Observable<Response> observable = Observable.defer(
+          () -> Observable.just(
+              throwIfError(executeRequest(prepareBuilder(method, url, options, body))))
+      ).compose(buildRetry(policyBackoff));
+
+      return observable.toBlocking().first();
+    }
+  }
+
+  @Override
+  public <Res> Res requestThrowing(String method, String url, ResourceOptions options,
+      Class<Res> res) throws NakadiException {
+
+    if (null == policyBackoff) {
+      Response response = executeRequest(prepareBuilder(method, url, options, null));
+      return marshalResponse(response, res);
+    } else {
+      Observable<Response> observable = Observable.defer(
+          () -> Observable.just(
+              throwIfError(executeRequest(prepareBuilder(method, url, options, null))))
+      ).compose(buildRetry(policyBackoff));
+
+      Response response = observable.toBlocking().first();
+      return marshalResponse(response, res);
+    }
+  }
+
+  private <Req> Request.Builder prepareBuilder(String method, String url, ResourceOptions options,
+      Req body) {
+    Request.Builder builder;
+    if (body != null) {
+      RequestBody requestBody = RequestBody.create(MediaType.parse(APPLICATION_JSON_CHARSET_UTF8),
+          jsonSupport.toJson(body));
+      builder = new Request.Builder().url(url).method(method, requestBody);
+    } else {
+      builder = applyMethodForNoBody(method, new Request.Builder().url(url));
+    }
+    options.headers()
+        .entrySet()
+        .forEach(e -> builder.addHeader(e.getKey(), e.getValue().toString()));
+    applyAuthHeaderIfPresent(options, builder);
+    return builder;
+  }
+
+  private Response executeRequest(Request.Builder builder) {
     try {
-      Request.Builder builder = applyMethodForNoBody(method, new Request.Builder().url(url));
-      options.headers().entrySet()
-          .forEach(e -> builder.addHeader(e.getKey(), e.getValue().toString()));
-
-      applyAuthHeaderIfPresent(options, builder);
-
       return new OkHttpResponse(okHttpCall(builder));
     } catch (IOException e) {
       throw new NetworkException(Problem.networkProblem(e.getMessage(), ""), e);
@@ -58,72 +157,6 @@ class OkHttpResource implements Resource {
 
   private void applyAuthHeaderIfPresent(ResourceOptions options, Request.Builder builder) {
     options.supplyToken().ifPresent(t -> builder.header(HEADER_AUTHORIZATION, t));
-  }
-
-  @Override
-  public <Req> Response request(String method, String url, ResourceOptions options, Req body)
-      throws NakadiException {
-    try {
-      RequestBody requestBody =
-          RequestBody.create(MediaType.parse(APPLICATION_JSON_CHARSET_UTF8),
-              jsonSupport.toJson(body));
-      Request.Builder builder = new Request.Builder().url(url).method(method, requestBody);
-      options.headers().entrySet()
-          .forEach(e -> builder.addHeader(e.getKey(), e.getValue().toString()));
-      applyAuthHeaderIfPresent(options, builder);
-      return new OkHttpResponse(okHttpCall(builder));
-    } catch (IOException e) {
-      throw new NetworkException(Problem.networkProblem(e.getMessage(), ""), e);
-    }
-  }
-
-  @Override public Response requestThrowing(String method, String url, ResourceOptions options)
-      throws NakadiException {
-    return throwIfError(request(method, url, options));
-  }
-
-  @Override
-  public <Req> Response requestThrowing(String method, String url, ResourceOptions options,
-      Req body) throws NakadiException {
-    return throwIfError(request(method, url, options, body));
-  }
-
-  @Override
-  public <Req> Response requestRetryThrowing(String method, String url, ResourceOptions options, Req body , PolicyBackoff backoff)
-      throws AuthorizationException, ClientException, ServerException, InvalidException,
-      RateLimitException, NakadiException {
-    // defer gives us a chance to register a retry (requestThrowing results in a hot observable)
-    Observable<Response> observable = Observable.defer(
-        () -> Observable.just(requestThrowing(method, url, options, body))
-    ).compose(buildRetry(backoff));
-
-    return observable.toBlocking().first();
-  }
-
-  @Override
-  public <Res> Res requestRetryThrowing(
-      String method, String url, ResourceOptions options, Class<Res> res, PolicyBackoff backoff) {
-    // defer gives us a chance to register a retry (requestThrowing results in a hot observable)
-    Observable<Response> observable = Observable.defer(() ->
-        Observable.just(throwIfError(request(method, url, options)))
-    ).compose(buildRetry(backoff));
-
-    return marshalResponse(observable.toBlocking().first(), res);
-  }
-
-  @Override
-  public <Res> Res requestThrowing(String method, String url, ResourceOptions options,
-      Class<Res> res) throws NakadiException {
-    return marshalResponse(throwIfError(request(method, url, options)), res);
-  }
-
-
-  @Override
-  public <Res, Req> Res requestThrowing(String method, String url, ResourceOptions options,
-      Req body,
-      Class<Res> res) {
-    Response request = request(method, url, options, body);
-    return marshalResponse(throwIfError(request), res);
   }
 
   private Observable.Transformer<Response, Response> buildRetry(PolicyBackoff backoff) {
