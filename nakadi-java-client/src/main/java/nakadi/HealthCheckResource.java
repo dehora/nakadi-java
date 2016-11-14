@@ -8,9 +8,15 @@ import java.util.concurrent.TimeUnit;
 public class HealthCheckResource {
 
   private final NakadiClient client;
+  private volatile RetryPolicy retryPolicy;
 
   public HealthCheckResource(NakadiClient client) {
     this.client = client;
+  }
+
+  public HealthCheckResource retryPolicy(RetryPolicy retryPolicy) {
+    this.retryPolicy = retryPolicy;
+    return this;
   }
 
   /**
@@ -24,7 +30,7 @@ public class HealthCheckResource {
 
     Resource resource = client.resourceProvider().newResource();
     return resource
-        .retryPolicy(newBackoff())
+        .retryPolicy(retryPolicy)
         .request("GET",
         UriBuilder.builder(client.baseURI()).path("health").buildString(),
         ResourceSupport.options("*/*").tokenProvider(client.resourceTokenProvider()));
@@ -47,18 +53,10 @@ public class HealthCheckResource {
       RateLimitException, NakadiException {
     Resource resource = client.resourceProvider().newResource();
     return resource
-        .retryPolicy(newBackoff())
+        .retryPolicy(retryPolicy)
         .requestThrowing("GET",
         UriBuilder.builder(client.baseURI()).path("health").buildString(),
         ResourceSupport.options("*/*").tokenProvider(client.resourceTokenProvider()),
         Response.class);
-  }
-
-  private RetryPolicy newBackoff() {
-    return ExponentialRetry.newBuilder()
-          .initialInterval(900, TimeUnit.MILLISECONDS)
-          .maxAttempts(3)
-          .maxInterval(3000, TimeUnit.MILLISECONDS)
-          .build();
   }
 }

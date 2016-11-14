@@ -18,7 +18,7 @@ class EventTypeResourceReal implements EventTypeResource {
 
   private final NakadiClient client;
   private String scope;
-  private RetryPolicy retryPolicy;
+  private volatile RetryPolicy retryPolicy;
 
   EventTypeResourceReal(NakadiClient client) {
     this.client = client;

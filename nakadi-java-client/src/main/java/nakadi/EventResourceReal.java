@@ -15,9 +15,15 @@ public class EventResourceReal implements EventResource {
 
   private final NakadiClient client;
   private String scope;
+  private volatile RetryPolicy retryPolicy;
 
   public EventResourceReal(NakadiClient client) {
     this.client = client;
+  }
+
+  @Override public EventResource retryPolicy(RetryPolicy retryPolicy) {
+    this.retryPolicy = retryPolicy;
+    return this;
   }
 
   private static Response timed(Supplier<Response> sender, NakadiClient client, int eventCount) {
@@ -84,6 +90,7 @@ public class EventResourceReal implements EventResource {
               options().scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));
           return client.resourceProvider()
               .newResource()
+              .retryPolicy(retryPolicy)
               .requestThrowing(
                   Resource.POST, collectionUri(topic).buildString(), options, eventList);
         },

@@ -19,9 +19,15 @@ public class RegistryResource {
   }.getType();
 
   private final NakadiClient client;
+  private volatile RetryPolicy retryPolicy;
 
   public RegistryResource(NakadiClient client) {
     this.client = client;
+  }
+
+  public RegistryResource retryPolicy(RetryPolicy retryPolicy) {
+    this.retryPolicy = retryPolicy;
+    return this;
   }
 
   /**
@@ -51,18 +57,10 @@ public class RegistryResource {
         .tokenProvider(client.resourceTokenProvider());
     Response response = client.resourceProvider()
         .newResource()
-        .retryPolicy(policyBackoffForCollectionPage())
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, options);
 
     return client.jsonSupport().fromJson(response.responseBody().asString(), TYPE);
-  }
-
-  private RetryPolicy policyBackoffForCollectionPage() {
-    return ExponentialRetry.newBuilder()
-        .initialInterval(1000, TimeUnit.MILLISECONDS)
-        .maxAttempts(5)
-        .maxInterval(6000, TimeUnit.MILLISECONDS)
-        .build();
   }
 
   private UriBuilder collection(String basePath, String path) {
