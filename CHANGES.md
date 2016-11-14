@@ -5,6 +5,7 @@
 - Allow custom scopes to be set for event streaming.
 - Allow custom scopes to be set for event sending.
 - Allow scopes and custom scopes to be set for event type resources.
+- Allow custom scopes to be set for subscriptions.
 - Simplify event sending method interface.
 
 #### 0.0.8
