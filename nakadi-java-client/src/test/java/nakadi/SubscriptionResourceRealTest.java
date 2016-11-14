@@ -2,7 +2,6 @@ package nakadi;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -479,7 +478,7 @@ public class SubscriptionResourceRealTest {
 
     try {
 
-      PolicyBackoff backoff = ExponentialBackoff.newBuilder()
+      RetryPolicy backoff = ExponentialRetry.newBuilder()
           .initialInterval(1, TimeUnit.MILLISECONDS)
           .maxAttempts(1)
           .maxInterval(1, TimeUnit.MILLISECONDS)
@@ -517,7 +516,7 @@ public class SubscriptionResourceRealTest {
       assertFalse(askedForDefaultToken[0]);
       assertFalse(askedForCustomToken[0]);
 
-      PolicyBackoff backoff = ExponentialBackoff.newBuilder()
+      RetryPolicy backoff = ExponentialRetry.newBuilder()
           .initialInterval(1, TimeUnit.MILLISECONDS)
           .maxAttempts(1)
           .maxInterval(1, TimeUnit.MILLISECONDS)

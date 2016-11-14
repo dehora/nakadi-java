@@ -44,7 +44,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     //todo:filebug: nakadi.event_stream.read is in the yaml but this is a write action
     NakadiException.throwNonNull(subscription, "Please provide a subscription");
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    PolicyBackoff backoff = policyBackoffForCreateOrUpdate();
+    RetryPolicy backoff = policyBackoffForCreateOrUpdate();
     return client.resourceProvider().newResource()
         .policyBackoff(backoff)
         .requestThrowing(Resource.POST, collectionUri().buildString(),
@@ -57,7 +57,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     NakadiException.throwNonNull(id, "Please provide an id");
     String url = collectionUri().path(id).buildString();
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    PolicyBackoff backoff = policyBackoffForFind();
+    RetryPolicy backoff = policyBackoffForFind();
     return client.resourceProvider()
         .newResource()
         .policyBackoff(backoff)
@@ -84,7 +84,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     String url = collectionUri().path(id).buildString();
     // todo:filebug: no delete operation in yaml, got with config write as per event type delete
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_CONFIG_WRITE);
-    PolicyBackoff backoff = policyBackoffForDelete();
+    RetryPolicy backoff = policyBackoffForDelete();
     return client.resourceProvider()
         .newResource()
         .policyBackoff(backoff)
@@ -96,12 +96,12 @@ class SubscriptionResourceReal implements SubscriptionResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, ContractException, NakadiException {
 
-    PolicyBackoff backoff = policyBackoffForCheckpoint();
+    RetryPolicy backoff = policyBackoffForCheckpoint();
     return checkpoint(backoff, context, cursors);
   }
 
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
-  CursorCommitResultCollection checkpoint(PolicyBackoff backoff, Map<String, String> context,
+  CursorCommitResultCollection checkpoint(RetryPolicy backoff, Map<String, String> context,
       Cursor... cursors) {
     NakadiException.throwNonNull(cursors, "Please provide cursors");
     NakadiException.throwNonNull(context, "Please provide a context map");
@@ -163,7 +163,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   SubscriptionEventTypeStatsCollection loadStatsPage(String url) {
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    PolicyBackoff backoff = policyBackoffForCollectionPage();
+    RetryPolicy backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
         .policyBackoff(backoff)
@@ -182,7 +182,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   SubscriptionCursorCollection loadCursorPage(String url) {
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    PolicyBackoff backoff = policyBackoffForCollectionPage();
+    RetryPolicy backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
         .policyBackoff(backoff)
@@ -201,7 +201,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   SubscriptionCollection loadPage(String url) {
     ResourceOptions options = this.prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    PolicyBackoff backoff = policyBackoffForCollectionPage();
+    RetryPolicy backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
         .policyBackoff(backoff)
@@ -262,7 +262,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   private List<CursorCommitResult> loadCollection(String url) {
 
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    PolicyBackoff backoff = policyBackoffForCollectionPage();
+    RetryPolicy backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
         .policyBackoff(backoff)
@@ -271,40 +271,40 @@ class SubscriptionResourceReal implements SubscriptionResource {
     return client.jsonSupport().fromJson(response.responseBody().asString(), TYPE);
   }
 
-  private PolicyBackoff policyBackoffForCreateOrUpdate() {
-    return ExponentialBackoff.newBuilder()
+  private RetryPolicy policyBackoffForCreateOrUpdate() {
+    return ExponentialRetry.newBuilder()
         .initialInterval(900, TimeUnit.MILLISECONDS)
         .maxAttempts(3)
         .maxInterval(6000, TimeUnit.MILLISECONDS)
         .build();
   }
 
-  private PolicyBackoff policyBackoffForFind() {
-    return ExponentialBackoff.newBuilder()
+  private RetryPolicy policyBackoffForFind() {
+    return ExponentialRetry.newBuilder()
         .initialInterval(600, TimeUnit.MILLISECONDS)
         .maxAttempts(3)
         .maxInterval(3000, TimeUnit.MILLISECONDS)
         .build();
   }
 
-  private PolicyBackoff policyBackoffForDelete() {
-    return ExponentialBackoff.newBuilder()
+  private RetryPolicy policyBackoffForDelete() {
+    return ExponentialRetry.newBuilder()
         .initialInterval(900, TimeUnit.MILLISECONDS)
         .maxAttempts(3)
         .maxInterval(3000, TimeUnit.MILLISECONDS)
         .build();
   }
 
-  private PolicyBackoff policyBackoffForCheckpoint() {
-    return ExponentialBackoff.newBuilder()
+  private RetryPolicy policyBackoffForCheckpoint() {
+    return ExponentialRetry.newBuilder()
         .initialInterval(900, TimeUnit.MILLISECONDS)
         .maxAttempts(3)
         .maxInterval(2000, TimeUnit.MILLISECONDS)
         .build();
   }
 
-  private PolicyBackoff policyBackoffForCollectionPage() {
-    return ExponentialBackoff.newBuilder()
+  private RetryPolicy policyBackoffForCollectionPage() {
+    return ExponentialRetry.newBuilder()
         .initialInterval(1000, TimeUnit.MILLISECONDS)
         .maxAttempts(5)
         .maxInterval(6000, TimeUnit.MILLISECONDS)

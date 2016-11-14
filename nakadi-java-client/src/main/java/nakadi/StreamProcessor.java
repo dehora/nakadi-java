@@ -228,7 +228,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   private <T> Observable.Transformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRetryHandler(
       StreamConfiguration streamConfiguration) {
     TimeUnit unit = StreamConnectionRetry.DEFAULT_TIME_UNIT;
-    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
+    RetryPolicy backoff = ExponentialRetry.newBuilder()
         .initialInterval(StreamConnectionRetry.DEFAULT_INITIAL_DELAY_SECONDS, unit)
         .maxInterval(maxRetryDelay, unit)
         .build();

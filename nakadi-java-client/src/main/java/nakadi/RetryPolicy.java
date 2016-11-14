@@ -1,6 +1,6 @@
 package nakadi;
 
-public interface PolicyBackoff {
+public interface RetryPolicy {
 
   long STOP = -1L;
 
