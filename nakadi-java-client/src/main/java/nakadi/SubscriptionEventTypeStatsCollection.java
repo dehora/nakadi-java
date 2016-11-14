@@ -9,10 +9,10 @@ import java.util.List;
  */
 public class SubscriptionEventTypeStatsCollection
     extends ResourceCollection<SubscriptionEventTypeStats> {
-  private final SubscriptionResource subscriptionResource;
+  private final SubscriptionResourceReal subscriptionResource;
 
-  public SubscriptionEventTypeStatsCollection(List<SubscriptionEventTypeStats> items,
-      List<ResourceLink> links, SubscriptionResource subscriptionResource) {
+  SubscriptionEventTypeStatsCollection(List<SubscriptionEventTypeStats> items,
+      List<ResourceLink> links, SubscriptionResourceReal subscriptionResource) {
     super(items, links);
     this.subscriptionResource = subscriptionResource;
   }
