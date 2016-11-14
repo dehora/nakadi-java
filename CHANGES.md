@@ -3,8 +3,10 @@
 ### 0.1.0
 
 - Add backoff policy support to methods on Resource/OkHttpResource.
-- Add backoffs to retryable errors on registry, event type, and subscription calls.
 - Add backoffs retryable errors on auto-paginators. [#27](https://github.com/zalando-incubator/nakadi-java/issues/27)
+- Add backoff support to retryable errors on metrics, registry, health, event type, event and subscription calls.
+- Allow callers to set retry policies.
+
 
 ### 0.0.9
 
