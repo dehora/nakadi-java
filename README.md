@@ -26,6 +26,7 @@
     - [Metric Collector](#metric-collector)
     - [HTTPS Security](#https-security)
     - [Resource Classes](#resource-classes)
+    - [Retries](#retries)
   - [Event Types](#event-types)
   - [Producing Events](#producing-events)
   - [Subscriptions](#subscriptions)
@@ -270,7 +271,7 @@ results. You can disable the retries (the default behavior) by setting `retryPol
 to start a new retry supplying a fresh `RetryPolicy` instance.  
 
 **Be careful with EventTypeResource**: the ordering and general delivery behaviour for event 
-delivery is **undefined** under retries. That is, a delivery retry may result in out or order 
+delivery is **undefined** under retries. That is, a delivery retry may result in out of order 
 batches being sent to the server. Also retrying a partially delivered (207) batch may result 
 in one or more events being delivered multiple times. 
 
