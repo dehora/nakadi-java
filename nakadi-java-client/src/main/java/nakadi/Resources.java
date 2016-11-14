@@ -37,7 +37,7 @@ public class Resources {
    * @return a resource for working with event types
    */
   public EventTypeResource eventTypes() {
-    return new EventTypeResource(client);
+    return new EventTypeResourceReal(client);
   }
 
   /**

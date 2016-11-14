@@ -7,10 +7,10 @@ import java.util.List;
  */
 public class EventTypeCollection extends ResourceCollection<EventType> {
 
-  private final EventTypeResource eventTypeResource;
+  private final EventTypeResourceReal eventTypeResource;
 
   public EventTypeCollection(List<EventType> items, List<ResourceLink> links,
-      EventTypeResource eventTypeResource) {
+      EventTypeResourceReal eventTypeResource) {
     super(items, links);
     this.eventTypeResource = eventTypeResource;
   }
