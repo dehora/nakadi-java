@@ -15,6 +15,7 @@ public class TokenProviderZignTest {
     }
 
     try {
+      //noinspection ConfusingArgumentToVarargsMethod
       TokenProviderZign.newBuilder().scopes(null);
       fail();
     } catch (IllegalArgumentException ignored) {
