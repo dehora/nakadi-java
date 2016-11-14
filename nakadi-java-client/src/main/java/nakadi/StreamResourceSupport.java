@@ -43,10 +43,11 @@ class StreamResourceSupport {
    * single line JSON encoding of {@link StreamConfiguration#cursors()} if the configuration
    * is a basic event stream.
    */
-  static ResourceOptions buildResourceOptions(NakadiClient client, StreamConfiguration sc) {
+  static ResourceOptions buildResourceOptions(NakadiClient client, StreamConfiguration sc,
+     String scope) {
     ResourceOptions options = ResourceSupport
         .options(APPLICATION_X_JSON_STREAM)
-        .scope(TokenProvider.NAKADI_EVENT_STREAM_READ)
+        .scope(Optional.ofNullable(scope).orElseGet(() -> TokenProvider.NAKADI_EVENT_STREAM_READ))
         .tokenProvider(client.resourceTokenProvider());
 
     if (sc.isSubscriptionStream()) {

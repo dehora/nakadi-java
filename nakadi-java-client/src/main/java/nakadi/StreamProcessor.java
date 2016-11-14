@@ -45,6 +45,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final JsonBatchSupport jsonBatchSupport;
   private final long maxRetryDelay;
   private final int maxRetryAttempts;
+  private final String scope;
 
   // non builder supplied
   private final AtomicBoolean started = new AtomicBoolean(false);
@@ -66,6 +67,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
     this.maxRetryDelay = StreamConnectionRetry.DEFAULT_MAX_DELAY_SECONDS;
     this.maxRetryAttempts = StreamConnectionRetry.DEFAULT_MAX_ATTEMPTS;
+    this.scope = null;
   }
 
   private StreamProcessor(Builder builder) {
@@ -77,6 +79,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
     this.maxRetryDelay = streamConfiguration.maxRetryDelaySeconds();
     this.maxRetryAttempts = streamConfiguration.maxRetryAttempts();
+    this.scope = builder.scope;
   }
 
   /**
@@ -312,9 +315,12 @@ public class StreamProcessor implements StreamProcessorManaged {
       }
 
       String url = StreamResourceSupport.buildStreamUrl(client.baseURI(), sc);
-      ResourceOptions options = StreamResourceSupport.buildResourceOptions(client, sc);
-      logger.info("resourceFactory mode={} resolved_event_name={} url={}",
-          sc.isEventTypeStream() ? "eventStream" : "subscriptionStream", eventTypeName, url);
+      ResourceOptions options = StreamResourceSupport.buildResourceOptions(client, sc, scope);
+      logger.info("stream_connection details mode={} resolved_event_name={} url={} scope={}",
+          sc.isEventTypeStream() ? "eventStream" : "subscriptionStream",
+          eventTypeName,
+          url,
+          options.scope());
       Resource resource = buildResource(sc);
       /*
        sometimes we can get a 409 from here (Conflict; No free slots) on the subscription; this
@@ -322,7 +328,7 @@ public class StreamProcessor implements StreamProcessorManaged {
        the retry/restarts will handle it
       */
       Response response = requestStreamConnection(url, options, resource);
-      logger.info("opening connection {} {}", response.hashCode(), response);
+      logger.info("stream_connection opening {} {}", response.hashCode(), response);
       return response;
     };
   }
@@ -384,6 +390,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     private StreamOffsetObserver streamOffsetObserver;
     private StreamConfiguration streamConfiguration;
     private ExecutorService executorService;
+    private String scope;
 
     public Builder() {
     }
@@ -418,11 +425,19 @@ public class StreamProcessor implements StreamProcessorManaged {
         this.executorService = newStreamProcessorExecutorService();
       }
 
+      this.scope =
+          Optional.ofNullable(scope).orElseGet(() -> TokenProvider.NAKADI_EVENT_STREAM_READ);
+
       return new StreamProcessor(this);
     }
 
     public Builder client(NakadiClient client) {
       this.client = client;
+      return this;
+    }
+
+    public Builder scope(String scope) {
+      this.scope = scope;
       return this;
     }
 
