@@ -9,10 +9,10 @@ import java.util.List;
  */
 public class SubscriptionCollection extends ResourceCollection<Subscription> {
 
-  private final SubscriptionResource subscriptionResource;
+  private final SubscriptionResourceReal subscriptionResource;
 
-  public SubscriptionCollection(List<Subscription> items, List<ResourceLink> links,
-      SubscriptionResource subscriptionResource) {
+  SubscriptionCollection(List<Subscription> items, List<ResourceLink> links,
+      SubscriptionResourceReal subscriptionResource) {
     super(items, links);
     this.subscriptionResource = subscriptionResource;
   }

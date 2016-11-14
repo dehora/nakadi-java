@@ -9,11 +9,11 @@ import java.util.List;
  */
 public class SubscriptionCursorCollection extends ResourceCollection<Cursor> {
 
-  private final SubscriptionResource subscriptionResource;
+  private final SubscriptionResourceReal subscriptionResource;
 
-  public SubscriptionCursorCollection(List<Cursor> items,
+  SubscriptionCursorCollection(List<Cursor> items,
       List<ResourceLink> links,
-      SubscriptionResource subscriptionResource) {
+      SubscriptionResourceReal subscriptionResource) {
     super(items, links);
     this.subscriptionResource = subscriptionResource;
   }

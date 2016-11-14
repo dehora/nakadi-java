@@ -55,7 +55,7 @@ public class Resources {
    * @return a resource for working with subscriptions
    */
   public SubscriptionResource subscriptions() {
-    return new SubscriptionResource(client);
+    return new SubscriptionResourceReal(client);
   }
 
   /**

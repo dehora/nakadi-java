@@ -7,15 +7,15 @@ import java.util.List;
  */
 public class CursorCommitResultCollection extends ResourceCollection<CursorCommitResult> {
 
-  private final SubscriptionResource resource;
+  private final SubscriptionResourceReal resource;
 
   /**
    * @param items the results
    * @param links links for pagination
    * @param resource a subscription resource
    */
-  public CursorCommitResultCollection(List<CursorCommitResult> items, List<ResourceLink> links,
-      SubscriptionResource resource) {
+  CursorCommitResultCollection(List<CursorCommitResult> items, List<ResourceLink> links,
+      SubscriptionResourceReal resource) {
     super(items, links);
     this.resource = resource;
   }
