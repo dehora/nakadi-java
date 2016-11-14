@@ -41,7 +41,7 @@ class OkHttpResource implements Resource {
     return this;
   }
 
-  public OkHttpResource policyBackoff(RetryPolicy retryPolicy) {
+  public OkHttpResource retryPolicy(RetryPolicy retryPolicy) {
     this.retryPolicy = retryPolicy;
     return this;
   }

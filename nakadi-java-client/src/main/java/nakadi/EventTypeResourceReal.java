@@ -18,6 +18,7 @@ class EventTypeResourceReal implements EventTypeResource {
 
   private final NakadiClient client;
   private String scope;
+  private RetryPolicy retryPolicy;
 
   EventTypeResourceReal(NakadiClient client) {
     this.client = client;
@@ -28,20 +29,19 @@ class EventTypeResourceReal implements EventTypeResource {
     return this;
   }
 
+  @Override public EventTypeResource retryPolicy(RetryPolicy retryPolicy) {
+    this.retryPolicy = retryPolicy;
+    return this;
+  }
+
   @Override public Response create(EventType eventType)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
 
-    RetryPolicy backoff = ExponentialRetry.newBuilder()
-        .initialInterval(1000, TimeUnit.MILLISECONDS)
-        .maxAttempts(3)
-        .maxInterval(6000, TimeUnit.MILLISECONDS)
-        .build();
-
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_TYPE_WRITE);
     return client.resourceProvider()
         .newResource()
-        .policyBackoff(backoff)
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.POST, collectionUri().buildString(), options, eventType);
   }
 
@@ -50,7 +50,9 @@ class EventTypeResourceReal implements EventTypeResource {
       RateLimitException, NakadiException {
     String url = collectionUri().path(eventType.name()).buildString();
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_TYPE_WRITE);
-    return client.resourceProvider().newResource()
+    return client.resourceProvider()
+        .newResource()
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.PUT, url, options, eventType);
   }
 
@@ -60,7 +62,9 @@ class EventTypeResourceReal implements EventTypeResource {
     String url = collectionUri().path(eventTypeName).buildString();
     // filebug: no scope defined on this resource; work with NAKADI_EVENT_STREAM_READ for now
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    return client.resourceProvider().newResource()
+    return client.resourceProvider()
+        .newResource()
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, options, EventType.class);
   }
 
@@ -69,7 +73,9 @@ class EventTypeResourceReal implements EventTypeResource {
       RateLimitException, NakadiException {
     String url = collectionUri().path(eventTypeName).buildString();
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_CONFIG_WRITE);
-    return client.resourceProvider().newResource()
+    return client.resourceProvider()
+        .newResource()
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.DELETE, url, options);
   }
 
@@ -94,7 +100,7 @@ class EventTypeResourceReal implements EventTypeResource {
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
     return client.resourceProvider()
         .newResource()
-        .policyBackoff(policyBackoffForCollectionPage())
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, options, Partition.class);
   }
 
@@ -107,7 +113,7 @@ class EventTypeResourceReal implements EventTypeResource {
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
     Response response = client.resourceProvider()
         .newResource()
-        .policyBackoff(policyBackoffForCollectionPage())
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, options);
 
     List<EventType> collection =
@@ -120,7 +126,7 @@ class EventTypeResourceReal implements EventTypeResource {
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
     Response response = client.resourceProvider()
         .newResource()
-        .policyBackoff(policyBackoffForCollectionPage())
+        .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, options);
 
     List<Partition> collection =
@@ -139,11 +145,4 @@ class EventTypeResourceReal implements EventTypeResource {
     return UriBuilder.builder(client.baseURI()).path(PATH_EVENT_TYPES);
   }
 
-  private RetryPolicy policyBackoffForCollectionPage() {
-    return ExponentialRetry.newBuilder()
-        .initialInterval(1000, TimeUnit.MILLISECONDS)
-        .maxAttempts(5)
-        .maxInterval(6000, TimeUnit.MILLISECONDS)
-        .build();
-  }
 }

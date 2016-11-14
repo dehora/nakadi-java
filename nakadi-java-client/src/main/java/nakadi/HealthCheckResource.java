@@ -24,7 +24,7 @@ public class HealthCheckResource {
 
     Resource resource = client.resourceProvider().newResource();
     return resource
-        .policyBackoff(newBackoff())
+        .retryPolicy(newBackoff())
         .request("GET",
         UriBuilder.builder(client.baseURI()).path("health").buildString(),
         ResourceSupport.options("*/*").tokenProvider(client.resourceTokenProvider()));
@@ -47,7 +47,7 @@ public class HealthCheckResource {
       RateLimitException, NakadiException {
     Resource resource = client.resourceProvider().newResource();
     return resource
-        .policyBackoff(newBackoff())
+        .retryPolicy(newBackoff())
         .requestThrowing("GET",
         UriBuilder.builder(client.baseURI()).path("health").buildString(),
         ResourceSupport.options("*/*").tokenProvider(client.resourceTokenProvider()),

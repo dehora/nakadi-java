@@ -14,6 +14,15 @@ public interface EventTypeResource {
   EventTypeResource scope(String scope);
 
   /**
+   * Set the retry policy to be used for the request. This can be reset between requests. Setting
+   * it to null (the default) disables retries.
+   *
+   * @param retryPolicy the retry policy
+   * @return this
+   */
+  EventTypeResource retryPolicy(RetryPolicy retryPolicy);
+
+  /**
    * Create an event type.
    *
    * @param eventType an event type

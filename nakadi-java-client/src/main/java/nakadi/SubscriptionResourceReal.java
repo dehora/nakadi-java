@@ -46,7 +46,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
     RetryPolicy backoff = policyBackoffForCreateOrUpdate();
     return client.resourceProvider().newResource()
-        .policyBackoff(backoff)
+        .retryPolicy(backoff)
         .requestThrowing(Resource.POST, collectionUri().buildString(),
             options, subscription);
   }
@@ -60,7 +60,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     RetryPolicy backoff = policyBackoffForFind();
     return client.resourceProvider()
         .newResource()
-        .policyBackoff(backoff)
+        .retryPolicy(backoff)
         .requestThrowing(Resource.GET, url, options, Subscription.class);
   }
 
@@ -87,7 +87,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     RetryPolicy backoff = policyBackoffForDelete();
     return client.resourceProvider()
         .newResource()
-        .policyBackoff(backoff)
+        .retryPolicy(backoff)
         .requestThrowing(Resource.DELETE, url, options);
   }
 
@@ -129,7 +129,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
     Response response = client.resourceProvider()
         .newResource()
-        .policyBackoff(backoff)
+        .retryPolicy(backoff)
         .requestThrowing(Resource.POST, url, options, requestMap);
 
     if (response.statusCode() == 204) {
@@ -166,7 +166,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     RetryPolicy backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
-        .policyBackoff(backoff)
+        .retryPolicy(backoff)
         .requestThrowing(Resource.GET, url, options);
 
     /*
@@ -185,7 +185,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     RetryPolicy backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
-        .policyBackoff(backoff)
+        .retryPolicy(backoff)
         .requestThrowing(Resource.GET, url, options);
 
     /*
@@ -204,7 +204,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     RetryPolicy backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
-        .policyBackoff(backoff)
+        .retryPolicy(backoff)
         .requestThrowing(Resource.GET, url, options);
 
     /*
@@ -265,7 +265,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     RetryPolicy backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
-        .policyBackoff(backoff)
+        .retryPolicy(backoff)
         .requestThrowing(Resource.GET, url, options);
 
     return client.jsonSupport().fromJson(response.responseBody().asString(), TYPE);

@@ -51,7 +51,7 @@ public class RegistryResource {
         .tokenProvider(client.resourceTokenProvider());
     Response response = client.resourceProvider()
         .newResource()
-        .policyBackoff(policyBackoffForCollectionPage())
+        .retryPolicy(policyBackoffForCollectionPage())
         .requestThrowing(Resource.GET, url, options);
 
     return client.jsonSupport().fromJson(response.responseBody().asString(), TYPE);
