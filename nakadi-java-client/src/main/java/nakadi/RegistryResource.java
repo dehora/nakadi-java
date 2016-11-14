@@ -57,8 +57,8 @@ public class RegistryResource {
     return client.jsonSupport().fromJson(response.responseBody().asString(), TYPE);
   }
 
-  private PolicyBackoff policyBackoffForCollectionPage() {
-    return ExponentialBackoff.newBuilder()
+  private RetryPolicy policyBackoffForCollectionPage() {
+    return ExponentialRetry.newBuilder()
         .initialInterval(1000, TimeUnit.MILLISECONDS)
         .maxAttempts(5)
         .maxInterval(6000, TimeUnit.MILLISECONDS)

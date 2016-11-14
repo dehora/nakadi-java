@@ -2,7 +2,7 @@ package nakadi;
 
 import java.util.concurrent.TimeUnit;
 
-public class ExponentialBackoff implements PolicyBackoff {
+public class ExponentialRetry implements RetryPolicy {
 
   static final int DEFAULT_INITIAL_INTERVAL_MILLIS = 1000;
   static final int DEFAULT_MAX_INTERVAL_MILLIS = 32000;
@@ -19,10 +19,10 @@ public class ExponentialBackoff implements PolicyBackoff {
     return new Builder();
   }
 
-  private ExponentialBackoff() {
+  private ExponentialRetry() {
   }
 
-  ExponentialBackoff(Builder builder) {
+  ExponentialRetry(Builder builder) {
     this.initialInterval = builder.initialInterval;
     this.maxInterval = builder.maxInterval;
     this.maxAttempts = builder.maxAttempts;
@@ -67,7 +67,7 @@ public class ExponentialBackoff implements PolicyBackoff {
   }
 
   @Override public String toString() {
-    return "ExponentialBackoff{" + "workingInterval=" + workingInterval +
+    return "ExponentialRetry{" + "workingInterval=" + workingInterval +
         ", initialInterval=" + initialInterval +
         ", maxInterval=" + maxInterval +
         ", maxAttempts=" + maxAttempts +
@@ -103,8 +103,8 @@ public class ExponentialBackoff implements PolicyBackoff {
       return this;
     }
 
-    ExponentialBackoff build() {
-      return new ExponentialBackoff(this);
+    ExponentialRetry build() {
+      return new ExponentialRetry(this);
     }
   }
 }

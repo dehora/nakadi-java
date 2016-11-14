@@ -32,7 +32,7 @@ class EventTypeResourceReal implements EventTypeResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
 
-    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
+    RetryPolicy backoff = ExponentialRetry.newBuilder()
         .initialInterval(1000, TimeUnit.MILLISECONDS)
         .maxAttempts(3)
         .maxInterval(6000, TimeUnit.MILLISECONDS)
@@ -139,8 +139,8 @@ class EventTypeResourceReal implements EventTypeResource {
     return UriBuilder.builder(client.baseURI()).path(PATH_EVENT_TYPES);
   }
 
-  private PolicyBackoff policyBackoffForCollectionPage() {
-    return ExponentialBackoff.newBuilder()
+  private RetryPolicy policyBackoffForCollectionPage() {
+    return ExponentialRetry.newBuilder()
         .initialInterval(1000, TimeUnit.MILLISECONDS)
         .maxAttempts(5)
         .maxInterval(6000, TimeUnit.MILLISECONDS)

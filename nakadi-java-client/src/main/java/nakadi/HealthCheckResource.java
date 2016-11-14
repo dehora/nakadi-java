@@ -54,8 +54,8 @@ public class HealthCheckResource {
         Response.class);
   }
 
-  private PolicyBackoff newBackoff() {
-    return ExponentialBackoff.newBuilder()
+  private RetryPolicy newBackoff() {
+    return ExponentialRetry.newBuilder()
           .initialInterval(900, TimeUnit.MILLISECONDS)
           .maxAttempts(3)
           .maxInterval(3000, TimeUnit.MILLISECONDS)

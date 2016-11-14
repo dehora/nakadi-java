@@ -26,7 +26,7 @@ class StreamConnectionRetry {
   private int attemptCount;
 
   <T> Observable.Transformer<T, T> retryWhenWithBackoff(
-      PolicyBackoff backoff, Scheduler scheduler, Func1<Throwable, Boolean> isRetryable) {
+      RetryPolicy backoff, Scheduler scheduler, Func1<Throwable, Boolean> isRetryable) {
 
     return new Observable.Transformer<T, T>() {
       @Override
@@ -56,7 +56,7 @@ class StreamConnectionRetry {
       long maxDelay, final TimeUnit unit, Scheduler scheduler,
       Func1<Throwable, Boolean> isRetryable) {
 
-    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
+    RetryPolicy backoff = ExponentialRetry.newBuilder()
         .initialInterval(initialDelay, unit)
         .maxInterval(maxDelay, unit)
         .maxAttempts(maxAttempts)
@@ -66,7 +66,7 @@ class StreamConnectionRetry {
   }
 
   private Func1<? super Observable<? extends Throwable>, ? extends Observable<?>>
-  eboRetry(PolicyBackoff backoff, Func1<Throwable, Boolean> isRetryable) {
+  eboRetry(RetryPolicy backoff, Func1<Throwable, Boolean> isRetryable) {
 
     logger.info("Retry loading with, backoff={}", backoff);
 
@@ -133,7 +133,7 @@ class StreamConnectionRetry {
 
                   long delay = backoff.nextBackoffMillis();
 
-                  if(delay == PolicyBackoff.STOP) {
+                  if(delay == RetryPolicy.STOP) {
                     logger.warn(
                         String.format(
                             "StreamConnectionRetry: cycle failed after %d attempts, propagating error %s, %s",

@@ -21,7 +21,7 @@ class OkHttpResource implements Resource {
   private long readTimeout = 0;
   private volatile boolean hasPerRequestConnectTimeout;
   private volatile boolean hasPerRequestReadTimeout;
-  private volatile PolicyBackoff policyBackoff;
+  private volatile RetryPolicy retryPolicy;
 
   OkHttpResource(OkHttpClient okHttpClient, JsonSupport jsonSupport, MetricCollector collector) {
     this.okHttpClient = okHttpClient;
@@ -41,22 +41,22 @@ class OkHttpResource implements Resource {
     return this;
   }
 
-  public OkHttpResource policyBackoff(PolicyBackoff policyBackoff) {
-    this.policyBackoff = policyBackoff;
+  public OkHttpResource policyBackoff(RetryPolicy retryPolicy) {
+    this.retryPolicy = retryPolicy;
     return this;
   }
 
   @Override
   public <Req> Response request(String method, String url, ResourceOptions options, Req body)
       throws NakadiException {
-    if (policyBackoff == null) {
+    if (retryPolicy == null) {
         return executeRequest(prepareBuilder(method, url, options, body));
     } else {
       // defer gives us a chance to register a retry; just results in a hot observable
       Observable<Response> observable = Observable.defer(
           () -> Observable.just(
               executeRequest(prepareBuilder(method, url, options, body)))
-      ).compose(buildRetry(policyBackoff));
+      ).compose(buildRetry(retryPolicy));
 
       return observable.toBlocking().first();
     }
@@ -66,13 +66,13 @@ class OkHttpResource implements Resource {
   public Response request(String method, String url, ResourceOptions options)
       throws NakadiException {
 
-    if (policyBackoff == null) {
+    if (retryPolicy == null) {
       return throwIfError(executeRequest(prepareBuilder(method, url, options, null)));
     } else {
       Observable<Response> observable = Observable.defer(
           () -> Observable.just(
               throwIfError(executeRequest(prepareBuilder(method, url, options, null))))
-      ).compose(buildRetry(policyBackoff));
+      ).compose(buildRetry(retryPolicy));
 
       return observable.toBlocking().first();
     }
@@ -81,14 +81,14 @@ class OkHttpResource implements Resource {
   @Override public Response requestThrowing(String method, String url, ResourceOptions options)
       throws NakadiException {
 
-    if (policyBackoff == null) {
+    if (retryPolicy == null) {
       Response response = executeRequest(prepareBuilder(method, url, options, null));
       return marshalResponse(response, null);
     } else {
       Observable<Response> observable = Observable.defer(
           () -> Observable.just(
               throwIfError(executeRequest(prepareBuilder(method, url, options, null))))
-      ).compose(buildRetry(policyBackoff));
+      ).compose(buildRetry(retryPolicy));
 
       Response response = observable.toBlocking().first();
       return marshalResponse(response, null);
@@ -100,13 +100,13 @@ class OkHttpResource implements Resource {
       Req body)
       throws NakadiException {
 
-    if (null == policyBackoff) {
+    if (null == retryPolicy) {
       return throwIfError(executeRequest(prepareBuilder(method, url, options, body)));
     } else {
       Observable<Response> observable = Observable.defer(
           () -> Observable.just(
               throwIfError(executeRequest(prepareBuilder(method, url, options, body))))
-      ).compose(buildRetry(policyBackoff));
+      ).compose(buildRetry(retryPolicy));
 
       return observable.toBlocking().first();
     }
@@ -116,14 +116,14 @@ class OkHttpResource implements Resource {
   public <Res> Res requestThrowing(String method, String url, ResourceOptions options,
       Class<Res> res) throws NakadiException {
 
-    if (null == policyBackoff) {
+    if (null == retryPolicy) {
       Response response = executeRequest(prepareBuilder(method, url, options, null));
       return marshalResponse(response, res);
     } else {
       Observable<Response> observable = Observable.defer(
           () -> Observable.just(
               throwIfError(executeRequest(prepareBuilder(method, url, options, null))))
-      ).compose(buildRetry(policyBackoff));
+      ).compose(buildRetry(retryPolicy));
 
       Response response = observable.toBlocking().first();
       return marshalResponse(response, res);
@@ -159,7 +159,7 @@ class OkHttpResource implements Resource {
     options.supplyToken().ifPresent(t -> builder.header(HEADER_AUTHORIZATION, t));
   }
 
-  private Observable.Transformer<Response, Response> buildRetry(PolicyBackoff backoff) {
+  private Observable.Transformer<Response, Response> buildRetry(RetryPolicy backoff) {
     return new StreamConnectionRetry()
         .retryWhenWithBackoff(
             backoff, Schedulers.computation(), StreamExceptionSupport::isRetryable);
