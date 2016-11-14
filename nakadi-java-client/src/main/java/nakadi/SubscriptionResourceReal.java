@@ -43,7 +43,15 @@ class SubscriptionResourceReal implements SubscriptionResource {
       RateLimitException, NakadiException {
     //todo:filebug: nakadi.event_stream.read is in the yaml but this is a write action
     NakadiException.throwNonNull(subscription, "Please provide a subscription");
+
+    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
+        .initialInterval(900, TimeUnit.MILLISECONDS)
+        .maxAttempts(3)
+        .maxInterval(6000, TimeUnit.MILLISECONDS)
+        .build();
+
     return client.resourceProvider().newResource()
+        .policyBackoff(backoff)
         .requestThrowing(Resource.POST, collectionUri().buildString(),
             prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ), subscription);
   }
@@ -122,7 +130,8 @@ class SubscriptionResourceReal implements SubscriptionResource {
     options.header(StreamResourceSupport.X_NAKADI_STREAM_ID, streamId);
 
     Response response = client.resourceProvider().newResource()
-        .requestRetryThrowing(Resource.POST, url, options, requestMap, backoff);
+        .policyBackoff(backoff)
+        .requestThrowing(Resource.POST, url, options, requestMap);
 
     if (response.statusCode() == 204) {
       return sentinelCursorCommitResultCollection;
