@@ -3,7 +3,7 @@
 
 - Build: [![CircleCI](https://circleci.com/gh/zalando-incubator/nakadi-java.svg?style=svg)](https://circleci.com/gh/zalando-incubator/nakadi-java)
 - Release Download: [ ![Download](https://api.bintray.com/packages/dehora/maven/nakadi-java-client/images/download.svg) ](https://bintray.com/dehora/maven/nakadi-java-client/_latestVersion)
-- Source Release: [0.0.8](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.0.8)
+- Source Release: [0.0.9](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.0.9)
 - Contact: [maintainers](https://github.com/zalando-incubator/nakadi-java/blob/master/MAINTAINERS)
 
 
@@ -166,6 +166,27 @@ NakadiClient client = NakadiClient.newBuilder()
   .tokenProvider(new MyTokenProvider())
   .build();
 ```
+
+#### OAuth Scopes
+
+Some resources support use of OAuth scopes (where the API documents them, it's incomplete as of 
+2016-11-15):
+
+- `StreamProcessor`: can be set via `StreamProcessor.Builder.scope()` before calling `start()`.
+- `EventTypeResource`: can be set via `EventTypeResource.scope()` before making an API call.
+- `EventResource`: can be set via `EventResource.scope` before making an API call.
+- `SubscriptionResource`: can be set via `EventResource.scope` before making an API call.
+
+On each request the client will resolve the scope to a token by asking the `TokenProvider` to 
+supply a token via `authHeaderValue`. If a custom scope has been applied on the request it will 
+be used, otherwise the default scope documented by the API will be used. 
+
+The scope set on resource instances is stateful, not one-shot, and will be re-used across requests. 
+To change the scope, call `scope()` again will a new scope value, or if you wish to clear the 
+ custom scope and revert to defaults, call `scope()` with `null`. However the `StreamProcessor` 
+ scope is fixed once streaming begins after `start()` is called and can't be changed.
+
+
 
 #### Metric Collector
 
@@ -556,7 +577,7 @@ and add the project declaration to `pom.xml`:
 <dependency>
   <groupId>net.dehora.nakadi</groupId>
   <artifactId>nakadi-java-client</artifactId>
-  <version>0.0.8</version>
+  <version>0.0.9</version>
 </dependency>
 ```
 ### Gradle
@@ -573,7 +594,7 @@ and add the project to the `dependencies` block in `build.gradle`:
 
 ```groovy
 dependencies {
-  compile 'net.dehora.nakadi:nakadi-java-client:0.0.8'
+  compile 'net.dehora.nakadi:nakadi-java-client:0.0.9'
 }  
 ```
 
@@ -588,7 +609,7 @@ resolvers += "jcenter" at "http://jcenter.bintray.com"
 and add the project to `libraryDependencies` in `build.sbt`:
 
 ```scala
-libraryDependencies += "net.dehora.nakadi" % "nakadi-java-client" % "0.0.8"
+libraryDependencies += "net.dehora.nakadi" % "nakadi-java-client" % "0.0.9"
 ```
 
 
