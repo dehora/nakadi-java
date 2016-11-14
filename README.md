@@ -22,6 +22,7 @@
   - [Available Resources](#available-resources)
   - [Creating a client](#creating-a-client)
     - [Authorization](#authorization)
+    - [OAuth Scopes](#oauth-scopes)
     - [Metric Collector](#metric-collector)
     - [HTTPS Security](#https-security)
     - [Resource Classes](#resource-classes)
