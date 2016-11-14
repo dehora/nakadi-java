@@ -23,7 +23,7 @@ public interface Resource {
    */
   Resource readTimeout(long timeout, TimeUnit unit);
 
-  Resource policyBackoff(RetryPolicy retryPolicy);
+  Resource retryPolicy(RetryPolicy retryPolicy);
 
   // todo: reduce these methods and figure out when to throw exceptions
 
