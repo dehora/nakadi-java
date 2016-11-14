@@ -43,17 +43,12 @@ class SubscriptionResourceReal implements SubscriptionResource {
       RateLimitException, NakadiException {
     //todo:filebug: nakadi.event_stream.read is in the yaml but this is a write action
     NakadiException.throwNonNull(subscription, "Please provide a subscription");
-
-    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
-        .initialInterval(900, TimeUnit.MILLISECONDS)
-        .maxAttempts(3)
-        .maxInterval(6000, TimeUnit.MILLISECONDS)
-        .build();
-
+    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    PolicyBackoff backoff = policyBackoffForCreateOrUpdate();
     return client.resourceProvider().newResource()
         .policyBackoff(backoff)
         .requestThrowing(Resource.POST, collectionUri().buildString(),
-            prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ), subscription);
+            options, subscription);
   }
 
   @Override public Subscription find(String id)
@@ -62,7 +57,10 @@ class SubscriptionResourceReal implements SubscriptionResource {
     NakadiException.throwNonNull(id, "Please provide an id");
     String url = collectionUri().path(id).buildString();
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    return client.resourceProvider().newResource()
+    PolicyBackoff backoff = policyBackoffForFind();
+    return client.resourceProvider()
+        .newResource()
+        .policyBackoff(backoff)
         .requestThrowing(Resource.GET, url, options, Subscription.class);
   }
 
@@ -82,10 +80,14 @@ class SubscriptionResourceReal implements SubscriptionResource {
   @Override public Response delete(String id)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
+    NakadiException.throwNonNull(id, "Please provide an id");
     String url = collectionUri().path(id).buildString();
     // todo:filebug: no delete operation in yaml, got with config write as per event type delete
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_CONFIG_WRITE);
-    return client.resourceProvider().newResource()
+    PolicyBackoff backoff = policyBackoffForDelete();
+    return client.resourceProvider()
+        .newResource()
+        .policyBackoff(backoff)
         .requestThrowing(Resource.DELETE, url, options);
   }
 
@@ -94,11 +96,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, ContractException, NakadiException {
 
-    PolicyBackoff backoff = ExponentialBackoff.newBuilder()
-        .initialInterval(900, TimeUnit.MILLISECONDS)
-        .maxAttempts(3)
-        .maxInterval(2000, TimeUnit.MILLISECONDS)
-        .build();
+    PolicyBackoff backoff = policyBackoffForCheckpoint();
     return checkpoint(backoff, context, cursors);
   }
 
@@ -129,7 +127,8 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
     options.header(StreamResourceSupport.X_NAKADI_STREAM_ID, streamId);
 
-    Response response = client.resourceProvider().newResource()
+    Response response = client.resourceProvider()
+        .newResource()
         .policyBackoff(backoff)
         .requestThrowing(Resource.POST, url, options, requestMap);
 
@@ -164,7 +163,10 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   SubscriptionEventTypeStatsCollection loadStatsPage(String url) {
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    Response response = client.resourceProvider().newResource()
+    PolicyBackoff backoff = policyBackoffForCollectionPage();
+    Response response = client.resourceProvider()
+        .newResource()
+        .policyBackoff(backoff)
         .requestThrowing(Resource.GET, url, options);
 
     /*
@@ -180,7 +182,10 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   SubscriptionCursorCollection loadCursorPage(String url) {
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
-    Response response = client.resourceProvider().newResource()
+    PolicyBackoff backoff = policyBackoffForCollectionPage();
+    Response response = client.resourceProvider()
+        .newResource()
+        .policyBackoff(backoff)
         .requestThrowing(Resource.GET, url, options);
 
     /*
@@ -196,8 +201,10 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   SubscriptionCollection loadPage(String url) {
     ResourceOptions options = this.prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    PolicyBackoff backoff = policyBackoffForCollectionPage();
     Response response = client.resourceProvider()
         .newResource()
+        .policyBackoff(backoff)
         .requestThrowing(Resource.GET, url, options);
 
     /*
@@ -253,12 +260,55 @@ class SubscriptionResourceReal implements SubscriptionResource {
   }
 
   private List<CursorCommitResult> loadCollection(String url) {
-    Response response = client.resourceProvider().newResource()
-        .requestThrowing(Resource.GET, url,
-            ResourceSupport.options(APPLICATION_JSON)
-                .tokenProvider(client.resourceTokenProvider()));
+
+    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    PolicyBackoff backoff = policyBackoffForCollectionPage();
+    Response response = client.resourceProvider()
+        .newResource()
+        .policyBackoff(backoff)
+        .requestThrowing(Resource.GET, url, options);
 
     return client.jsonSupport().fromJson(response.responseBody().asString(), TYPE);
+  }
+
+  private PolicyBackoff policyBackoffForCreateOrUpdate() {
+    return ExponentialBackoff.newBuilder()
+        .initialInterval(900, TimeUnit.MILLISECONDS)
+        .maxAttempts(3)
+        .maxInterval(6000, TimeUnit.MILLISECONDS)
+        .build();
+  }
+
+  private PolicyBackoff policyBackoffForFind() {
+    return ExponentialBackoff.newBuilder()
+        .initialInterval(600, TimeUnit.MILLISECONDS)
+        .maxAttempts(3)
+        .maxInterval(3000, TimeUnit.MILLISECONDS)
+        .build();
+  }
+
+  private PolicyBackoff policyBackoffForDelete() {
+    return ExponentialBackoff.newBuilder()
+        .initialInterval(900, TimeUnit.MILLISECONDS)
+        .maxAttempts(3)
+        .maxInterval(3000, TimeUnit.MILLISECONDS)
+        .build();
+  }
+
+  private PolicyBackoff policyBackoffForCheckpoint() {
+    return ExponentialBackoff.newBuilder()
+        .initialInterval(900, TimeUnit.MILLISECONDS)
+        .maxAttempts(3)
+        .maxInterval(2000, TimeUnit.MILLISECONDS)
+        .build();
+  }
+
+  private PolicyBackoff policyBackoffForCollectionPage() {
+    return ExponentialBackoff.newBuilder()
+        .initialInterval(1000, TimeUnit.MILLISECONDS)
+        .maxAttempts(5)
+        .maxInterval(6000, TimeUnit.MILLISECONDS)
+        .build();
   }
 
   private static class SubscriptionList {
