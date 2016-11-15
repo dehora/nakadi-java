@@ -24,7 +24,7 @@ public class SubscriptionResourceRealTest {
   public void listSansRetry() {
     NakadiClient client =
         spy(NakadiClient.newBuilder()
-            .baseURI("http://localhost:9080")
+            .baseURI("http://localhost:9081")
             .build());
 
     OkHttpResource r0 = spy(new OkHttpResource(
@@ -49,7 +49,7 @@ public class SubscriptionResourceRealTest {
   public void listWithRetry() {
     NakadiClient client =
         spy(NakadiClient.newBuilder()
-            .baseURI("http://localhost:9080")
+            .baseURI("http://localhost:9081")
             .build());
 
     OkHttpResource r0 = spy(new OkHttpResource(
@@ -85,7 +85,7 @@ public class SubscriptionResourceRealTest {
 
     NakadiClient client =
         spy(NakadiClient.newBuilder()
-            .baseURI("http://localhost:9080")
+            .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
               if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
                 askedForDefaultToken[0] = true;
@@ -117,7 +117,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r0, times(1)).requestThrowing(
         Matchers.eq(Resource.GET),
-        Matchers.eq("http://localhost:9080/subscriptions"),
+        Matchers.eq("http://localhost:9081/subscriptions"),
         options.capture()
     );
 
@@ -149,7 +149,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r1, times(1)).requestThrowing(
         Matchers.eq(Resource.GET),
-        Matchers.eq("http://localhost:9080/subscriptions"),
+        Matchers.eq("http://localhost:9081/subscriptions"),
         options.capture()
     );
 
@@ -168,7 +168,7 @@ public class SubscriptionResourceRealTest {
 
     NakadiClient client =
         spy(NakadiClient.newBuilder()
-            .baseURI("http://localhost:9080")
+            .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
               if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
                 askedForDefaultToken[0] = true;
@@ -200,7 +200,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r0, times(1)).requestThrowing(
         Matchers.eq(Resource.GET),
-        Matchers.eq("http://localhost:9080/subscriptions/sid"),
+        Matchers.eq("http://localhost:9081/subscriptions/sid"),
         options.capture(),
         Matchers.eq(Subscription.class)
     );
@@ -233,7 +233,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r1, times(1)).requestThrowing(
         Matchers.eq(Resource.GET),
-        Matchers.eq("http://localhost:9080/subscriptions/sid"),
+        Matchers.eq("http://localhost:9081/subscriptions/sid"),
         options.capture(),
         Matchers.eq(Subscription.class)
     );
@@ -253,7 +253,7 @@ public class SubscriptionResourceRealTest {
 
     NakadiClient client =
         spy(NakadiClient.newBuilder()
-            .baseURI("http://localhost:9080")
+            .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
               if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
                 askedForDefaultToken[0] = true;
@@ -285,7 +285,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r0, times(1)).requestThrowing(
         Matchers.eq(Resource.GET),
-        Matchers.eq("http://localhost:9080/subscriptions/sid/cursors"),
+        Matchers.eq("http://localhost:9081/subscriptions/sid/cursors"),
         options.capture()
     );
 
@@ -317,7 +317,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r1, times(1)).requestThrowing(
         Matchers.eq(Resource.GET),
-        Matchers.eq("http://localhost:9080/subscriptions/sid/cursors"),
+        Matchers.eq("http://localhost:9081/subscriptions/sid/cursors"),
         options.capture()
     );
 
@@ -336,7 +336,7 @@ public class SubscriptionResourceRealTest {
 
     NakadiClient client =
         spy(NakadiClient.newBuilder()
-            .baseURI("http://localhost:9080")
+            .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
               if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
                 askedForDefaultToken[0] = true;
@@ -368,7 +368,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r0, times(1)).requestThrowing(
         Matchers.eq(Resource.GET),
-        Matchers.eq("http://localhost:9080/subscriptions/sid/stats"),
+        Matchers.eq("http://localhost:9081/subscriptions/sid/stats"),
         options.capture()
     );
 
@@ -400,7 +400,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r1, times(1)).requestThrowing(
         Matchers.eq(Resource.GET),
-        Matchers.eq("http://localhost:9080/subscriptions/sid/stats"),
+        Matchers.eq("http://localhost:9081/subscriptions/sid/stats"),
         options.capture()
     );
 
@@ -419,7 +419,7 @@ public class SubscriptionResourceRealTest {
 
     NakadiClient client =
         spy(NakadiClient.newBuilder()
-            .baseURI("http://localhost:9080")
+            .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
               if (TokenProvider.NAKADI_CONFIG_WRITE.equals(scope)) {
                 askedForDefaultToken[0] = true;
@@ -451,7 +451,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r0, times(1)).requestThrowing(
         Matchers.eq(Resource.DELETE),
-        Matchers.eq("http://localhost:9080/subscriptions/id"),
+        Matchers.eq("http://localhost:9081/subscriptions/id"),
         options.capture()
     );
 
@@ -483,7 +483,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r1, times(1)).requestThrowing(
         Matchers.eq(Resource.DELETE),
-        Matchers.eq("http://localhost:9080/subscriptions/id"),
+        Matchers.eq("http://localhost:9081/subscriptions/id"),
         options.capture()
     );
 
@@ -502,7 +502,7 @@ public class SubscriptionResourceRealTest {
 
     NakadiClient client =
         spy(NakadiClient.newBuilder()
-            .baseURI("http://localhost:9080")
+            .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
               if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
                 askedForDefaultToken[0] = true;
@@ -550,7 +550,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r0, times(1)).requestThrowing(
         Matchers.eq(Resource.POST),
-        Matchers.eq("http://localhost:9080/subscriptions/woo/cursors"),
+        Matchers.eq("http://localhost:9081/subscriptions/woo/cursors"),
         options.capture(),
         Matchers.eq(requestMap)
     );
@@ -591,7 +591,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r1, times(1)).requestThrowing(
         Matchers.eq(Resource.POST),
-        Matchers.eq("http://localhost:9080/subscriptions/woo/cursors"),
+        Matchers.eq("http://localhost:9081/subscriptions/woo/cursors"),
         options.capture(),
         Matchers.eq(requestMap)
     );
@@ -616,7 +616,7 @@ public class SubscriptionResourceRealTest {
 
     NakadiClient client =
         spy(NakadiClient.newBuilder()
-            .baseURI("http://localhost:9080")
+            .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
               if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
                 askedForDefaultToken[0] = true;
@@ -650,7 +650,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r0, times(1)).requestThrowing(
         Matchers.eq(Resource.POST),
-        Matchers.eq("http://localhost:9080/subscriptions"),
+        Matchers.eq("http://localhost:9081/subscriptions"),
         options.capture(),
         Matchers.eq(subscription)
     );
@@ -685,7 +685,7 @@ public class SubscriptionResourceRealTest {
 
     verify(r1, times(1)).requestThrowing(
         Matchers.eq(Resource.POST),
-        Matchers.eq("http://localhost:9080/subscriptions"),
+        Matchers.eq("http://localhost:9081/subscriptions"),
         options.capture(),
         Matchers.eq(subscription)
     );

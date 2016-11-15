@@ -22,7 +22,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 public class StreamProcessorTest {
 
   private final NakadiClient client =
-      NakadiClient.newBuilder().baseURI("http://localhost:9080").build();
+      NakadiClient.newBuilder().baseURI("http://localhost:9081").build();
   private StreamProcessor processor;
 
   @Before
@@ -37,7 +37,7 @@ public class StreamProcessorTest {
 
     NakadiClient client =
         NakadiClient.newBuilder()
-            .baseURI("http://localhost:9080")
+            .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
               if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
                 askedForToken[0] = true;
@@ -72,7 +72,7 @@ public class StreamProcessorTest {
     ArgumentCaptor<ResourceOptions> options1 =
         ArgumentCaptor.forClass(ResourceOptions.class);
     verify(sp, times(1)).requestStreamConnection(
-        Matchers.eq("http://localhost:9080/subscriptions/sub1/events"),
+        Matchers.eq("http://localhost:9081/subscriptions/sub1/events"),
         options1.capture(),
         any());
     assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options1.getValue().scope());
@@ -82,7 +82,7 @@ public class StreamProcessorTest {
         ArgumentCaptor.forClass(ResourceOptions.class);
     verify(r, times(1)).requestThrowing(
         Matchers.eq(Resource.GET),
-        Matchers.eq("http://localhost:9080/subscriptions/sub1/events"),
+        Matchers.eq("http://localhost:9081/subscriptions/sub1/events"),
         options2.capture());
     assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options2.getValue().scope());
 
@@ -98,7 +98,7 @@ public class StreamProcessorTest {
 
     NakadiClient client =
         NakadiClient.newBuilder()
-            .baseURI("http://localhost:9080")
+            .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
               if (customScope.equals(scope)) {
                 askedForToken[0] = true;
@@ -134,7 +134,7 @@ public class StreamProcessorTest {
     ArgumentCaptor<ResourceOptions> options1 =
         ArgumentCaptor.forClass(ResourceOptions.class);
     verify(sp, times(1)).requestStreamConnection(
-        Matchers.eq("http://localhost:9080/subscriptions/sub1/events"),
+        Matchers.eq("http://localhost:9081/subscriptions/sub1/events"),
         options1.capture(),
         any());
     assertEquals(customScope, options1.getValue().scope());
@@ -144,7 +144,7 @@ public class StreamProcessorTest {
         ArgumentCaptor.forClass(ResourceOptions.class);
     verify(r, times(1)).requestThrowing(
         Matchers.eq(Resource.GET),
-        Matchers.eq("http://localhost:9080/subscriptions/sub1/events"),
+        Matchers.eq("http://localhost:9081/subscriptions/sub1/events"),
         options2.capture());
     assertEquals(customScope, options2.getValue().scope());
 
