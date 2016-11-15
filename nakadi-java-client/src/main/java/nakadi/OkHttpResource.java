@@ -1,6 +1,7 @@
 package nakadi;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -216,8 +217,13 @@ class OkHttpResource implements Resource {
   }
 
   private <T> T handleError(Response response) {
+    String raw = response.responseBody().asString();
+    Problem problem = Optional.ofNullable(jsonSupport.fromJson(raw, Problem.class))
+        .orElse(Problem.noProblemo("no problem sent back from server", "", response.statusCode()));
+
+
     return throwProblem(response.statusCode(),
-        jsonSupport.fromJson(response.responseBody().asString(), Problem.class));
+        problem);
   }
 
   private <T> T throwProblem(int code, Problem problem) {
