@@ -1,6 +1,5 @@
 package nakadi;
 
-import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 

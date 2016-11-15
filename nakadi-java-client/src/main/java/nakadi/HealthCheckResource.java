@@ -1,7 +1,5 @@
 package nakadi;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * Supports API operations related to health checks.
  */

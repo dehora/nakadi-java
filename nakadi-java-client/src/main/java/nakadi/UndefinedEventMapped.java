@@ -1,6 +1,5 @@
 package nakadi;
 
-import java.util.Map;
 import java.util.Objects;
 
 /**
