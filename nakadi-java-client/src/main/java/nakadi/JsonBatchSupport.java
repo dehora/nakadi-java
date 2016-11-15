@@ -6,24 +6,17 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 class JsonBatchSupport {
 
-  public static final String METADATA_FIELD = "metadata";
   private static final Type EVENT_STREAM_BATCH_FIRSTPASS_TYPE =
       new TypeToken<EventStreamBatch<JsonObject>>() {
       }.getType();
-  private static final Type MAP_TYPE =
-      new TypeToken<Map<String, Object>>() {
-      }.getType();
   private final JsonSupport jsonSupport;
-  private final GsonSupport gson;
 
   public JsonBatchSupport(JsonSupport jsonSupport) {
     this.jsonSupport = jsonSupport;
-    gson = new GsonSupport();
   }
 
   public <T> StreamBatchRecord<T> lineToEventStreamBatchRecord(
