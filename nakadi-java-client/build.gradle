@@ -21,6 +21,8 @@ dependencies {
   testCompile project.libs.logback_core
   testCompile project.libs.logback_classic
   testCompile project.libs.mockito_core
+  testCompile project.libs.okhttp3mockwebserver
+
 }
 
 sourceSets {

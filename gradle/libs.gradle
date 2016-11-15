@@ -23,6 +23,7 @@ libs += [
   metrics_core: "io.dropwizard.metrics:metrics-core:$versions.metrics",
   okhttp3: "com.squareup.okhttp3:okhttp:$versions.okhttp3",
   okhttp3log: "com.squareup.okhttp3:logging-interceptor:$versions.okhttp3",
+  okhttp3mockwebserver: "com.squareup.okhttp3:mockwebserver:$versions.okhttp3",
   rxjava: "io.reactivex:rxjava:$versions.rxjava",
   slf4j: "org.slf4j:slf4j-api:$versions.slf4j",
   slf4jsimple: "org.slf4j:slf4j-simple:$versions.slf4j",
