@@ -85,7 +85,7 @@ public class SecuritySupport {
   private void create(Path path)
       throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException,
       KeyManagementException {
-    TrustManager[] trustManagers = null;
+    TrustManager[] trustManagers;
     KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
     keyStore.load(null, null);
 
