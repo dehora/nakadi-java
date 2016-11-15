@@ -1,5 +1,10 @@
 ### Changes
 
+### 0.1.1
+
+- Fix bug serializing raw responses.
+- Make ExponentialRetry public.
+
 ### 0.1.0
 
 - Add backoff policy support to methods on Resource/OkHttpResource.
