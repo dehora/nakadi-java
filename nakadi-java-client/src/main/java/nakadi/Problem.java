@@ -13,6 +13,7 @@ public class Problem {
 
   private static final URI DEFAULT_TYPE = URI.create("about:blank");
   private static final URI LOCAL_TYPE = URI.create("about:local");
+  static final URI T1000_TYPE = URI.create("about:t1000");
   private static final URI CONTRACT_TYPE = URI.create("about:contract");
   private static final URI NETWORK_TYPE = URI.create("about:wire");
   private static final ImmutableMap SENTINEL_MAP = ImmutableMap.builder().build();
@@ -39,6 +40,23 @@ public class Problem {
         .data(SENTINEL_MAP)
         .status(400)
         .type(LOCAL_TYPE);
+  }
+
+  /**
+   * Quick way to create a Problem object that indicates the server never
+   * sent a problem.
+   *
+   * @param title the problem title
+   * @param detail the problem detail
+   * @return a Problem object with a status of code and a type of "about:t1000"
+   */
+  public static Problem noProblemo(String title, String detail, int code) {
+    return new Problem()
+        .title(title)
+        .detail(detail)
+        .data(SENTINEL_MAP)
+        .status(code)
+        .type(T1000_TYPE);
   }
 
   /**
