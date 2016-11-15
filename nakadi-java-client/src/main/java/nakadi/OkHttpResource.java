@@ -82,16 +82,14 @@ class OkHttpResource implements Resource {
       throws NakadiException {
 
     if (retryPolicy == null) {
-      Response response = executeRequest(prepareBuilder(method, url, options, null));
-      return marshalResponse(response, null);
+      return executeRequest(prepareBuilder(method, url, options, null));
     } else {
       Observable<Response> observable = Observable.defer(
           () -> Observable.just(
               throwIfError(executeRequest(prepareBuilder(method, url, options, null))))
       ).compose(buildRetry(retryPolicy));
 
-      Response response = observable.toBlocking().first();
-      return marshalResponse(response, null);
+      return observable.toBlocking().first();
     }
   }
 
@@ -200,7 +198,7 @@ class OkHttpResource implements Resource {
   }
 
   private <Res> Res marshalResponse(Response response, Class<Res> res) {
-    if (res.isAssignableFrom(Response.class)) {
+    if (res != null && res.isAssignableFrom(Response.class)) {
       //noinspection unchecked  // safe cast
       return (Res) response;
     } else {
