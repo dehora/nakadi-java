@@ -168,7 +168,7 @@ public class NakadiClient {
         logger.info("Enabled http tracing");
       }
 
-      return new OkHttpResourceProvider(baseURI, builder.build(), jsonSupport, metricCollector);
+      return new OkHttpResourceProvider(builder.build(), jsonSupport, metricCollector);
     }
 
     /**
