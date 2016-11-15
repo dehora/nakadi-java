@@ -85,7 +85,6 @@ class GsonSupport implements JsonSupport {
   private static class GsonHolder {
     private static final Gson INSTANCE = new GsonBuilder()
         .setPrettyPrinting()
-        //.serializeNulls() // todo: test against a nakadi server, null handling's undocumented
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(OFFSET_DATE_TIME_TYPE, new OffsetDateTimeSerdes())
         //todo: test utc-ness of this, cf https://github.com/google/gson/issues/281

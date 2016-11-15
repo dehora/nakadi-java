@@ -30,7 +30,6 @@ public class ResourceCollectionTest {
 
   @After
   public void after() {
-    // todo: maybe flaky for a parallel build, put all tests into one method?
     StringCollection.reset();
   }
 

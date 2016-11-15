@@ -44,7 +44,7 @@ bintray {
       attributes = [:]
       gpg {
         //noinspection GroovyAssignabilityCheck
-        sign = true // todo: bintray is demanding a passphrase even if this is false
+        sign = true
         passphrase = project.hasProperty('bintray_gpg_passphrase') ?
           project.property('bintray_gpg_passphrase') : System.getenv('BINTRAY_GPG_PASSPHRASE')
       }

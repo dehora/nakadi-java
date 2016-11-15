@@ -6,10 +6,8 @@ import java.util.Optional;
 
 class ResourceOptions {
 
-  /*
-   todo: multimap would be correct, but a client setting multiple same headers
-   is less than an edge case
-    */
+
+  //multimap would be correct, but a client for this api doesn't setting multiple same headers
   private final Map<String, Object> headers = Maps.newHashMap();
   private TokenProvider provider;
   private String scope = TokenProvider.UID;

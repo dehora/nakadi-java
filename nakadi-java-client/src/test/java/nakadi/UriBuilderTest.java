@@ -27,7 +27,7 @@ public class UriBuilderTest {
 
   @Test
   public void buildMultiQuery() {
-    // todo: test is fragile on param order in expectation, reparse
+    // test is fragile on param order in expectation
     assertEquals(
         "http://example.org?event_type=a&event_type=b&event_type=c&offset=3&limit=2&owning_application=acme",
         UriBuilder.builder("http://example.org")
@@ -57,7 +57,7 @@ public class UriBuilderTest {
         .param("limit", "2")
         .param("offset", "3")
         .param("owning_application", "acme");
-    // todo: test is fragile on param order in expectation, reparse
+    // test is fragile on param order in expectation
     assertEquals(
         "http://example.org?event_type=a&event_type=b&event_type=c&offset=3&limit=2&owning_application=acme",
         UriBuilder.builder("http://example.org")

@@ -25,8 +25,6 @@ public interface Resource {
 
   Resource retryPolicy(RetryPolicy retryPolicy);
 
-  // todo: reduce these methods and figure out when to throw exceptions
-
   /**
    * Make a request against the server without a request entity. Useful for get/delete/head
    * requests. Exceptions are not thrown for HTTP level errors (4xx and 5xx) so callers will

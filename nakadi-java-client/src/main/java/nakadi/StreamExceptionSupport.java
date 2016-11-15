@@ -56,7 +56,7 @@ class StreamExceptionSupport {
 
       if (n instanceof RateLimitException) {
         logger.warn("Rate limit exception: " + n.getMessage());
-        return true; // todo: ideally we handle this differently
+        return true;
       }
     }
 

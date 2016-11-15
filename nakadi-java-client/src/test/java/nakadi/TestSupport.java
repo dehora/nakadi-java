@@ -14,10 +14,6 @@ public class TestSupport {
     }
   }
 
-  public static JsonSupport jsonSupport() {
-    return new GsonSupport(); // todo: singleton holder?
-  }
-
   public static NakadiClient newNakadiClient() {
     return newNakadiClient("http://example.org");
   }

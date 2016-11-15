@@ -7,10 +7,14 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
 class OkHttpResource implements Resource {
+
+  private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   private static final String HEADER_AUTHORIZATION = "Authorization";
   private static final String APPLICATION_JSON_CHARSET_UTF8 = "application/json; charset=utf8";
@@ -137,7 +141,7 @@ class OkHttpResource implements Resource {
           jsonSupport.toJson(body));
       builder = new Request.Builder().url(url).method(method, requestBody);
     } else {
-      builder = applyMethodForNoBody(method, new Request.Builder().url(url));
+      builder = applyMethodForNoBody(method, url, new Request.Builder().url(url));
     }
     options.headers()
         .entrySet()
@@ -183,19 +187,18 @@ class OkHttpResource implements Resource {
     }
   }
 
-  private Request.Builder applyMethodForNoBody(String method, Request.Builder builder) {
+  private Request.Builder applyMethodForNoBody(String method, String url, Request.Builder builder) {
     // assume we're not dealing with put/post/patch here as there's no body
     if (Resource.DELETE.equals(method)) {
-      builder = builder.delete();
+      return builder.delete();
     } else if (Resource.GET.equals(method)) {
-      builder = builder.get();
+      return builder.get();
     } else if (Resource.HEAD.equals(method)) {
-      builder = builder.head();
+      return builder.head();
     } else {
-      // todo: hack, fix this
-      builder = builder.method(method, RequestBody.create(MediaType.parse("text/plain"), ""));
+      logger.warn("unexpected_method_request_with_no_body method={} url={}", method, url);
+      return builder.method(method, RequestBody.create(MediaType.parse("text/plain"), ""));
     }
-    return builder;
   }
 
   private <Res> Res marshalResponse(Response response, Class<Res> res) {

@@ -55,7 +55,7 @@ class StreamResourceSupport {
     }
 
     Optional<List<Cursor>> cursors = sc.cursors(); // deref to keep stop idea complaining
-    if (cursors.isPresent()) { // todo: X-Nakadi-Cursors: [] will lock up nakadi; file bug
+    if (cursors.isPresent()) {
       options.header(HEADER_X_NAKADI_CURSORS, client.jsonSupport().toJsonCompressed(cursors.get()));
     }
     return options;
