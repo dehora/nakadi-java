@@ -28,15 +28,10 @@ class StreamConnectionRetry {
   <T> Observable.Transformer<T, T> retryWhenWithBackoff(
       RetryPolicy backoff, Scheduler scheduler, Func1<Throwable, Boolean> isRetryable) {
 
-    return new Observable.Transformer<T, T>() {
-      @Override
-      public Observable<T> call(final Observable<T> observable) {
-        return observable.retryWhen(
-            eboRetry(backoff, isRetryable),
-            scheduler
-        );
-      }
-    };
+    return observable -> observable.retryWhen(
+        eboRetry(backoff, isRetryable),
+        scheduler
+    );
   }
 
 

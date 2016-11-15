@@ -42,28 +42,24 @@ class StreamConnectionRestart {
       long restartDelay,
       TimeUnit restartDelayUnit,
       int maxRestarts) {
-    return new Observable.Transformer<T, T>() {
-      @Override public Observable<T> call(Observable<T> tShapedObservable) {
-        return tShapedObservable.repeatWhen(new Func1<Observable<? extends Void>, Observable<?>>() {
-          @Override public Observable<?> call(Observable<? extends Void> observable) {
-            return observable.zipWith(
-                Observable.range(1, maxRestarts),
-                (tShapedThing, attemptCount) -> {
-                  logger.info("stream repeater invoked {} restarts={}",
-                      tShapedThing == null ? "" : tShapedThing, attemptCount);
-                  return attemptCount;
-                }
-            ).flatMap(attemptCount -> {
-              logger.info(
-                  "stream repeater will delay before restarting, delay={} {}, restarts={}",
-                  restartDelay, restartDelayUnit.toString().toLowerCase(),
-                  attemptCount);
-              return Observable.timer(restartDelay, restartDelayUnit);
-            }).takeUntil(stopRestartingPredicate)
-                ;
-          }
-        });
+    return tShapedObservable -> tShapedObservable.repeatWhen(new Func1<Observable<? extends Void>, Observable<?>>() {
+      @Override public Observable<?> call(Observable<? extends Void> observable) {
+        return observable.zipWith(
+            Observable.range(1, maxRestarts),
+            (tShapedThing, attemptCount) -> {
+              logger.info("stream repeater invoked {} restarts={}",
+                  tShapedThing == null ? "" : tShapedThing, attemptCount);
+              return attemptCount;
+            }
+        ).flatMap(attemptCount -> {
+          logger.info(
+              "stream repeater will delay before restarting, delay={} {}, restarts={}",
+              restartDelay, restartDelayUnit.toString().toLowerCase(),
+              attemptCount);
+          return Observable.timer(restartDelay, restartDelayUnit);
+        }).takeUntil(stopRestartingPredicate)
+            ;
       }
-    };
+    });
   }
 }

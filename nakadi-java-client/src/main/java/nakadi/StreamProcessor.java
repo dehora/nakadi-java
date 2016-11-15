@@ -258,18 +258,16 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   private Func1<Long, Boolean> stopRepeatingPredicate() {
-    return new Func1<Long, Boolean>() {
-      @Override public Boolean call(Long attemptCount) {
+    return attemptCount -> {
 
-        // todo: track the actual events checkpointed or seen instead
-        if (streamConfiguration.streamLimit() != StreamConfiguration.DEFAULT_STREAM_TIMEOUT) {
-          logger.info(
-              "stream repeater will not continue to restart, request for a bounded number of events detected stream_limit={} restarts={}",
-              streamConfiguration.streamLimit(), attemptCount);
-          return true;
-        }
-        return false;
+      // todo: track the actual events checkpointed or seen instead
+      if (streamConfiguration.streamLimit() != StreamConfiguration.DEFAULT_STREAM_TIMEOUT) {
+        logger.info(
+            "stream repeater will not continue to restart, request for a bounded number of events detected stream_limit={} restarts={}",
+            streamConfiguration.streamLimit(), attemptCount);
+        return true;
       }
+      return false;
     };
   }
 
