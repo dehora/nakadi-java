@@ -76,7 +76,7 @@ public class ExponentialRetry implements RetryPolicy {
         '}';
   }
 
-  static class Builder {
+  public static class Builder {
 
     private long initialInterval = DEFAULT_INITIAL_INTERVAL_MILLIS;
     private long maxInterval = DEFAULT_MAX_INTERVAL_MILLIS;
@@ -103,7 +103,7 @@ public class ExponentialRetry implements RetryPolicy {
       return this;
     }
 
-    ExponentialRetry build() {
+    public ExponentialRetry build() {
       return new ExponentialRetry(this);
     }
   }
