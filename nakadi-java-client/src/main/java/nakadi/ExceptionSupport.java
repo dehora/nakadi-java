@@ -1,16 +1,36 @@
 package nakadi;
 
+import com.google.common.collect.ImmutableMap;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class StreamExceptionSupport {
+class ExceptionSupport {
+
+  private static final ImmutableMap<Integer, Class> CODES_TO_EXCEPTIONS =
+      ImmutableMap.<Integer, Class>builder()
+          .put(400, ClientException.class)
+          .put(401, AuthorizationException.class)
+          .put(403, AuthorizationException.class)
+          .put(404, NotFoundException.class)
+          .put(409, ConflictException.class)
+          .put(412, PreconditionFailedException.class)
+          .put(422, InvalidException.class)
+          .put(429, RateLimitException.class)
+          .put(500, ServerException.class)
+          .put(503, ServerException.class)
+          .build();
+
+  static Map<Integer, Class> responseCodesToExceptionsMap() {
+    return CODES_TO_EXCEPTIONS;
+  }
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
-  static boolean isSubscriptionRetryable(Throwable e) {
+  static boolean isSubscriptionStreamRetryable(Throwable e) {
     if (e instanceof ConflictException) {
       if (logger.isDebugEnabled()) {
         logger.debug("Retryable exception for subscription: " + e.getMessage(), e);
@@ -20,12 +40,12 @@ class StreamExceptionSupport {
       return true;
     }
 
-    return StreamExceptionSupport.isRetryable(e);
+    return ExceptionSupport.isEventStreamRetryable(e);
   }
 
   @SuppressWarnings("WeakerAccess")
   @VisibleForTesting
-  static boolean isRetryable(Throwable e) {
+  static boolean isEventStreamRetryable(Throwable e) {
 
     if (e instanceof UncheckedIOException || e instanceof EOFException) {
       if (e.getCause() instanceof java.net.SocketTimeoutException) {

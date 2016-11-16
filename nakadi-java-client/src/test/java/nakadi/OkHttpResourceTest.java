@@ -1,6 +1,7 @@
 package nakadi;
 
 import java.net.InetAddress;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
@@ -31,6 +32,67 @@ public class OkHttpResourceTest {
   }
 
   @Test
+  public void requestThrowing_NoBody_ExceptionMapping() throws Exception {
+
+    for (Map.Entry<Integer, Class> entry : responseCodesToExceptions().entrySet()) {
+      try {
+        server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
+
+        buildResource().requestThrowing("GET", "http://localhost:8311/", buildOptions());
+
+      } catch (NakadiException e) {
+        assertEquals(entry.getValue(), e.getClass());
+        // also test we got no problem back from the server and could handle it
+        assertEquals(Problem.T1000_TYPE, e.problem().type());
+      }
+    }
+  }
+
+  private OkHttpResource buildResource() {
+    return new OkHttpResource(new OkHttpClient.Builder().build(), json, collector);
+  }
+
+  @Test
+  public void requestThrowing_WithBody_ExceptionMapping() throws Exception {
+
+    for (Map.Entry<Integer, Class> entry : responseCodesToExceptions().entrySet()) {
+      try {
+        server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
+
+        buildResource().requestThrowing("POST", "http://localhost:8311/", buildOptions(), "{}");
+
+      } catch (NakadiException e) {
+        assertEquals(entry.getValue(), e.getClass());
+        assertEquals(Problem.T1000_TYPE, e.problem().type());
+      }
+    }
+  }
+
+  @Test
+  public void requestThrowing_WithBinding_ExceptionMapping() throws Exception {
+
+    for (Map.Entry<Integer, Class> entry : responseCodesToExceptions().entrySet()) {
+      try {
+        server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
+
+        buildResource().requestThrowing("POST", "http://localhost:8311/", buildOptions(), String.class);
+
+      } catch (NakadiException e) {
+        assertEquals(entry.getValue(), e.getClass());
+        assertEquals(Problem.T1000_TYPE, e.problem().type());
+      }
+    }
+  }
+
+  private ResourceOptions buildOptions() {
+    return ResourceSupport.options("application/json").tokenProvider(scope -> Optional.empty());
+  }
+
+  private Map<Integer, Class> responseCodesToExceptions() {
+    return ExceptionSupport.responseCodesToExceptionsMap();
+  }
+
+  @Test
   public void requestRetrying() throws Exception {
 
     server.enqueue(new MockResponse().setResponseCode(429));
@@ -38,9 +100,8 @@ public class OkHttpResourceTest {
     server.enqueue(new MockResponse().setResponseCode(429));
     server.enqueue(new MockResponse().setResponseCode(200));
 
-    OkHttpResource r = new OkHttpResource(new OkHttpClient.Builder().build(), json, collector);
-    ResourceOptions options =
-        ResourceSupport.options("application/json").tokenProvider(scope -> Optional.empty());
+    OkHttpResource r = buildResource();
+    ResourceOptions options = buildOptions();
 
     try {
       r.request("GET", "http://localhost:8311/", options);
@@ -73,9 +134,8 @@ public class OkHttpResourceTest {
 
     server.enqueue(new MockResponse().setResponseCode(200));
 
-    OkHttpResource r = new OkHttpResource(new OkHttpClient.Builder().build(), json, collector);
-    ResourceOptions options =
-        ResourceSupport.options("application/json").tokenProvider(scope -> Optional.empty());
+    OkHttpResource r = buildResource();
+    ResourceOptions options = buildOptions();
 
     Subscription subscription = buildSubscription();
 
@@ -93,16 +153,15 @@ public class OkHttpResourceTest {
   }
 
   @Test
-  public void requestThrowing() throws Exception {
+  public void requestThrowingRetries() throws Exception {
 
     server.enqueue(new MockResponse().setResponseCode(429));
     server.enqueue(new MockResponse().setResponseCode(429));
     server.enqueue(new MockResponse().setResponseCode(429));
     server.enqueue(new MockResponse().setResponseCode(200));
 
-    OkHttpResource r = new OkHttpResource(new OkHttpClient.Builder().build(), json, collector);
-    ResourceOptions options =
-        ResourceSupport.options("application/json").tokenProvider(scope -> Optional.empty());
+    OkHttpResource r = buildResource();
+    ResourceOptions options = buildOptions();
 
     try {
       r.requestThrowing("GET", "http://localhost:8311/", options);
@@ -126,10 +185,8 @@ public class OkHttpResourceTest {
   @Test
   public void requestThrowingBody() throws Exception {
 
-    OkHttpResource r = new OkHttpResource(new OkHttpClient.Builder().build(), json, collector);
-    ResourceOptions options =
-        ResourceSupport.options("application/json").tokenProvider(scope -> Optional.empty());
-
+    OkHttpResource r = buildResource();
+    ResourceOptions options = buildOptions();
     server.enqueue(new MockResponse().setResponseCode(200));
 
     Subscription subscription = buildSubscription();
@@ -149,9 +206,8 @@ public class OkHttpResourceTest {
 
   @Test
   public void requestThrowingResponse() throws Exception {
-    OkHttpResource r = new OkHttpResource(new OkHttpClient.Builder().build(), json, collector);
-    ResourceOptions options =
-        ResourceSupport.options("application/json").tokenProvider(scope -> Optional.empty());
+    OkHttpResource r = buildResource();
+    ResourceOptions options = buildOptions();
 
     Subscription subscription = buildSubscription();
 
