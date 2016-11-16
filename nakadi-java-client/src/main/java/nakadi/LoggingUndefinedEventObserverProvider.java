@@ -10,7 +10,7 @@ public class LoggingUndefinedEventObserverProvider implements StreamObserverProv
   }
 
   @Override public TypeLiteral typeLiteral() {
-    return new TypeLiteral<UndefinedEventMapped>() {
+    return new TypeLiteral<UndefinedEventMapped<String>>() {
     };
   }
 }
