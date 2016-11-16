@@ -250,9 +250,9 @@ public class StreamProcessor implements StreamProcessorManaged {
   private Func1<Throwable, Boolean> buildRetryFunction(StreamConfiguration sc) {
     final Func1<Throwable, Boolean> isRetryable;
     if (sc.isSubscriptionStream()) {
-      isRetryable = StreamExceptionSupport::isSubscriptionRetryable;
+      isRetryable = ExceptionSupport::isSubscriptionStreamRetryable;
     } else {
-      isRetryable = StreamExceptionSupport::isRetryable;
+      isRetryable = ExceptionSupport::isEventStreamRetryable;
     }
     return isRetryable;
   }

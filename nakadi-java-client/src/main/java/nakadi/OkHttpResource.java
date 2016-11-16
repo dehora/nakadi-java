@@ -87,7 +87,7 @@ class OkHttpResource implements Resource {
       throws NakadiException {
 
     if (retryPolicy == null) {
-      return executeRequest(prepareBuilder(method, url, options, null));
+      return throwIfError(executeRequest(prepareBuilder(method, url, options, null)));
     } else {
       Observable<Response> observable = Observable.defer(
           () -> Observable.just(
@@ -166,7 +166,7 @@ class OkHttpResource implements Resource {
   private Observable.Transformer<Response, Response> buildRetry(RetryPolicy backoff) {
     return new StreamConnectionRetry()
         .retryWhenWithBackoff(
-            backoff, Schedulers.computation(), StreamExceptionSupport::isRetryable);
+            backoff, Schedulers.computation(), ExceptionSupport::isEventStreamRetryable);
   }
 
   private okhttp3.Response okHttpCall(Request.Builder builder) throws IOException {
