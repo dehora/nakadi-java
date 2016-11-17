@@ -96,11 +96,6 @@ consumer stream connection/network failures and retries. It should not be
 deemed robust yet, but it is a goal to produce a well-behaved production 
 level client especially for producing and consuming events for 1.0.0.
 
-Apart from code, a separate
-[nakadi-java-examples](https://github.com/dehora/nakadi-java-examples) project 
-will be created to provide runnable samples in Java along with a github pages 
-site.
-
 See the [open issues](https://github.com/zalando-incubator/nakadi-java/issues) section for a 
 list of things to get done.
 
@@ -109,7 +104,7 @@ continue to track the development of the Nakadi Event Broker's API.
 
 ## Usage
 
-This section summarizes what you can do with the client. 
+This section summarizes what you can do with the client. The [nakadi-java-examples](https://github.com/dehora/nakadi-java-examples) project provides runnable examples for most of what you see here.
 
 ### Available Resources
 
@@ -169,6 +164,11 @@ NakadiClient client = NakadiClient.newBuilder()
   .build();
 ```
 
+There's a `ZignTokenProvider` that can connect to the zign process and run in 
+the background in the 
+[nakadi-java-zign](https://github.com/zalando-incubator/nakadi-java/nakadi-java-zign) 
+sub-project.
+
 #### OAuth Scopes
 
 Some resources support use of OAuth scopes (where the API documents them, it's incomplete as of 
@@ -187,8 +187,27 @@ The scope set on resource instances is stateful, not one-shot, and will be re-us
 To change the scope, call `scope()` again will a new scope value, or if you wish to clear the 
  custom scope and revert to defaults, call `scope()` with `null`. However the `StreamProcessor` 
  scope is fixed once streaming begins after `start()` is called and can't be changed.
+ 
+ 
+#### HTTPS Security
 
+The client checks certificates. If your target server is using a self-signed 
+certificate and for some reason you can't install that cert into the system 
+trust store using something like keytool, you can supply the cert via 
+the builder's `certificatePath` method: 
 
+```java
+NakadiClient client = NakadiClient.newBuilder()
+  .baseURI("http://localhost:9080")
+  .certificatePath("file:///var/certs")
+  .build();
+```
+
+This will cause the client to install any certificates it finds in the 
+supplied directory; files with `*.crt` and `*.pem` extensions are loaded. The 
+path must begin with `"file:///"` or `"classpath:"` to indicate whether the 
+certs are loaded from a file directory or  the classpath. If no 
+`certificatePath` is supplied, the system defaults are used.
 
 #### Metric Collector
 
@@ -221,26 +240,11 @@ changed to asynchronous for 1.0.0, but in the meantime if your collector is
 making network calls or hitting disk, you might want to hand off them off 
 as Callables or send them to a queue.
 
+#### JSON
 
-#### HTTPS Security
-
-The client checks certificates. If your target server is using a self-signed 
-certificate and for some reason you can't install that cert into the system 
-trust store using something like keytool, you can supply the cert via 
-the builder's `certificatePath` method: 
-
-```java
-NakadiClient client = NakadiClient.newBuilder()
-  .baseURI("http://localhost:9080")
-  .certificatePath("file:///var/certs")
-  .build();
-```
-
-This will cause the client to install any certificates it finds in the 
-supplied directory; files with `*.crt` and `*.pem` extensions are loaded. The 
-path must begin with `"file:///"` or `"classpath:"` to indicate whether the 
-certs are loaded from a file directory or  the classpath. If no 
-`certificatePath` is supplied, the system defaults are used.
+Some calls return `Response` objects that contain raw json. You can serialize 
+these using the `JsonSupport` helper, available from the client. `JsonSupport` 
+accepts classes, and for generic bindings you can supply it with a `TypeLiteral`.
 
 #### Resource Classes
 
@@ -265,12 +269,12 @@ A number of the non streaming resource classes support a backoff policy:
 - `MetricsResource`
 - `HealthCheckResource`
 
-They each take a `RetryPolicy` via a `retryPolicy` method; there is an inbuilt `ExponentialRetry` 
-that can be be used. Note that the retry policy object is stateful and must be reset between 
+They each take a `RetryPolicy` via a `retryPolicy()` method; there is an inbuilt `ExponentialRetry` 
+that can be used. Note that the retry policy object is stateful and must be reset between 
 results. You can disable the retries (the default behavior) by setting `retryPolicy` to null, or 
 to start a new retry supplying a fresh `RetryPolicy` instance.  
 
-**Be careful with EventTypeResource**: the ordering and general delivery behaviour for event 
+**Please Be careful with EventTypeResource**: the ordering and general delivery behaviour for event 
 delivery is **undefined** under retries. That is, a delivery retry may result in out of order 
 batches being sent to the server. Also retrying a partially delivered (207) batch may result 
 in one or more events being delivered multiple times. 
@@ -353,8 +357,12 @@ DataChangeEvent<PriorityRequisition> dce2 = new DataChangeEvent<PriorityRequisit
   .op(DataChangeEvent.Op.C)
   .dataType("priority-requisitions")
   .data(new PriorityRequisition("24"));
+
+ArrayList list = new ArrayList();
+list.add(dce1);
+list.add(dce2);
  
-Response batch = resource.send("priority-requisitions", dce1, dce2);
+Response batch = resource.send("priority-requisitions", list);
 ```
 
 ### Subscriptions
@@ -544,6 +552,15 @@ Response healthcheck = health().healthcheck();
  
 // ask to throw if the check failed (non 2xx code)
 Response throwable = health.healthcheckThrowing();
+
+// check with an expoential backoff retry
+
+RetryPolicy retry = ExponentialRetry.newBuilder()
+        .initialInterval(1000, TimeUnit.MILLISECONDS)
+        .maxAttempts(5)
+        .maxInterval(3000, TimeUnit.MILLISECONDS)
+        .build();
+health.retryPolicy(retry).healthcheckThrowing();
 ```
 
 ### Registry
@@ -666,7 +683,6 @@ iterable by following the `next` relation sent back by the server.
 
 You can if wish work with pages and hypertext links directly via the methods 
 on `ResourceCollection` which each collection implements.
-
 
 ### HTTP Requests
 
