@@ -1,5 +1,15 @@
 ### Changes
 
+### 0.2.0
+
+- Test http resource methods
+- Test how business and undefined events are posted over HTTP
+- Test retryable exceptions
+- Test status code to exception mappings
+- Update serialization type for undefined events
+- Add Javadoc to the subscription resources
+- Handle the case when the server returns no problem
+
 ### 0.1.1
 
 - Fix bug serializing raw responses.
