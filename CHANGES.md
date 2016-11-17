@@ -1,5 +1,12 @@
 ### Changes
 
+### 0.3.0
+
+- Don't use exhausted (finished) retries, add a meter to track when this happens
+- Fix bug in throwing request with serialised response on the non-retry path
+- Clean up OkHttpResource http call chains, and always run requests inside an observable
+
+
 ### 0.2.0
 
 - Test http resource methods
