@@ -109,7 +109,7 @@ continue to track the development of the Nakadi Event Broker's API.
 
 ## Usage
 
-This section summarizes what you can do with the client. The [nakadi-java-examples](https://github.com/dehora/nakadi-java-examples) project provides runnable examples for most of what you see here.
+This section summarizes what you can do with the client. The [nakadi-java-examples](https://github.com/zalando-incubator/nakadi-java-examples) project provides runnable examples for most of what you see here.
 
 ### Available Resources
 
