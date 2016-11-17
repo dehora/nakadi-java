@@ -55,12 +55,11 @@ class OkHttpResource implements Resource {
   public <Req> Response request(String method, String url, ResourceOptions options, Req body)
       throws NakadiException {
     if (retryPolicy == null) {
-        return executeRequest(prepareBuilder(method, url, options, body));
+        return requestInner(method, url, options, body);
     } else {
       // defer gives us a chance to register a retry; just results in a hot observable
       Observable<Response> observable = Observable.defer(
-          () -> Observable.just(
-              executeRequest(prepareBuilder(method, url, options, body)))
+          () -> Observable.just(requestInner(method, url, options, body))
       ).compose(buildRetry(retryPolicy));
 
       return observable.toBlocking().first();
@@ -72,11 +71,10 @@ class OkHttpResource implements Resource {
       throws NakadiException {
 
     if (retryPolicy == null) {
-      return throwIfError(executeRequest(prepareBuilder(method, url, options, null)));
+      return requestThrowingInner(method, url, options);
     } else {
       Observable<Response> observable = Observable.defer(
-          () -> Observable.just(
-              throwIfError(executeRequest(prepareBuilder(method, url, options, null))))
+          () -> Observable.just(requestThrowingInner(method, url, options))
       ).compose(buildRetry(retryPolicy));
 
       return observable.toBlocking().first();
@@ -87,11 +85,10 @@ class OkHttpResource implements Resource {
       throws NakadiException {
 
     if (retryPolicy == null) {
-      return throwIfError(executeRequest(prepareBuilder(method, url, options, null)));
+      return requestThrowingInner(method, url, options);
     } else {
       Observable<Response> observable = Observable.defer(
-          () -> Observable.just(
-              throwIfError(executeRequest(prepareBuilder(method, url, options, null))))
+          () -> Observable.just(requestThrowingInner(method, url, options))
       ).compose(buildRetry(retryPolicy));
 
       return observable.toBlocking().first();
@@ -104,11 +101,10 @@ class OkHttpResource implements Resource {
       throws NakadiException {
 
     if (null == retryPolicy) {
-      return throwIfError(executeRequest(prepareBuilder(method, url, options, body)));
+      return requestThrowingInner(method, url, options, body);
     } else {
       Observable<Response> observable = Observable.defer(
-          () -> Observable.just(
-              throwIfError(executeRequest(prepareBuilder(method, url, options, body))))
+          () -> Observable.just(requestThrowingInner(method, url, options, body))
       ).compose(buildRetry(retryPolicy));
 
       return observable.toBlocking().first();
@@ -120,17 +116,30 @@ class OkHttpResource implements Resource {
       Class<Res> res) throws NakadiException {
 
     if (null == retryPolicy) {
-      Response response = executeRequest(prepareBuilder(method, url, options, null));
+      Response response = requestThrowingInner(method, url, options);
       return marshalResponse(response, res);
     } else {
       Observable<Response> observable = Observable.defer(
-          () -> Observable.just(
-              throwIfError(executeRequest(prepareBuilder(method, url, options, null))))
+          () -> Observable.just(requestThrowingInner(method, url, options))
       ).compose(buildRetry(retryPolicy));
 
       Response response = observable.toBlocking().first();
       return marshalResponse(response, res);
     }
+  }
+
+  private <Req> Response requestThrowingInner(String method, String url, ResourceOptions options,
+      Req body) {
+    return throwIfError(requestInner(method, url, options, (Req) body));
+  }
+
+  private <Req> Response requestInner(String method, String url, ResourceOptions options,
+      Req body) {
+    return executeRequest(prepareBuilder(method, url, options, body));
+  }
+
+  private Response requestThrowingInner(String method, String url, ResourceOptions options) {
+    return requestThrowingInner(method, url, options, null);
   }
 
   private <Req> Request.Builder prepareBuilder(String method, String url, ResourceOptions options,

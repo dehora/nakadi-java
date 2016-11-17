@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 
 public class OkHttpResourceTest {
@@ -39,6 +40,7 @@ public class OkHttpResourceTest {
         server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
 
         buildResource().requestThrowing("GET", "http://localhost:8311/", buildOptions());
+        fail("expected exception for " + entry.getValue());
 
       } catch (NakadiException e) {
         assertEquals(entry.getValue(), e.getClass());
@@ -60,6 +62,7 @@ public class OkHttpResourceTest {
         server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
 
         buildResource().requestThrowing("POST", "http://localhost:8311/", buildOptions(), "{}");
+        fail("expected exception for " + entry.getValue());
 
       } catch (NakadiException e) {
         assertEquals(entry.getValue(), e.getClass());
@@ -76,7 +79,7 @@ public class OkHttpResourceTest {
         server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
 
         buildResource().requestThrowing("POST", "http://localhost:8311/", buildOptions(), String.class);
-
+        fail("expected exception for " + entry.getValue());
       } catch (NakadiException e) {
         assertEquals(entry.getValue(), e.getClass());
         assertEquals(Problem.T1000_TYPE, e.problem().type());
