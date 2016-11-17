@@ -1,5 +1,7 @@
 package nakadi;
 
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
 import java.net.InetAddress;
 import java.util.Map;
 import java.util.Optional;
@@ -11,10 +13,16 @@ import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatcher;
+import org.slf4j.LoggerFactory;
 
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class OkHttpResourceTest {
 
@@ -93,6 +101,75 @@ public class OkHttpResourceTest {
 
   private Map<Integer, Class> responseCodesToExceptions() {
     return ExceptionSupport.responseCodesToExceptionsMap();
+  }
+
+  @Test
+  public void requestRetryingSkip() throws Exception {
+
+    final int[] retrySkipCount = {0};
+
+    OkHttpResource r = new OkHttpResource(new OkHttpClient.Builder().build(), json,
+        new MetricCollector() {
+          @Override public void mark(Meter meter) {
+            if(meter.equals(Meter.retrySkipFinished)) {
+              retrySkipCount[0]++;
+            }
+          }
+
+          @Override public void mark(Meter meter, long count) {
+
+          }
+
+          @Override public void duration(Timer timer, long duration, TimeUnit unit) {
+
+          }
+        });
+    ResourceOptions options = buildOptions();
+
+    server.enqueue(new MockResponse().setResponseCode(429));
+    server.enqueue(new MockResponse().setResponseCode(429));
+    server.enqueue(new MockResponse().setResponseCode(200));
+
+    ExponentialRetry retry = ExponentialRetry.newBuilder()
+        .initialInterval(1, TimeUnit.MILLISECONDS)
+        .maxAttempts(3)
+        .maxInterval(3, TimeUnit.MILLISECONDS)
+        .build();
+
+
+      assertEquals(200,
+          r.retryPolicy(retry).request("GET", "http://localhost:8311/", options).statusCode());
+
+
+    // now check we don't retry with an exhausted policy
+    assertTrue(retry.isFinished());
+    assertTrue(retrySkipCount[0] == 0);
+
+    server.enqueue(new MockResponse().setResponseCode(429));
+    server.enqueue(new MockResponse().setResponseCode(200));
+    server.enqueue(new MockResponse().setResponseCode(200));
+
+    ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(
+        ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+    final Appender mockAppender = mock(Appender.class);
+    when(mockAppender.getName()).thenReturn("mockito");
+    root.addAppender(mockAppender);
+
+    try {
+      r.retryPolicy(retry).request("GET", "http://localhost:8311/", options);
+      fail();
+    } catch (RateLimitException ignored) {
+    }
+
+    assertTrue(retrySkipCount[0] == 1);
+
+    verify(mockAppender).doAppend(argThat(new ArgumentMatcher() {
+      @Override
+      public boolean matches(final Object argument) {
+        return ((LoggingEvent) argument).getFormattedMessage()
+            .contains("Cowardly, refusing to apply retry policy that is already finished");
+      }
+    }));
   }
 
   @Test

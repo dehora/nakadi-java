@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
+import static nakadi.MetricCollector.Meter.retrySkipFinished;
+
 class OkHttpResource implements Resource {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
@@ -126,6 +128,7 @@ class OkHttpResource implements Resource {
         b) it's being reused across requests, likely a client bug
          */
         logger.warn("Cowardly, refusing to apply retry policy that is already finished {}", retryPolicy);
+        metricCollector.mark(retrySkipFinished);
       } else {
         return observable.compose(buildRetry(retryPolicy));
       }

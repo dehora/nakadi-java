@@ -146,7 +146,14 @@ public interface MetricCollector {
     /**
      * Each time a 503 response is seen.
      */
-    http503("nakadi.java.client.http.503"),;
+    http503("nakadi.java.client.http.503"),
+
+    /**
+     * Each time a {@link RetryPolicy} is skipped because it's already finished
+     */
+    retrySkipFinished("nakadi.java.client.retry.skip_finished"),
+
+    ;
 
     private final String path;
 
