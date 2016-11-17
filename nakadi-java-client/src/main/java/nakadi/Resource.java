@@ -119,4 +119,7 @@ public interface Resource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException;
 
+  <Req, Res> Res requestThrowing(String method, String url, ResourceOptions options, Req body, Class<Res> res)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, NakadiException;
 }

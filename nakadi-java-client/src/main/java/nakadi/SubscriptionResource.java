@@ -37,7 +37,24 @@ public interface SubscriptionResource {
    * @throws ConflictException for a 409
    * @throws NakadiException for a general exception
    */
-  Response create(Subscription subscription)
+  Response createReturningResponse(Subscription subscription)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, ConflictException, NakadiException;
+
+  /**
+   * Create a new subscription on the server.
+   *
+   * @param subscription the new subscription
+   * @return the subscription result
+   * @throws AuthorizationException unauthorised
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws InvalidException for a 422
+   * @throws RateLimitException for a 429
+   * @throws ConflictException for a 409
+   * @throws NakadiException for a general exception
+   */
+  Subscription create(Subscription subscription)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, ConflictException, NakadiException;
 
