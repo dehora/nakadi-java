@@ -54,45 +54,31 @@ class OkHttpResource implements Resource {
   @Override
   public <Req> Response request(String method, String url, ResourceOptions options, Req body)
       throws NakadiException {
-    if (retryPolicy == null) {
-        return requestInner(method, url, options, body);
-    } else {
-      // defer gives us a chance to register a retry; just results in a hot observable
-      Observable<Response> observable = Observable.defer(
-          () -> Observable.just(requestInner(method, url, options, body))
-      ).compose(buildRetry(retryPolicy));
 
-      return observable.toBlocking().first();
-    }
+    // nb: defer delays the just() until we call toBlocking() below; lets us set things up.
+    Observable<Response> observable =
+        Observable.defer(() -> Observable.just(requestInner(method, url, options, body)));
+
+    return maybeComposeRetryPolicy(observable).toBlocking().first();
   }
 
   @Override
   public Response request(String method, String url, ResourceOptions options)
       throws NakadiException {
 
-    if (retryPolicy == null) {
-      return requestThrowingInner(method, url, options);
-    } else {
-      Observable<Response> observable = Observable.defer(
-          () -> Observable.just(requestThrowingInner(method, url, options))
-      ).compose(buildRetry(retryPolicy));
+    Observable<Response> observable =
+        Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options)));
 
-      return observable.toBlocking().first();
-    }
+    return maybeComposeRetryPolicy(observable).toBlocking().first();
   }
 
   @Override public Response requestThrowing(String method, String url, ResourceOptions options)
       throws NakadiException {
 
-    if (retryPolicy == null) {
-      return requestThrowingInner(method, url, options);
-    } else {
-      Observable<Response> observable = Observable.defer(
-          () -> Observable.just(requestThrowingInner(method, url, options))
-      ).compose(buildRetry(retryPolicy));
+    Observable<Response> observable =
+        Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options)));
 
-      return observable.toBlocking().first();
-    }
+    return maybeComposeRetryPolicy(observable).toBlocking().first();
   }
 
   @Override
@@ -100,32 +86,21 @@ class OkHttpResource implements Resource {
       Req body)
       throws NakadiException {
 
-    if (null == retryPolicy) {
-      return requestThrowingInner(method, url, options, body);
-    } else {
-      Observable<Response> observable = Observable.defer(
-          () -> Observable.just(requestThrowingInner(method, url, options, body))
-      ).compose(buildRetry(retryPolicy));
+    Observable<Response> observable =
+        Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options, body)));
 
-      return observable.toBlocking().first();
-    }
+    return maybeComposeRetryPolicy(observable).toBlocking().first();
   }
 
   @Override
   public <Res> Res requestThrowing(String method, String url, ResourceOptions options,
       Class<Res> res) throws NakadiException {
 
-    if (null == retryPolicy) {
-      Response response = requestThrowingInner(method, url, options);
-      return marshalResponse(response, res);
-    } else {
-      Observable<Response> observable = Observable.defer(
-          () -> Observable.just(requestThrowingInner(method, url, options))
-      ).compose(buildRetry(retryPolicy));
+    Observable<Response> observable =
+        Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options)));
 
-      Response response = observable.toBlocking().first();
-      return marshalResponse(response, res);
-    }
+    Response response = maybeComposeRetryPolicy(observable).toBlocking().first();
+    return marshalResponse(response, res);
   }
 
   private <Req> Response requestThrowingInner(String method, String url, ResourceOptions options,
@@ -140,6 +115,22 @@ class OkHttpResource implements Resource {
 
   private Response requestThrowingInner(String method, String url, ResourceOptions options) {
     return requestThrowingInner(method, url, options, null);
+  }
+
+  private Observable<Response> maybeComposeRetryPolicy(final Observable<Response> observable) {
+    if (retryPolicy != null) { // no policy set by caller
+      if(retryPolicy.isFinished()) {
+        /*
+        this can happen if
+        a) the policy is a no-op policy always returning finished
+        b) it's being reused across requests, likely a client bug
+         */
+        logger.warn("Cowardly, refusing to apply retry policy that is already finished {}", retryPolicy);
+      } else {
+        return observable.compose(buildRetry(retryPolicy));
+      }
+    }
+    return observable;
   }
 
   private <Req> Request.Builder prepareBuilder(String method, String url, ResourceOptions options,
