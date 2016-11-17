@@ -1,5 +1,10 @@
 ### Changes
 
+### 0.4.0
+
+- Make JsonSupport visible [#73](https://github.com/zalando-incubator/nakadi-java/issues/73)
+- Add serialized subscription finder [#72](https://github.com/zalando-incubator/nakadi-java/issues/72)
+
 ### 0.3.0
 
 - Don't use exhausted (finished) retries, add a meter to track when this happens
