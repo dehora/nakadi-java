@@ -89,15 +89,20 @@ The client is pre 1.0.0, with the aim of getting to 1.0.0 quickly.
 
 The client API is relatively stable and unlikely to see massive sweeping 
 changes, though some changes should be expected. The entire Nakadi API is 
-implemented, and confirming that will be part of a 1.0.0 release.
+implemented.
 
 The client's had some basic testing to verify it can handle things like 
 consumer stream connection/network failures and retries. It should not be 
 deemed robust yet, but it is a goal to produce a well-behaved production 
-level client especially for producing and consuming events for 1.0.0.
+level client especially for producing and consuming events for 1.0.0. The 
+releases from 0.4.0 and onwards seem fairly sane.
 
-See the [open issues](https://github.com/zalando-incubator/nakadi-java/issues) section for a 
-list of things to get done.
+See also:
+
+- The [open issues](https://github.com/zalando-incubator/nakadi-java/issues) section has a 
+list of bugs and things to get done. 
+
+- The [help-wanted](https://github.com/zalando-incubator/nakadi-java/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement) has a list of things that would be pretty cool to have.
 
 As a client that aims to provide a full implementation, it will post 1.0.0 
 continue to track the development of the Nakadi Event Broker's API.
@@ -735,7 +740,8 @@ has details on how the client works under the hood.
 ## Contributing
 
 Please see the [issue tracker](https://github.com/zalando-incubator/nakadi-java/issues) 
-for things to work on.
+for things to work on. The [help-wanted](https://github.com/zalando-incubator/nakadi-java/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement) has a list of things that would be 
+pretty cool to have.
 
 Before making a contribution, please let us know by posting a comment to the 
 relevant issue. If you would like to propose a new feature, create a new issue 
