@@ -105,9 +105,21 @@ class OkHttpResource implements Resource {
     return marshalResponse(response, res);
   }
 
+  @Override
+  public <Req, Res> Res requestThrowing(String method, String url, ResourceOptions options,
+      Req body, Class<Res> res)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, NakadiException {
+    Observable<Response> observable =
+        Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options, body)));
+
+    Response response = maybeComposeRetryPolicy(observable).toBlocking().first();
+    return marshalResponse(response, res);
+  }
+
   private <Req> Response requestThrowingInner(String method, String url, ResourceOptions options,
       Req body) {
-    return throwIfError(requestInner(method, url, options, (Req) body));
+    return throwIfError(requestInner(method, url, options, body));
   }
 
   private <Req> Response requestInner(String method, String url, ResourceOptions options,

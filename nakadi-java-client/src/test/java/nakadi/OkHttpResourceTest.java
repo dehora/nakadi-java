@@ -95,6 +95,39 @@ public class OkHttpResourceTest {
     }
   }
 
+  @Test
+  public void requestThrowing_WithBody_WithBinding_ExceptionMapping() throws Exception {
+
+    for (Map.Entry<Integer, Class> entry : responseCodesToExceptions().entrySet()) {
+      try {
+        server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
+
+        buildResource().requestThrowing("POST", "http://localhost:8311/", buildOptions(), "{}", String.class);
+        fail("expected exception for " + entry.getValue());
+      } catch (NakadiException e) {
+        assertEquals(entry.getValue(), e.getClass());
+        assertEquals(Problem.T1000_TYPE, e.problem().type());
+      }
+    }
+  }
+
+  @Test
+  public void request_WithBody_WithBinding() throws Exception {
+
+    Subscription request = buildSubscription().id("fake-uuid");
+
+    server.enqueue(new MockResponse().setResponseCode(200).setBody(json.toJson(request)));
+
+    Subscription response = buildResource().requestThrowing(
+        "POST",
+        "http://localhost:8311/",
+        buildOptions(),
+        request,
+        Subscription.class);
+
+    assertEquals("fake-uuid", response.id());
+  }
+
   private ResourceOptions buildOptions() {
     return ResourceSupport.options("application/json").tokenProvider(scope -> Optional.empty());
   }

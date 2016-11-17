@@ -44,7 +44,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     return this;
   }
 
-  @Override public Response create(Subscription subscription)
+  @Override public Response createReturningResponse(Subscription subscription)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
     //todo:filebug: nakadi.event_stream.read is in the yaml but this is a write action
@@ -55,6 +55,18 @@ class SubscriptionResourceReal implements SubscriptionResource {
         .retryPolicy(retryPolicy)
         .requestThrowing(Resource.POST, collectionUri().buildString(),
             options, subscription);
+  }
+
+  @Override public Subscription create(Subscription subscription)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, ConflictException, NakadiException {
+    NakadiException.throwNonNull(subscription, "Please provide a subscription");
+    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    return client.resourceProvider()
+        .newResource()
+        .retryPolicy(retryPolicy)
+        .requestThrowing(Resource.POST, collectionUri().buildString(),
+            options, subscription, Subscription.class);
   }
 
   @Override public Subscription find(String id)

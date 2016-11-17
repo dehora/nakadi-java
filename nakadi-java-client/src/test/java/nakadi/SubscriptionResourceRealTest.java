@@ -642,7 +642,7 @@ public class SubscriptionResourceRealTest {
     try {
 
       new SubscriptionResourceReal(client)
-          .create(subscription);
+          .createReturningResponse(subscription);
     } catch (NetworkException | NotFoundException ignored) {
     }
 
@@ -676,7 +676,7 @@ public class SubscriptionResourceRealTest {
 
       new SubscriptionResourceReal(client)
           .scope(customScope)
-          .create(subscription);
+          .createReturningResponse(subscription);
 
     } catch (NetworkException | NotFoundException ignored) {
     }

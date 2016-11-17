@@ -30,6 +30,11 @@ public class Subscription {
     return id;
   }
 
+  Subscription id(String id) {
+    this.id = id;
+    return this;
+  }
+
   /**
    * @return the owning application for the subscription
    */
