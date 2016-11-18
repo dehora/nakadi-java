@@ -81,6 +81,16 @@ class SubscriptionResourceReal implements SubscriptionResource {
         .requestThrowing(Resource.GET, url, options, Subscription.class);
   }
 
+  @Override public Optional<Subscription> tryFind(String id)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, NakadiException {
+    try {
+      return Optional.of(find(id));
+    } catch (NotFoundException e) {
+      return Optional.empty();
+    }
+  }
+
   @Override public SubscriptionCollection list()
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {

@@ -1,6 +1,7 @@
 package nakadi;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Supports API operations related to subscriptions.
@@ -59,7 +60,7 @@ public interface SubscriptionResource {
       RateLimitException, ConflictException, NakadiException;
 
   /**
-   * Find a subscription by id.
+   * Find a subscription by id. Throw NotFoundException for a 404.
    *
    * @param id the subscription id
    * @return the subscription result
@@ -74,6 +75,22 @@ public interface SubscriptionResource {
   Subscription find(String id)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NotFoundException, NakadiException;
+
+  /**
+   * Try and find a subscription by id.
+   *
+   * @param id the subscription id
+   * @return the subscription result or {@link Optional#empty()}
+   * @throws AuthorizationException unauthorised
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws InvalidException for a 422
+   * @throws RateLimitException for a 429
+   * @throws NakadiException for a general exception
+   */
+  Optional<Subscription> tryFind(String id)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, NakadiException;
 
   /**
    * List the subscriptions on the server.
