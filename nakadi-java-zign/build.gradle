@@ -8,7 +8,7 @@ buildscript {
 
 
 dependencies {
-  compile project(':  nakadi-java-client')
+  compile project(':nakadi-java-client')
   compile project.libs.slf4j
 
   testCompile project.libs.logback_core
