@@ -28,7 +28,7 @@ public class TokenProviderZign implements TokenProvider {
   private static final Logger logger =
       LoggerFactory.getLogger(TokenProviderZign.class.getSimpleName());
   private static final int REFRESH_EVERY_SECONDS = 120;
-  private static final int WAIT_FOR_ZIGN_SECCONDS = 30;
+  private static final int WAIT_FOR_ZIGN_SECCONDS = 6;
   private static final String THREAD_NAME = "nakadi-java-zign";
 
   private final Set<String> scopes;
