@@ -16,6 +16,21 @@ dependencies {
   testCompile project.libs.junit
 }
 
+task zignMain(type: JavaExec) {
+  classpath sourceSets.main.runtimeClasspath
+  classpath+=sourceSets.test.runtimeClasspath
+  main = "nakadi.token.zign.SpikeZignMain"
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir 'src/main/resources'
+    }
+  }
+}
+
+
 bintray {
   // verbose to let these eval to empty when not being used; `project.property` isn't lazy
   user = project.hasProperty('bintray_user') ? project.property('bintray_user') :

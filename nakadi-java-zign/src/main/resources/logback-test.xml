@@ -1,0 +1,17 @@
+<configuration>
+
+  <!--<variable scope="context" name="mdcPattern" value="%replace( %X{security_context} ){'[a-z]+=( |$)', ''}"/>-->
+
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- encoders are assigned the type
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} %-5level %logger{5} %msg %X{cursor_context}%X{security_context}%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="info">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
