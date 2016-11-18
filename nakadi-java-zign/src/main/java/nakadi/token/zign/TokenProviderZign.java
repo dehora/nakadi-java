@@ -94,11 +94,12 @@ public class TokenProviderZign implements TokenProvider {
   }
 
   private Optional<String> fetchZign(String scope) {
+
     String token = null;
     Process proc = null;
     try {
       proc = new ProcessBuilder()
-          .command("ls")
+          .command("zign", "token", scope)
           .redirectErrorStream(true)
           .start();
 
@@ -165,6 +166,13 @@ public class TokenProviderZign implements TokenProvider {
     }
 
     public TokenProviderZign build() {
+
+      scopes(TokenProvider.NAKADI_CONFIG_WRITE,
+          TokenProvider.NAKADI_EVENT_STREAM_READ,
+          TokenProvider.NAKADI_EVENT_STREAM_WRITE,
+          TokenProvider.NAKADI_EVENT_TYPE_WRITE,
+          TokenProvider.UID);
+
       return new TokenProviderZign(this);
     }
   }
