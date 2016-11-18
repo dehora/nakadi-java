@@ -34,6 +34,7 @@ public class StreamConfiguration {
   private long connectTimeout = 30_000L;
   private long readTimeout = 60_000L;
   private long maxRetryDelay = StreamConnectionRetry.DEFAULT_MAX_DELAY_SECONDS;
+  private long minRetryDelay = StreamConnectionRetry.DEFAULT_MIN_DELAY_SECONDS;
   private int maxRetryAttempts = StreamConnectionRetry.DEFAULT_MAX_ATTEMPTS;
 
   public String eventTypeName() {
@@ -204,10 +205,22 @@ public class StreamConfiguration {
     return maxRetryDelay;
   }
 
-  public StreamConfiguration maxRetryDelay(long maxRetryDelay, TimeUnit unit) {
+  /**
+   * Set the maximum time to wait.
+   *
+   * @param maxRetryDelay the maximum time to wait
+   * @param unit the time unit
+   * @return this
+   * @throws IllegalArgumentException if the supplied unit is null or the time is less than
+   * the minimum allowed delay time of 1s
+   */
+  public StreamConfiguration maxRetryDelay(long maxRetryDelay, TimeUnit unit) throws IllegalArgumentException {
     NakadiException.throwNonNull(unit, "Please provide a time unit for max retry delay");
+    if(TimeUnit.SECONDS.toMillis(minRetryDelay) > unit.toMillis(maxRetryDelay)) {
+      throw new IllegalArgumentException("supplied max delay cannot be less than "+minRetryDelay+"s");
+    }
+
     this.maxRetryDelay = unit.toSeconds(maxRetryDelay);
-    ;
     return this;
   }
 
