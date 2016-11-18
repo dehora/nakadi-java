@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.6.0
+
+- Reject stream retry delays that are less than 1s [#83](https://github.com/zalando-incubator/nakadi-java/issues/83)
+- Extend RetryPolicy to support a max time backoff [#81](https://github.com/zalando-incubator/nakadi-java/issues/81)
+- Add some optional (non-throwing on 404) finders to event types and subscriptions [#71](https://github.com/zalando-incubator/nakadi-java/issues/71)
+
 ### 0.5.0
 
 - Fix zign process call
