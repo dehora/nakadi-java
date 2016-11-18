@@ -3,7 +3,7 @@
 
 - Build: [![CircleCI](https://circleci.com/gh/zalando-incubator/nakadi-java.svg?style=svg)](https://circleci.com/gh/zalando-incubator/nakadi-java)
 - Release Download: [ ![Download](https://api.bintray.com/packages/dehora/maven/nakadi-java-client/images/download.svg) ](https://bintray.com/dehora/maven/nakadi-java-client/_latestVersion)
-- Source Release: [0.4.0](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.4.0)
+- Source Release: [0.5.0](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.5.0)
 - Contact: [maintainers](https://github.com/zalando-incubator/nakadi-java/blob/master/MAINTAINERS)
 
 
@@ -95,7 +95,7 @@ The client's had some basic testing to verify it can handle things like
 consumer stream connection/network failures and retries. It should not be 
 deemed robust yet, but it is a goal to produce a well-behaved production 
 level client especially for producing and consuming events for 1.0.0. The 
-releases from 0.4.0 and onwards seem fairly sane.
+releases from 0.5.0 and onwards seem fairly sane.
 
 See also:
 
@@ -622,7 +622,7 @@ and add the project declaration to `pom.xml`:
 <dependency>
   <groupId>net.dehora.nakadi</groupId>
   <artifactId>nakadi-java-client</artifactId>
-  <version>0.4.0</version>
+  <version>0.5.0</version>
 </dependency>
 ```
 ### Gradle
@@ -639,7 +639,7 @@ and add the project to the `dependencies` block in `build.gradle`:
 
 ```groovy
 dependencies {
-  compile 'net.dehora.nakadi:nakadi-java-client:0.4.0'
+  compile 'net.dehora.nakadi:nakadi-java-client:0.5.0'
 }  
 ```
 
@@ -654,7 +654,7 @@ resolvers += "jcenter" at "http://jcenter.bintray.com"
 and add the project to `libraryDependencies` in `build.sbt`:
 
 ```scala
-libraryDependencies += "net.dehora.nakadi" % "nakadi-java-client" % "0.4.0"
+libraryDependencies += "net.dehora.nakadi" % "nakadi-java-client" % "0.5.0"
 ```
 
 
