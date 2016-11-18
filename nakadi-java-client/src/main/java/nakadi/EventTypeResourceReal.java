@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Optional;
 
 class EventTypeResourceReal implements EventTypeResource {
 
@@ -65,6 +66,16 @@ class EventTypeResourceReal implements EventTypeResource {
         .newResource()
         .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, options, EventType.class);
+  }
+
+  @Override public Optional<EventType> tryFindByName(String eventTypeName)
+      throws AuthorizationException, ClientException, ServerException, RateLimitException,
+      NakadiException {
+    try {
+      return Optional.of(findByName(eventTypeName));
+    } catch (NotFoundException e) {
+      return Optional.empty();
+    }
   }
 
   @Override public Response delete(String eventTypeName)

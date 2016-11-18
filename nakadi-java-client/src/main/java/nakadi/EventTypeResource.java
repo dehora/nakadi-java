@@ -1,5 +1,7 @@
 package nakadi;
 
+import java.util.Optional;
+
 /**
  * Supports API operations related to event types.
  */
@@ -53,11 +55,37 @@ public interface EventTypeResource {
       RateLimitException, NakadiException;
 
   /**
+   * Find an event type. Throws NotFoundException if not found.
+   *
    * @param eventTypeName the event type name
+   * @return the event type
+   * @throws AuthorizationException unauthorised
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws RateLimitException for a 429
+   * @throws ConflictException for a 409
+   * @throws NotFoundException for a 404
+   * @throws NakadiException for a general exception
    */
   EventType findByName(String eventTypeName)
-      throws AuthorizationException, ClientException, ServerException, InvalidException,
-      RateLimitException, NakadiException;
+      throws AuthorizationException, ClientException, ServerException,
+      RateLimitException, NotFoundException, NakadiException;
+
+  /**
+   * Try and find an event type.
+   *
+   * @param eventTypeName the event type name or {@link Optional#empty()} if not found
+   * @return the event type
+   * @throws AuthorizationException unauthorised
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws RateLimitException for a 429
+   * @throws ConflictException for a 409
+   * @throws NakadiException for a general exception
+   */
+  Optional<EventType> tryFindByName(String eventTypeName)
+      throws AuthorizationException, ClientException, ServerException,
+      RateLimitException, NotFoundException, NakadiException;
 
   /**
    * Successful deletes return 200 and no body.
