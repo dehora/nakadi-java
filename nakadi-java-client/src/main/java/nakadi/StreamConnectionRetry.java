@@ -21,6 +21,7 @@ class StreamConnectionRetry {
 
   static int DEFAULT_INITIAL_DELAY_SECONDS = 1;
   static int DEFAULT_MAX_DELAY_SECONDS = 8;
+  static int DEFAULT_MIN_DELAY_SECONDS = 1;
   static int DEFAULT_MAX_ATTEMPTS = Integer.MAX_VALUE;
   static TimeUnit DEFAULT_TIME_UNIT = TimeUnit.SECONDS;
   private int attemptCount;
