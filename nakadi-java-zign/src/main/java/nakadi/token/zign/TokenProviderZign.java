@@ -7,10 +7,12 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +31,7 @@ public class TokenProviderZign implements TokenProvider {
   private static final int WAIT_FOR_ZIGN_SECCONDS = 30;
   private static final String THREAD_NAME = "nakadi-java-zign";
 
-  private final List<String> scopes;
+  private final Set<String> scopes;
   private long refreshEvery = REFRESH_EVERY_SECONDS;
   private long waitFor = WAIT_FOR_ZIGN_SECCONDS;
   // not provided by builder
@@ -140,7 +142,7 @@ public class TokenProviderZign implements TokenProvider {
   }
 
   public static class Builder {
-    List<String> scopes = new ArrayList<>();
+    Set<String> scopes = new HashSet<>();
     long refreshEvery = REFRESH_EVERY_SECONDS;
     long waitFor = WAIT_FOR_ZIGN_SECCONDS;
 
