@@ -7,12 +7,16 @@ public class ExponentialRetry implements RetryPolicy {
   static final int DEFAULT_INITIAL_INTERVAL_MILLIS = 1000;
   static final int DEFAULT_MAX_INTERVAL_MILLIS = 32000;
   static final int DEFAULT_MAX_ATTEMPTS = Integer.MAX_VALUE;
+  static final long DEFAULT_MAX_TIME = Long.MAX_VALUE;
 
   long workingInterval;
   long initialInterval;
   long maxInterval;
   int maxAttempts;
   long workingAttempts = 1;
+  long maxTime;
+  long workingTime = 0L;
+  volatile long startTime = 0L;
   TimeUnit unit;
 
   public static Builder newBuilder() {
@@ -28,6 +32,7 @@ public class ExponentialRetry implements RetryPolicy {
     this.maxAttempts = builder.maxAttempts;
     this.unit = builder.unit;
     this.workingInterval = initialInterval;
+    this.maxTime = builder.maxTime;
   }
 
   public long initialInterval() {
@@ -44,10 +49,17 @@ public class ExponentialRetry implements RetryPolicy {
   }
 
   public boolean isFinished() {
-    return workingAttempts >= maxAttempts;
+    return workingAttempts >= maxAttempts || workingTime >= maxTime;
   }
 
   public long nextBackoffMillis() {
+
+    if(startTime == 0L) {
+      startTime = System.currentTimeMillis();
+    } else {
+      workingTime += (System.currentTimeMillis() - startTime);
+    }
+
     if(isFinished()) {
       return STOP;
     }
@@ -55,7 +67,7 @@ public class ExponentialRetry implements RetryPolicy {
     workingInterval = unit.toMillis(workingInterval) * (workingAttempts * workingAttempts);
     workingAttempts++;
 
-    if(workingInterval < 0 ) {
+    if(workingInterval <= 0 ) {
       workingInterval = unit.toMillis(maxInterval);
     }
 
@@ -81,6 +93,7 @@ public class ExponentialRetry implements RetryPolicy {
     private long initialInterval = DEFAULT_INITIAL_INTERVAL_MILLIS;
     private long maxInterval = DEFAULT_MAX_INTERVAL_MILLIS;
     private int maxAttempts = DEFAULT_MAX_ATTEMPTS;
+    private long maxTime = DEFAULT_MAX_TIME;
     private final TimeUnit unit = TimeUnit.MILLISECONDS;
 
     private Builder() {
@@ -100,6 +113,12 @@ public class ExponentialRetry implements RetryPolicy {
 
     public Builder maxAttempts(int maxAttempts) {
       this.maxAttempts = maxAttempts;
+      return this;
+    }
+
+    public Builder maxTime(long maxTime, TimeUnit unit) {
+      NakadiException.throwNonNull(unit, "Please provide a TimeUnit");
+      this.maxTime = unit.toMillis(maxTime);
       return this;
     }
 
