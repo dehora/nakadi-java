@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.5.0
+
+- Fix zign process call
+- TokenProviderZign adds known scopes by default [#78](https://github.com/zalando-incubator/nakadi-java/issues/78)
+- Update readme to point at nakadi-java-examples, help wanted, and recent features
+
 ### 0.4.0
 
 - Make JsonSupport visible [#73](https://github.com/zalando-incubator/nakadi-java/issues/73)
