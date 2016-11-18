@@ -8,18 +8,12 @@ buildscript {
 
 
 dependencies {
-  compile project(':nakadi-java-client')
+  compile project(':  nakadi-java-client')
   compile project.libs.slf4j
 
   testCompile project.libs.logback_core
   testCompile project.libs.logback_classic
   testCompile project.libs.junit
-}
-
-task zignMain(type: JavaExec) {
-  classpath sourceSets.main.runtimeClasspath
-  classpath+=sourceSets.test.runtimeClasspath
-  main = "nakadi.token.zign.SpikeZignMain"
 }
 
 sourceSets {
