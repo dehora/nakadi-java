@@ -23,8 +23,10 @@
   - [Creating a client](#creating-a-client)
     - [Authorization](#authorization)
     - [OAuth Scopes](#oauth-scopes)
-    - [Metric Collector](#metric-collector)
     - [HTTPS Security](#https-security)
+    - [Metric Collector](#metric-collector)
+    - [JSON](#json)
+    - [Using TypeLiterals](#using-typeliterals)
     - [Resource Classes](#resource-classes)
     - [Retries](#retries)
   - [Event Types](#event-types)
@@ -250,6 +252,22 @@ as Callables or send them to a queue.
 Some calls return `Response` objects that contain raw json. You can serialize 
 these using the `JsonSupport` helper, available from the client. `JsonSupport` 
 accepts classes, and for generic bindings you can supply it with a `TypeLiteral`.
+
+#### Using TypeLiterals
+
+When using a `TypeLiteral`, please note the following:
+
+- TypeLiterals must be an actual subclass. This means declaring the TypeLiteral with a 
+pair of braces `new TypeLiteral<Map<String, Object>>() {};` and not just 
+`new TypeLiteral<Map<String, Object>>();`. The latter won't work and can cause hard to debug 
+ errors.
+
+- TypeLiterals for the 3 category classes can't be declared with a String. For example 
+`DataChangeEvent<String>` will cause marshalling errors, because the underlying JSON 
+processing treats `String` as a JSON String type and not escaped JSON. The parser then 
+fails when it sees structured JSON instead of a JSOn String. Typically you want to declare 
+something like `DataChangeEvent<Map<String, Object>>` to destructure the data properly. The 
+client might add a stringified option for 1.0.0.
 
 #### Resource Classes
 
