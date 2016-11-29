@@ -4,7 +4,7 @@ package nakadi;
  * An exception representing a network level problem, such as inability to access the network, or
  * make an outbound connection.
  */
-public class NetworkException extends NakadiException {
+public class NetworkException extends HttpException {
 
   /**
    * @param problem the Problem detail

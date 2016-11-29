@@ -3,7 +3,7 @@ package nakadi;
 /**
  * An exception representing a 401 Unauthorized response code.
  */
-public class AuthorizationException extends NakadiException {
+public class AuthorizationException extends HttpException {
 
   /**
    * @param problem the Problem detail

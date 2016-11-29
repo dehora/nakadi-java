@@ -137,7 +137,7 @@ public class OkHttpResourceTest {
   }
 
   @Test
-  public void requestRetryingSkip() throws Exception {
+  public void requestRetryingSkipThrowing() throws Exception {
 
     final int[] retrySkipCount = {0};
 
@@ -189,9 +189,90 @@ public class OkHttpResourceTest {
     root.addAppender(mockAppender);
 
     try {
-      r.retryPolicy(retry).request("GET", "http://localhost:8311/", options);
+      /*
+      we're calling a dud retry against requestThrowing; this should throw, not return a response
+       */
+      r.retryPolicy(retry)
+          .requestThrowing("GET", "http://localhost:8311/", options);
       fail();
     } catch (RateLimitException ignored) {
+    }
+
+    assertTrue(retrySkipCount[0] == 1);
+
+    verify(mockAppender).doAppend(argThat(new ArgumentMatcher() {
+      @Override
+      public boolean matches(final Object argument) {
+        return ((LoggingEvent) argument).getFormattedMessage()
+            .contains("Cowardly, refusing to apply retry policy that is already finished");
+      }
+    }));
+  }
+
+
+  @Test
+  public void requestRetryingSkipNotThrowing() throws Exception {
+
+    final int[] retrySkipCount = {0};
+
+    OkHttpResource r = new OkHttpResource(new OkHttpClient.Builder().build(), json,
+        new MetricCollector() {
+          @Override public void mark(Meter meter) {
+            if(meter.equals(Meter.retrySkipFinished)) {
+              retrySkipCount[0]++;
+            }
+          }
+
+          @Override public void mark(Meter meter, long count) {
+
+          }
+
+          @Override public void duration(Timer timer, long duration, TimeUnit unit) {
+
+          }
+        });
+    ResourceOptions options = buildOptions();
+
+    server.enqueue(new MockResponse().setResponseCode(429));
+    server.enqueue(new MockResponse().setResponseCode(429));
+    server.enqueue(new MockResponse().setResponseCode(200));
+
+    ExponentialRetry retry = ExponentialRetry.newBuilder()
+        .initialInterval(1, TimeUnit.MILLISECONDS)
+        .maxAttempts(3)
+        .maxInterval(3, TimeUnit.MILLISECONDS)
+        .build();
+
+
+    assertEquals(200,
+        r.retryPolicy(retry).request("GET", "http://localhost:8311/", options).statusCode());
+
+
+    // now check we don't retry with an exhausted policy
+    assertTrue(retry.isFinished());
+    assertTrue(retrySkipCount[0] == 0);
+
+    server.enqueue(new MockResponse().setResponseCode(429));
+    server.enqueue(new MockResponse().setResponseCode(200));
+    server.enqueue(new MockResponse().setResponseCode(200));
+
+    ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(
+        ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+    final Appender mockAppender = mock(Appender.class);
+    when(mockAppender.getName()).thenReturn("mockito");
+    root.addAppender(mockAppender);
+
+    try {
+      /*
+      we're calling a dud retry against request; this should return a response and not throw
+       */
+      Response response = r.retryPolicy(retry)
+          .request("GET", "http://localhost:8311/", options);
+
+      assertEquals(429, response.statusCode());
+
+    } catch (RateLimitException ignored) {
+      fail();
     }
 
     assertTrue(retrySkipCount[0] == 1);
@@ -231,8 +312,14 @@ public class OkHttpResourceTest {
         .maxInterval(3, TimeUnit.MILLISECONDS)
         .build();
 
+    /*
+    note that we're testing retrys with a non-throwing request option; internally we'll
+    throw exceptions to drive the rx retry mechanism and if that doesn't work out we'll
+     return the last response from the server instead of throwing the exception. This
+     is for coverage only; the sanest way to use retries is with requestThrowing
+     */
       assertEquals(200,
-          r.retryPolicy(retry).requestThrowing("GET", "http://localhost:8311/", options).statusCode());
+          r.retryPolicy(retry).request("GET", "http://localhost:8311/", options).statusCode());
 
     RecordedRequest request = server.takeRequest();
 

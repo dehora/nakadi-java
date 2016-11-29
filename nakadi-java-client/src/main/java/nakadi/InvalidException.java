@@ -3,7 +3,7 @@ package nakadi;
 /**
  * An exception representing a 422 Invalid response code.
  */
-public class InvalidException extends NakadiException {
+public class InvalidException extends HttpException {
 
   /**
    * @param problem the Problem detail

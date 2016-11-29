@@ -3,7 +3,7 @@ package nakadi;
 /**
  * An exception representing a 412 Precondition Failed response code.
  */
-public class PreconditionFailedException extends NakadiException {
+public class PreconditionFailedException extends HttpException {
 
   /**
    * @param problem the Problem detail

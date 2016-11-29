@@ -1,14 +1,14 @@
 package nakadi;
 
 /**
- * An exception representing a 404 response code.
+ * An exception representing a http failure.
  */
-public class NotFoundException extends HttpException {
+public class HttpException extends NakadiException {
 
   /**
    * @param problem the Problem detail
    */
-  public NotFoundException(Problem problem) {
+  public HttpException(Problem problem) {
     super(problem);
   }
 
@@ -16,7 +16,7 @@ public class NotFoundException extends HttpException {
    * @param problem the Problem detail
    * @param cause the cause
    */
-  public NotFoundException(Problem problem, Throwable cause) {
+  public HttpException(Problem problem, Throwable cause) {
     super(problem, cause);
   }
 }
