@@ -29,6 +29,7 @@ class OkHttpResource implements Resource {
   private volatile boolean hasPerRequestConnectTimeout;
   private volatile boolean hasPerRequestReadTimeout;
   private volatile RetryPolicy retryPolicy;
+  private volatile Response response;
 
   OkHttpResource(OkHttpClient okHttpClient, JsonSupport jsonSupport, MetricCollector collector) {
     this.okHttpClient = okHttpClient;
@@ -57,21 +58,71 @@ class OkHttpResource implements Resource {
   public <Req> Response request(String method, String url, ResourceOptions options, Req body)
       throws NakadiException {
 
-    // nb: defer delays the just() until we call toBlocking() below; lets us set things up.
+    // nb: defer delays the just() until we call toBlocking(); lets us set things up.
+
+    /*
+    if we have a retry in place use a throwing call and return the last response captured.
+     the rx retry mechanism is driven by exceptions but the caller is asking for a response here
+     so we don't propagate the exception
+     */
+
+    if (retryPolicy != null) {
+      if (retryPolicy.isFinished()) {
+        logger.warn("Cowardly, refusing to apply retry policy that is already finished {}",
+            retryPolicy);
+        metricCollector.mark(retrySkipFinished);
+      } else {
+        try {
+          Observable<Response> observable =
+              Observable.defer(
+                  () -> Observable.just(requestThrowingInner(method, url, options, body)));
+          Response first = observable.compose(buildRetry(retryPolicy)).toBlocking().first();
+          response = null; // zero out any previous responses
+          return first;
+        } catch (HttpException e) {
+          logger.error("request with retry failed, {}", e.getMessage(), e);
+          return response;
+        }
+      }
+    }
+
     Observable<Response> observable =
         Observable.defer(() -> Observable.just(requestInner(method, url, options, body)));
-
-    return maybeComposeRetryPolicy(observable).toBlocking().first();
+    return observable.toBlocking().first();
   }
 
   @Override
   public Response request(String method, String url, ResourceOptions options)
       throws NakadiException {
+    /*
+    if we have a retry in place use a throwing call and return the last response captured.
+     the rx retry mechanism is driven by exceptions but the caller is asking for a response here
+     so we don't propagate the exception
+     */
+
+    if (retryPolicy != null) {
+      if (retryPolicy.isFinished()) {
+        logger.warn("Cowardly, refusing to apply retry policy that is already finished {}",
+            retryPolicy);
+        metricCollector.mark(retrySkipFinished);
+      } else {
+        try {
+          Observable<Response> observable =
+              Observable.defer(
+                  () -> Observable.just(requestThrowingInner(method, url, options, null)));
+          Response first = observable.compose(buildRetry(retryPolicy)).toBlocking().first();
+          response = null; // zero out any previous responses
+          return first;
+        } catch (HttpException e) {
+          logger.error("request with retry failed, {}", e.getMessage(), e);
+          return response;
+        }
+      }
+    }
 
     Observable<Response> observable =
         Observable.defer(() -> Observable.just(requestInner(method, url, options, null)));
-
-    return maybeComposeRetryPolicy(observable).toBlocking().first();
+    return observable.toBlocking().first();
   }
 
   @Override public Response requestThrowing(String method, String url, ResourceOptions options)
@@ -230,6 +281,12 @@ class OkHttpResource implements Resource {
     if (code >= 200 && code < 300) {
       return response;
     } else {
+      /*
+       field the response as this allows us to return it when a non-throwing request
+        with a retry fails (we have to wrap non-throwing requests as throwing to
+        drive the rx retry mechanism)
+        */
+      this.response = response;
       return handleError(response);
     }
   }
@@ -239,9 +296,7 @@ class OkHttpResource implements Resource {
     Problem problem = Optional.ofNullable(jsonSupport.fromJson(raw, Problem.class))
         .orElse(Problem.noProblemo("no problem sent back from server", "", response.statusCode()));
 
-
-    return throwProblem(response.statusCode(),
-        problem);
+    return throwProblem(response.statusCode(), problem);
   }
 
   private <T> T throwProblem(int code, Problem problem) {
@@ -281,7 +336,7 @@ class OkHttpResource implements Resource {
       throw new ServerException(problem);
     } else {
       metricCollector.mark(MetricCollector.Meter.httpUnknown);
-      throw new NakadiException(problem);
+      throw new HttpException(problem);
     }
   }
 }

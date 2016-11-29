@@ -3,7 +3,7 @@ package nakadi;
 /**
  * An exception representing a server (5xx) response code.
  */
-public class ServerException extends NakadiException {
+public class ServerException extends HttpException {
 
   /**
    * @param problem the Problem detail

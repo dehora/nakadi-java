@@ -3,7 +3,7 @@ package nakadi;
 /**
  * An exception representing a 429 Too Many Requests response code.
  */
-public class RateLimitException extends NakadiException {
+public class RateLimitException extends HttpException {
 
   /**
    * @param problem the Problem detail

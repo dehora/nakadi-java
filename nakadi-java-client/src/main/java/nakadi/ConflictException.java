@@ -3,7 +3,7 @@ package nakadi;
 /**
  * An exception representing a 409 Conflict response code.
  */
-public class ConflictException extends NakadiException {
+public class ConflictException extends HttpException {
 
   /**
    * @param problem the Problem detail
