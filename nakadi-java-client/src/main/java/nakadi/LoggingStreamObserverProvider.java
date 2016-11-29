@@ -3,14 +3,13 @@ package nakadi;
 /**
  * Helper class to provide {@link LoggingStreamObserver}.
  */
-public class LoggingStreamObserverProvider implements StreamObserverProvider {
+public class LoggingStreamObserverProvider implements StreamObserverProvider<String> {
 
-  @Override public StreamObserver createStreamObserver() {
+  @Override public StreamObserver<String> createStreamObserver() {
     return new LoggingStreamObserver();
   }
 
-  @Override public TypeLiteral typeLiteral() {
-    return new TypeLiteral<String>() {
-    };
+  @Override public TypeLiteral<String> typeLiteral() {
+    return TypeLiterals.OF_STRING;
   }
 }

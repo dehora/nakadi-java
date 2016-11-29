@@ -1,15 +1,16 @@
 package nakadi;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Helper class to log {@link UndefinedEventMapped} events.
+ * Helper class to log {@link UndefinedEventMapped} events with String data.
  */
 public class LoggingUndefinedEventObserver
-    extends StreamObserverBackPressure<UndefinedEventMapped> {
+    extends StreamObserverBackPressure<UndefinedEventMapped<Map<String, Object>>> {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
@@ -34,11 +35,11 @@ public class LoggingUndefinedEventObserver
     }
   }
 
-  @Override public void onNext(StreamBatchRecord<UndefinedEventMapped> record) {
+  @Override public void onNext(StreamBatchRecord<UndefinedEventMapped<Map<String, Object>>> record) {
 
     final StreamOffsetObserver offsetObserver = record.streamOffsetObserver();
 
-    final StreamBatch<UndefinedEventMapped> batch = record.streamBatch();
+    final StreamBatch<UndefinedEventMapped<Map<String, Object>>> batch = record.streamBatch();
 
     final StreamCursorContext cursor = record.streamCursorContext();
 
@@ -49,7 +50,7 @@ public class LoggingUndefinedEventObserver
       logger.info(String.format("LoggingUndefinedEventObserver: partition: %s empty batch",
           cursor.cursor().partition()));
     } else {
-      final List<UndefinedEventMapped> events = batch.events();
+      final List<UndefinedEventMapped<Map<String, Object>>> events = batch.events();
       for (UndefinedEventMapped event : events) {
         logger.info(String.format("LoggingUndefinedEventObserver: EVENT: %s ", event));
       }
