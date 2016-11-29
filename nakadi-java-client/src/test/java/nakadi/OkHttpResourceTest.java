@@ -217,7 +217,7 @@ public class OkHttpResourceTest {
     ResourceOptions options = buildOptions();
 
     try {
-      r.request("GET", "http://localhost:8311/", options);
+      r.requestThrowing("GET", "http://localhost:8311/", options);
     } catch (RateLimitException e) {
       // also test we got no problem back from the server and handled it
       assertEquals(Problem.T1000_TYPE, e.problem().type());
@@ -231,8 +231,8 @@ public class OkHttpResourceTest {
         .maxInterval(3, TimeUnit.MILLISECONDS)
         .build();
 
-    assertEquals(200,
-        r.retryPolicy(retry).request("GET", "http://localhost:8311/", options).statusCode());
+      assertEquals(200,
+          r.retryPolicy(retry).requestThrowing("GET", "http://localhost:8311/", options).statusCode());
 
     RecordedRequest request = server.takeRequest();
 
