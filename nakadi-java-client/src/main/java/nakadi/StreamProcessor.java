@@ -104,7 +104,7 @@ public class StreamProcessor implements StreamProcessorManaged {
    */
   public void start() {
     if (!started.getAndSet(true)) {
-      executorService().submit(this::startStreaming);
+      executorService().submit(this::startBlocking);
     }
   }
 
@@ -121,11 +121,19 @@ public class StreamProcessor implements StreamProcessorManaged {
    */
   public void stop() {
     if (started.getAndSet(false)) {
-      subscription.unsubscribe();
-      ExecutorServiceSupport.shutdown(monoIoExecutor);
-      ExecutorServiceSupport.shutdown(monoComputeExecutor);
-      ExecutorServiceSupport.shutdown(executorService());
+      stopBlocking();
     }
+  }
+
+  public void stopBlocking() {
+    subscription.unsubscribe();
+    ExecutorServiceSupport.shutdown(monoIoExecutor);
+    ExecutorServiceSupport.shutdown(monoComputeExecutor);
+    ExecutorServiceSupport.shutdown(executorService());
+  }
+
+  public void startBlocking() {
+    stream(streamConfiguration, streamObserverProvider, streamOffsetObserver);
   }
 
   @VisibleForTesting
@@ -135,10 +143,6 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private ExecutorService executorService() {
     return streamProcessorExecutorService;
-  }
-
-  private void startStreaming() {
-    stream(streamConfiguration, streamObserverProvider, streamOffsetObserver);
   }
 
   private <T> void stream(StreamConfiguration sc,
@@ -376,7 +380,13 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private static ExecutorService newStreamProcessorExecutorService() {
     final ThreadFactory tf =
-        new ThreadFactoryBuilder().setNameFormat("nakadi-java").build();
+        new ThreadFactoryBuilder()
+            .setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+              @Override public void uncaughtException(Thread t, Throwable e) {
+                logger.error("{}, {}", t, e.getMessage(), e);
+              }
+            })
+            .setNameFormat("nakadi-java").build();
     return Executors.newFixedThreadPool(1, tf);
   }
 
