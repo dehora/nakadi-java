@@ -51,9 +51,15 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final AtomicBoolean started = new AtomicBoolean(false);
   private Subscription subscription;
   private final ExecutorService monoIoExecutor = Executors.newSingleThreadExecutor(
-      new ThreadFactoryBuilder().setNameFormat("nakadi-java-io").build());
+      new ThreadFactoryBuilder()
+          .setUncaughtExceptionHandler(
+              (t, e) -> logger.error("stream_processor_err_io {}, {}", t, e.getMessage(), e))
+          .setNameFormat("nakadi-java-io").build());
   private final ExecutorService monoComputeExecutor = Executors.newSingleThreadExecutor(
-      new ThreadFactoryBuilder().setNameFormat("nakadi-java-compute").build());
+      new ThreadFactoryBuilder()
+          .setUncaughtExceptionHandler(
+              (t, e) -> logger.error("stream_processor_err_compute {}, {}", t, e.getMessage(), e))
+          .setNameFormat("nakadi-java-compute").build());
   private final Scheduler monoIoScheduler = Schedulers.from(monoIoExecutor);
   private final Scheduler monoComputeScheduler=  Schedulers.from(monoComputeExecutor);
 
@@ -95,6 +101,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   /**
    * Start consuming the stream. This runs in a background executor and will not block the
    * calling thread. Callers must hold onto a reference in order to be able to shut it down.
+   * The underlying executor calls {@link #startBlocking}.
    *
    * <p>
    * Calling start multiple times is the same as calling it once, when stop is not also called
@@ -106,6 +113,18 @@ public class StreamProcessor implements StreamProcessorManaged {
     if (!started.getAndSet(true)) {
       executorService().submit(this::startBlocking);
     }
+  }
+
+  /**
+   * Start consuming the stream. This runs in the calling thread.
+   *
+   * <p>
+   * Calling start multiple times is undefined. Clients must assume responsibility for ensuring
+   * this is called once.
+   * </p>
+   */
+  public void startBlocking() {
+    stream(streamConfiguration, streamObserverProvider, streamOffsetObserver);
   }
 
   /**
@@ -125,15 +144,11 @@ public class StreamProcessor implements StreamProcessorManaged {
     }
   }
 
-  public void stopBlocking() {
+  void stopBlocking() {
     subscription.unsubscribe();
     ExecutorServiceSupport.shutdown(monoIoExecutor);
     ExecutorServiceSupport.shutdown(monoComputeExecutor);
     ExecutorServiceSupport.shutdown(executorService());
-  }
-
-  public void startBlocking() {
-    stream(streamConfiguration, streamObserverProvider, streamOffsetObserver);
   }
 
   @VisibleForTesting
@@ -381,11 +396,8 @@ public class StreamProcessor implements StreamProcessorManaged {
   private static ExecutorService newStreamProcessorExecutorService() {
     final ThreadFactory tf =
         new ThreadFactoryBuilder()
-            .setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-              @Override public void uncaughtException(Thread t, Throwable e) {
-                logger.error("{}, {}", t, e.getMessage(), e);
-              }
-            })
+            .setUncaughtExceptionHandler(
+                (t, e) -> logger.error("stream_processor_err {}, {}", t, e.getMessage(), e))
             .setNameFormat("nakadi-java").build();
     return Executors.newFixedThreadPool(1, tf);
   }
