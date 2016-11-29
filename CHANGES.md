@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.6.1
+
+- Allow blocking access to streams
+
 ### 0.6.0
 
 - Reject stream retry delays that are less than 1s [#83](https://github.com/zalando-incubator/nakadi-java/issues/83)
