@@ -69,7 +69,7 @@ class OkHttpResource implements Resource {
       throws NakadiException {
 
     Observable<Response> observable =
-        Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options)));
+        Observable.defer(() -> Observable.just(requestInner(method, url, options, null)));
 
     return maybeComposeRetryPolicy(observable).toBlocking().first();
   }
