@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.6.3
+
+Add back pressure buffering to stream processor for volume stream requests.  [#100](https://github.com/zalando-incubator/nakadi-java/issues/100)
+
 ### 0.6.2
 
 - Change streaming accept header to application/json [#98](https://github.com/zalando-incubator/nakadi-java/issues/98)
