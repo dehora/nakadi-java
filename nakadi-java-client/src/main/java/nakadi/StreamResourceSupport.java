@@ -21,6 +21,7 @@ class StreamResourceSupport {
   private static final String PATH_SUBS = "subscriptions";
   private static final String PATH_EVENTS = "events";
   private static final String APPLICATION_X_JSON_STREAM = "application/x-json-stream";
+  private static final String APPLICATION_JSON = "application/json";
   private static final String HEADER_X_NAKADI_CURSORS = "X-Nakadi-Cursors";
 
   static String buildStreamUrl(URI baseUri, StreamConfiguration sc) {
@@ -46,7 +47,8 @@ class StreamResourceSupport {
   static ResourceOptions buildResourceOptions(NakadiClient client, StreamConfiguration sc,
      String scope) {
     ResourceOptions options = ResourceSupport
-        .options(APPLICATION_X_JSON_STREAM)
+        // breaks with api definition https://github.com/zalando-incubator/nakadi-java/issues/98
+        .options(APPLICATION_JSON)
         .scope(Optional.ofNullable(scope).orElseGet(() -> TokenProvider.NAKADI_EVENT_STREAM_READ))
         .tokenProvider(client.resourceTokenProvider());
 
