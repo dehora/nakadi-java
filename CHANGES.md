@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.6.2
+
+- Change streaming accept header to application/json [#98](https://github.com/zalando-incubator/nakadi-java/issues/98)
+
 ### 0.6.1
 
 - Allow blocking access to streams
