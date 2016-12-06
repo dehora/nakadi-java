@@ -235,6 +235,7 @@ public class StreamProcessor implements StreamProcessorManaged {
             )
                 .subscribeOn(monoIoScheduler)
                 .unsubscribeOn(monoIoScheduler)
+                .onBackpressureBuffer(Integer.MAX_VALUE)
                 .doOnSubscribe(streamObserver::onStart)
                 .doOnUnsubscribe(streamObserver::onStop)
                 .timeout(halfOpenKick, halfOpenUnit)
@@ -315,8 +316,9 @@ public class StreamProcessor implements StreamProcessorManaged {
 
       final BufferedReader br = new BufferedReader(response.responseBody().asReader());
       return Observable.from(br.lines()::iterator)
+          .onBackpressureBuffer(Integer.MAX_VALUE)
           .map(r -> lineToStreamBatchRecord(r, typeLiteral, response, sc))
-          .switchIfEmpty(forEmpty);
+          ;
     };
   }
 
