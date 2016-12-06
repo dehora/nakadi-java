@@ -30,6 +30,7 @@ class StreamBatchRecordBufferingSubscriber<T> extends Subscriber<List<StreamBatc
       observer.onNext(record);
     });
     // allow the observer to set back pressure
+    // todo: revisit this for high volume streams
     observer.requestBackPressure().ifPresent(this::request);
   }
 }

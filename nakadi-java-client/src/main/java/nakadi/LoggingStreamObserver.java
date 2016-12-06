@@ -13,6 +13,8 @@ public class LoggingStreamObserver extends StreamObserverBackPressure<String> {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
+  static int eventCount = 0;
+
   @Override public void onStart() {
     logger.info("LoggingStreamObserver.onStart");
   }
@@ -49,7 +51,7 @@ public class LoggingStreamObserver extends StreamObserverBackPressure<String> {
               "LoggingStreamObserver events processing count {} =====================================",
               events.size());
           for (String event : events) {
-            logger.info("LoggingStreamObserver received event: {}", event);
+            logger.info("LoggingStreamObserver received count {} event: {}", ++eventCount, event);
           }
           offsetObserver.onNext(record.streamCursorContext());
           logger.info(
