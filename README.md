@@ -173,7 +173,7 @@ NakadiClient client = NakadiClient.newBuilder()
 
 There's a `ZignTokenProvider` that can connect to the zign process and run in 
 the background in the 
-[nakadi-java-zign](https://github.com/zalando-incubator/nakadi-java/nakadi-java-zign) 
+[nakadi-java-zign](https://github.com/zalando-incubator/nakadi-java/tree/master/nakadi-java-zign) 
 sub-project.
 
 #### OAuth Scopes
