@@ -45,8 +45,7 @@ class EventMappedSupport {
   static <T> boolean isAssignableFrom(Type type, Class<? super T> c) {
     TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(type);
     Class<? super T> rawType = typeToken.getRawType();
-    // undefined & business are non-generic; fingers crossed rawType is enough to check here.
-    return rawType.isAssignableFrom(c);
+    return c.isAssignableFrom(rawType);
   }
 
   static <T> UndefinedEventMapped<T> marshalUndefinedEventMapped(String raw, Type type,
