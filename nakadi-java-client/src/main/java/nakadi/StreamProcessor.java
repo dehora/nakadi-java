@@ -433,7 +433,7 @@ public class StreamProcessor implements StreamProcessorManaged {
       }
 
       NakadiException.throwNonNull(client, "Please provide a client");
-      NakadiException.throwNonNull(streamObserverProvider, "Please provide an observer factory");
+      NakadiException.throwNonNull(streamObserverProvider, "Please provide a StreamObserverProvider");
 
       if (streamConfiguration.isSubscriptionStream() && streamOffsetObserver == null) {
         this.streamOffsetObserver = new SubscriptionOffsetObserver(client);

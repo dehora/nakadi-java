@@ -204,9 +204,18 @@ public class StreamProcessorTest {
       StreamProcessor.newBuilder(client)
           .streamConfiguration(new StreamConfiguration().eventTypeName("et"))
           .build();
-      fail();
+      fail("expecting IllegalArgumentException for missing StreamObserver on event stream");
     } catch (IllegalArgumentException e) {
-      assertEquals("Please provide an observer factory", e.getMessage());
+      assertEquals("Please provide a StreamObserverProvider", e.getMessage());
+    }
+
+    try {
+      StreamProcessor.newBuilder(client)
+          .streamConfiguration(new StreamConfiguration().subscriptionId("s1"))
+          .build();
+      fail("expecting IllegalArgumentException for missing StreamObserver on subscription stream");
+    } catch (IllegalArgumentException e) {
+      assertEquals("Please provide a StreamObserverProvider", e.getMessage());
     }
 
     final StreamProcessor sp = StreamProcessor.newBuilder(client)
