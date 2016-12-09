@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -62,6 +63,7 @@ public class StreamProcessor implements StreamProcessorManaged {
           .setNameFormat("nakadi-java-compute").build());
   private final Scheduler monoIoScheduler = Schedulers.from(monoIoExecutor);
   private final Scheduler monoComputeScheduler=  Schedulers.from(monoComputeExecutor);
+  private final CountDownLatch startBlockingLatch;
 
   @VisibleForTesting
   @SuppressWarnings("unused") StreamProcessor(NakadiClient client) {
@@ -74,6 +76,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.maxRetryDelay = StreamConnectionRetry.DEFAULT_MAX_DELAY_SECONDS;
     this.maxRetryAttempts = StreamConnectionRetry.DEFAULT_MAX_ATTEMPTS;
     this.scope = null;
+    startBlockingLatch = new CountDownLatch(1);
   }
 
   private StreamProcessor(Builder builder) {
@@ -86,6 +89,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.maxRetryDelay = streamConfiguration.maxRetryDelaySeconds();
     this.maxRetryAttempts = streamConfiguration.maxRetryAttempts();
     this.scope = builder.scope;
+    startBlockingLatch = new CountDownLatch(1);
   }
 
   /**
@@ -111,20 +115,30 @@ public class StreamProcessor implements StreamProcessorManaged {
    */
   public void start() {
     if (!started.getAndSet(true)) {
-      executorService().submit(this::startBlocking);
+      executorService().submit(this::startStreaming);
     }
   }
 
   /**
-   * Start consuming the stream. This runs in the calling thread.
+   * Start consuming the stream. This blocks the calling thread. This method is currently
+   * visible for testing and development. It will be removed for 1.0.0 and should not be
+   * relied upon.
    *
    * <p>
    * Calling start multiple times is undefined. Clients must assume responsibility for ensuring
    * this is called once.
    * </p>
    */
+  @VisibleForTesting
   public void startBlocking() {
-    stream(streamConfiguration, streamObserverProvider, streamOffsetObserver);
+    if (!started.getAndSet(true)) {
+      startStreaming();
+      try {
+        startBlockingLatch.await();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    }
   }
 
   /**
@@ -140,15 +154,20 @@ public class StreamProcessor implements StreamProcessorManaged {
    */
   public void stop() {
     if (started.getAndSet(false)) {
-      stopBlocking();
+      stopStreaming();
     }
   }
 
-  void stopBlocking() {
+  void startStreaming() {
+    stream(streamConfiguration, streamObserverProvider, streamOffsetObserver);
+  }
+
+  void stopStreaming() {
     subscription.unsubscribe();
     ExecutorServiceSupport.shutdown(monoIoExecutor);
     ExecutorServiceSupport.shutdown(monoComputeExecutor);
     ExecutorServiceSupport.shutdown(executorService());
+    startBlockingLatch.countDown();
   }
 
   @VisibleForTesting
