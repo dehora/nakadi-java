@@ -1,6 +1,6 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -13,17 +13,17 @@ public class EventType {
   public static final String ENRICHMENT_METADATA = "metadata_enrichment";
   public static final String PARTITION_RANDOM = "random";
   public static final String PARTITION_HASH = "hash";
-  private final List<String> enrichmentStrategies = Lists.newArrayList();
+  private final List<String> enrichmentStrategies = new ArrayList<>();
   private String name;
   private String owningApplication;
   private Category category;
   private String partitionStrategy = PARTITION_RANDOM;
   private EventTypeSchema schema;
-  private List<String> partitionKeyFields = Lists.newArrayList();
+  private List<String> partitionKeyFields = new ArrayList<>();
   private EventTypeStatistics eventTypeStatistics;
   private EventTypeOptions options;
-  private List<String> readScopes = Lists.newArrayList();
-  private List<String> writeScopes = Lists.newArrayList();
+  private List<String> readScopes = new ArrayList<>();
+  private List<String> writeScopes = new ArrayList<>();
 
   /**
    * @return the event type name

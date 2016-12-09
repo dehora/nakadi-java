@@ -1,6 +1,6 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 
 // todo: see how much alloc overhead this causes
 class ResourceCollectionEmpty<T> extends ResourceCollection<T> {
@@ -8,7 +8,7 @@ class ResourceCollectionEmpty<T> extends ResourceCollection<T> {
   volatile ResourceCollectionEmpty<T> dummy;
 
   public ResourceCollectionEmpty() {
-    super(Lists.newArrayList(), Lists.newArrayList());
+    super(new ArrayList<>(), new ArrayList<>());
   }
 
   @Override public ResourceCollection<T> fetchPage(String url) {

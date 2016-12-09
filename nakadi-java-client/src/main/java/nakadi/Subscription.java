@@ -1,7 +1,7 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -20,7 +20,7 @@ public class Subscription {
   private String owningApplication;
   private String consumerGroup;
   private String readFrom;
-  private List<String> eventTypes = Lists.newArrayList();
+  private List<String> eventTypes = new ArrayList<>();
   private OffsetDateTime createdAt;
 
   /**

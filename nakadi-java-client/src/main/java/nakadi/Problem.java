@@ -1,7 +1,7 @@
 package nakadi;
 
-import com.google.common.collect.ImmutableMap;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,7 +16,7 @@ public class Problem {
   static final URI T1000_TYPE = URI.create("about:t1000");
   private static final URI CONTRACT_TYPE = URI.create("about:contract");
   private static final URI NETWORK_TYPE = URI.create("about:wire");
-  private static final ImmutableMap SENTINEL_MAP = ImmutableMap.builder().build();
+  private static final Map SENTINEL_MAP = new HashMap();
   private URI type = DEFAULT_TYPE;
   private String title;
   private int status;

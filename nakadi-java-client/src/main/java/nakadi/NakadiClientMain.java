@@ -1,9 +1,9 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
 import com.google.gson.GsonBuilder;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import okhttp3.OkHttpClient;
 import rx.Observable;
@@ -24,8 +24,8 @@ public class NakadiClientMain {
   }
 
   public static void hello(String... names) {
-
-    final ArrayList<String> strings = Lists.newArrayList(names);
+    List<String> strings = new ArrayList<>(names.length);
+    Collections.addAll(strings, names);
     new GsonBuilder().create().toJson(strings, System.out);
     Observable.from(names).subscribe(s -> System.out.println("Hello " + s + "!"));
   }

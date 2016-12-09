@@ -1,10 +1,10 @@
 package nakadi;
 
-import com.google.common.collect.Maps;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.Map;
 
 class EventMappedSupport {
@@ -21,7 +21,7 @@ class EventMappedSupport {
     if (eventRecord.event().getClass().isAssignableFrom(BusinessEventMapped.class)) {
 
       BusinessEventMapped businessEvent = (BusinessEventMapped) eventRecord.event();
-      Map<String, Object> jsonEvent = Maps.newHashMap();
+      Map<String, Object> jsonEvent = new HashMap();
       jsonEvent.put("metadata", businessEvent.metadata());
       /*
       :hack: take the businessEvent.data field whose type we don't know and roundtrip it to

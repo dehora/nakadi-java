@@ -1,8 +1,8 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -129,7 +129,7 @@ class EventTypeResourceReal implements EventTypeResource {
     List<EventType> collection =
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE);
 
-    return new EventTypeCollection(collection, Lists.newArrayList(), this);
+    return new EventTypeCollection(collection, new ArrayList<>(), this);
   }
 
   PartitionCollection loadPartitionPage(String url) {
@@ -142,7 +142,7 @@ class EventTypeResourceReal implements EventTypeResource {
     List<Partition> collection =
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_P);
 
-    return new PartitionCollection(collection, Lists.newArrayList(), this);
+    return new PartitionCollection(collection, new ArrayList<>(), this);
   }
 
   private ResourceOptions prepareOptions(String fallbackScope) {

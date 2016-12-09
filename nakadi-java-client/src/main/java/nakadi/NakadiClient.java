@@ -1,8 +1,9 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import okhttp3.OkHttpClient;
@@ -17,11 +18,20 @@ import org.slf4j.LoggerFactory;
  */
 public class NakadiClient {
 
+  // capture some client side jvm data for diagnostics
+  private static List<String> jvmData = new ArrayList<>();
+  static {
+    jvmData.add("os.arch");
+    jvmData.add("os.name");
+    jvmData.add("os.version");
+    jvmData.add("java.class.version");
+    jvmData.add("java.runtime.version");
+    jvmData.add("java.vm.name");
+    jvmData.add("java.vm.version");
+  }
+
   static final String PLATFORM_DETAILS_JSON = GsonSupport.gsonCompressed()
-      .toJson(Lists.newArrayList(
-          "os.arch", "os.name", "os.version", "java.class.version", "java.runtime.version",
-          "java.vm.name", "java.vm.version"
-      ).stream().collect(Collectors.toMap(String::toString, System::getProperty)));
+      .toJson(jvmData.stream().collect(Collectors.toMap(String::toString, System::getProperty)));
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
   private static final String VERSION = Version.VERSION;
   static final String USER_AGENT = "nakadi-java/" + NakadiClient.VERSION;

@@ -1,9 +1,9 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -327,7 +327,7 @@ public class StreamProcessor implements StreamProcessorManaged {
       StreamConfiguration sc) {
     return (response) -> {
 
-      final List<T> emptyList = Lists.newArrayList();
+      final List<T> emptyList = new ArrayList<>();
       final Observable<StreamBatchRecord<T>> forEmpty =
           response.statusCode() != 200 ?
               Observable.just(emptyBatch(streamOffsetObserver, emptyList))
