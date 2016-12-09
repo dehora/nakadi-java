@@ -2,11 +2,12 @@ package nakadi;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -15,7 +16,7 @@ import java.util.Set;
 public class QueryParams {
 
   private final ListMultimap<String, String> params = ArrayListMultimap.create();
-  private final Set<String> paramsToReplace = Sets.newHashSet();
+  private final Set<String> paramsToReplace = new HashSet<>();
 
   public QueryParams param(String key, String value) {
     Objects.requireNonNull(key);
@@ -34,7 +35,9 @@ public class QueryParams {
   QueryParams paramReplacing(String key, String value) {
     Objects.requireNonNull(key);
     Objects.requireNonNull(value);
-    params.replaceValues(key, Lists.newArrayList(value));
+    ArrayList<String> values = new ArrayList<>(1);
+    Collections.addAll(values, value);
+    params.replaceValues(key, values);
     paramsToReplace.add(key);
     return this;
   }

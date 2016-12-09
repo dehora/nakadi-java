@@ -29,6 +29,14 @@ public class SecuritySupport {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
+  private static URL getResourceUrl(String resourceName) {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    classLoader = classLoader == null ? SecuritySupport.class.getClassLoader() : classLoader;
+    URL url = classLoader.getResource(resourceName);
+    NakadiException.throwNonNull(url, "resource not found: "+ resourceName);
+    return url;
+  }
+
   private final String certificatePath;
   private SSLContext sslContext;
   private X509TrustManager trustManager;
@@ -149,7 +157,7 @@ public class SecuritySupport {
 
     if (certificatePath.startsWith("classpath:")) {
       logger.info("using classpath resolver for {}", certificatePath);
-      String resource = com.google.common.io.Resources.getResource(
+      String resource = getResourceUrl(
           certificatePath.substring("classpath:".length(), certificatePath.length())).getPath();
       return Paths.get(resource);
     }
@@ -166,4 +174,6 @@ public class SecuritySupport {
   public X509TrustManager trustManager() {
     return trustManager;
   }
+
+
 }

@@ -1,6 +1,6 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -65,7 +65,7 @@ public class EventStreamBatch<T> {
   public List<T> events() {
     // gson doesn't use the constructor, check this here
     if (events == null) {
-      this.events = Lists.newArrayList(); // can't make this a constant because of <T>
+      this.events = new ArrayList<>(); // can't make this a constant because of <T>
     }
     return events;
   }

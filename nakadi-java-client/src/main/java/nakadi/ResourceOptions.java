@@ -1,6 +1,6 @@
 package nakadi;
 
-import com.google.common.collect.Maps;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -8,7 +8,7 @@ class ResourceOptions {
 
 
   //multimap would be correct, but a client for this api doesn't setting multiple same headers
-  private final Map<String, Object> headers = Maps.newHashMap();
+  private final Map<String, Object> headers = new HashMap<>();
   private TokenProvider provider;
   private String scope = TokenProvider.UID;
 

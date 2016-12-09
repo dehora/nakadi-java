@@ -1,6 +1,6 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -181,7 +181,7 @@ public class StreamConfiguration {
   public StreamConfiguration cursors(Cursor... cursors) {
     NakadiException.throwNonNull(cursors, "Please provide at least one cursor");
     if (this.cursors == null) {
-      this.cursors = Lists.newArrayList();
+      this.cursors = new ArrayList<>();
     }
     this.cursors.addAll(Arrays.asList(cursors));
     return this;

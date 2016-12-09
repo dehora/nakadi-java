@@ -1,7 +1,8 @@
 package nakadi;
 
-import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -55,7 +56,9 @@ public class EventResourceReal implements EventResource {
   public <T> Response send(String eventTypeName, T event) {
     NakadiException.throwNonNull(eventTypeName, "Please provide an event type name");
     NakadiException.throwNonNull(event, "Please provide an event");
-    return send(eventTypeName, ImmutableList.of(event));
+    ArrayList<T> events = new ArrayList<>(1);
+    Collections.addAll(events, event);
+    return send(eventTypeName, events);
   }
 
   @Override public EventResource scope(String scope) {

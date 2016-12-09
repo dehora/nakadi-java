@@ -1,9 +1,9 @@
 package nakadi;
 
-import com.google.common.collect.Maps;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,7 +27,7 @@ class JsonBatchSupport {
   public <T> StreamBatchRecord<T> lineToSubscriptionStreamBatchRecord(
       String line, Type type, StreamOffsetObserver observer, String xNakadiStreamId,
       String subscriptionId) {
-    HashMap<String, String> context = Maps.newHashMap();
+    HashMap<String, String> context = new HashMap<>();
     context.put(StreamResourceSupport.X_NAKADI_STREAM_ID, xNakadiStreamId);
     context.put(StreamResourceSupport.SUBSCRIPTION_ID, subscriptionId);
     return new StreamBatchRecordReal<>(marshalEventStreamBatch(line, type), observer, context);

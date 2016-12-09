@@ -1,11 +1,10 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,7 +30,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   SubscriptionResourceReal(NakadiClient client) {
     this.client = client;
     this.sentinelCursorCommitResultCollection =
-        new CursorCommitResultCollection(Lists.newArrayList(), Lists.newArrayList(), this);
+        new CursorCommitResultCollection(new ArrayList<>(), new ArrayList<>(), this);
   }
 
   @Override public SubscriptionResource scope(String scope) {
@@ -137,7 +136,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
     List<Cursor> cursorList = Arrays.asList(cursors);
 
-    Map<String, Object> requestMap = Maps.newHashMap();
+    Map<String, Object> requestMap = new HashMap<>();
     requestMap.put("items", cursorList);
 
     String streamId = context.get(StreamResourceSupport.X_NAKADI_STREAM_ID);
@@ -201,7 +200,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
         client.jsonSupport()
             .fromJson(response.responseBody().asString(), SubscriptionEventTypeStatsList.class);
     List<SubscriptionEventTypeStats> items = cursors.items();
-    return new SubscriptionEventTypeStatsCollection(items, Lists.newArrayList(), this);
+    return new SubscriptionEventTypeStatsCollection(items, new ArrayList<>(), this);
   }
 
   SubscriptionCursorCollection loadCursorPage(String url) {
@@ -219,7 +218,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
         client.jsonSupport()
             .fromJson(response.responseBody().asString(), SubscriptionCursorList.class);
     List<Cursor> items = cursors.items();
-    return new SubscriptionCursorCollection(items, Lists.newArrayList(), this);
+    return new SubscriptionCursorCollection(items, new ArrayList<>(), this);
   }
 
   SubscriptionCollection loadPage(String url) {
@@ -243,7 +242,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   }
 
   private List<ResourceLink> toLinks(PaginationLinks _links) {
-    List<ResourceLink> links = Lists.newArrayList();
+    List<ResourceLink> links = new ArrayList<>();
     if (_links != null) {
       final PaginationLink prev = _links.prev();
       final PaginationLink next = _links.next();
@@ -260,7 +259,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   }
 
   private List<Subscription> toSubscriptions(List<Subscription> items) {
-    List<Subscription> subscriptions = Lists.newArrayList();
+    List<Subscription> subscriptions = new ArrayList<>();
     if (items != null) {
       subscriptions.addAll(items);
     }
@@ -278,7 +277,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   }
 
   ResourceCollection<CursorCommitResult> loadCursorCommitPage(String url) {
-    return new CursorCommitResultCollection(loadCollection(url), Lists.newArrayList(), this);
+    return new CursorCommitResultCollection(loadCollection(url), new ArrayList<>(), this);
   }
 
   private List<CursorCommitResult> loadCollection(String url) {

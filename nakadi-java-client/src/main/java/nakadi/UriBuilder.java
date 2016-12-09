@@ -1,9 +1,10 @@
 package nakadi;
 
-import com.google.common.base.Charsets;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 class UriBuilder {
 
+  private static Charset UTF_8 = StandardCharsets.UTF_8;
   private static final String AND = "&";
   private static final String EQ = "=";
   private final QueryParams qp = new QueryParams();
@@ -130,7 +132,7 @@ class UriBuilder {
   private String urlEncode(String param) {
     try {
       // URLEncoder is a html forms encoder not a percent encoder
-      return java.net.URLEncoder.encode(param, Charsets.UTF_8.name()).replaceAll("\\+", "%20");
+      return java.net.URLEncoder.encode(param, UTF_8.name()).replaceAll("\\+", "%20");
     } catch (UnsupportedEncodingException e) {
       throw new ClientException(
           Problem.localProblem("Could not encode param", "param=[" + param + "]"), e);

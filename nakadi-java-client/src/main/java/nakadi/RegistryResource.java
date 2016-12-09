@@ -1,8 +1,8 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,11 +44,11 @@ public class RegistryResource {
   }
 
   ValidationStrategyCollection loadValidationPage(String url) {
-    return new ValidationStrategyCollection(loadCollection(url), Lists.newArrayList(), this);
+    return new ValidationStrategyCollection(loadCollection(url), new ArrayList<>(), this);
   }
 
   EnrichmentStrategyCollection loadEnrichmentPage(String url) {
-    return new EnrichmentStrategyCollection(loadCollection(url), Lists.newArrayList(), this);
+    return new EnrichmentStrategyCollection(loadCollection(url), new ArrayList<>(), this);
   }
 
   private List<String> loadCollection(String url) {

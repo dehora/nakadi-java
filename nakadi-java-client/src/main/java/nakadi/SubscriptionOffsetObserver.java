@@ -1,6 +1,6 @@
 package nakadi;
 
-import com.google.common.collect.Maps;
+import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +11,7 @@ class SubscriptionOffsetObserver implements StreamOffsetObserver {
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   private final NakadiClient client;
-  private Map<String, StreamCursorContext> lastCheckpointedMap = Maps.newHashMap();
+  private Map<String, StreamCursorContext> lastCheckpointedMap = new HashMap<>();
 
   SubscriptionOffsetObserver(NakadiClient client) {
     this.client = client;

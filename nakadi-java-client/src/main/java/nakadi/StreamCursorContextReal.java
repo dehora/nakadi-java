@@ -1,13 +1,13 @@
 package nakadi;
 
-import com.google.common.collect.Maps;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 class StreamCursorContextReal implements StreamCursorContext {
 
-  private static final Map<String, String> SENTINEL = Maps.newHashMap();
+  private static final Map<String, String> SENTINEL = new HashMap<>();
   private static final Map<String, String> U_SENTINEL = Collections.unmodifiableMap(SENTINEL);
 
   private final Cursor cursor;
