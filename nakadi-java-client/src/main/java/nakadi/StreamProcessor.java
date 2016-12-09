@@ -55,12 +55,12 @@ public class StreamProcessor implements StreamProcessorManaged {
       new ThreadFactoryBuilder()
           .setUncaughtExceptionHandler(
               (t, e) -> logger.error("stream_processor_err_io {}, {}", t, e.getMessage(), e))
-          .setNameFormat("nakadi-java-io").build());
+          .setNameFormat("nakadi-java-io-%d").build());
   private final ExecutorService monoComputeExecutor = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder()
           .setUncaughtExceptionHandler(
               (t, e) -> logger.error("stream_processor_err_compute {}, {}", t, e.getMessage(), e))
-          .setNameFormat("nakadi-java-compute").build());
+          .setNameFormat("nakadi-java-compute-%d").build());
   private final Scheduler monoIoScheduler = Schedulers.from(monoIoExecutor);
   private final Scheduler monoComputeScheduler=  Schedulers.from(monoComputeExecutor);
   private final CountDownLatch startBlockingLatch;
