@@ -1,8 +1,20 @@
 ### Changes
 
+### 0.7.0
+
+Rollup of 0.6.x releases
+
+- Add uncaught exception loggers to thread factories.
+- Add type literal helper support.
+- Fix request/3 to use non-throwing http call.
+- Handle retries with non-throwing requests.
+- Change streaming accept header to application/json [#98](https://github.com/zalando-incubator/nakadi-java/issues/98)
+- Add back pressure buffering to stream processor for volume stream requests.  [#100](https://github.com/zalando-incubator/nakadi-java/issues/100)
+- Allow blocking access to stream processors
+
 ### 0.6.3
 
-Add back pressure buffering to stream processor for volume stream requests.  [#100](https://github.com/zalando-incubator/nakadi-java/issues/100)
+- Add back pressure buffering to stream processor for volume stream requests.  [#100](https://github.com/zalando-incubator/nakadi-java/issues/100)
 
 ### 0.6.2
 
