@@ -1,5 +1,10 @@
 ### Changes
 
+### 0.7.1
+
+- Give StreamProcessor scheduler threads specific names.
+- Block the caller on StreamProcessor.startBlocking, mark method as deprecated
+
 ### 0.7.0
 
 Rollup of 0.6.x releases
