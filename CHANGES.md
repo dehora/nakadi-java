@@ -1,5 +1,10 @@
 ### Changes
 
+### 0.7.2
+
+- Capture metrics and add more logging for checkpoint requests.
+- Use a new http logger that elides auth and log to SLF4J
+
 ### 0.7.1
 
 - Give StreamProcessor scheduler threads specific names.
