@@ -173,7 +173,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
       }
     }
 
-    logger.info("subscription_checkpoint response nanotime={} {}", duration, response);
+    logger.info("subscription_checkpoint request_time_millis={} response {}", TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS), response);
 
     if (response.statusCode() == 204) {
       return sentinelCursorCommitResultCollection;
