@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
+//import okhttp3.logging.HttpLoggingInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -174,7 +174,12 @@ public class NakadiClient {
 
       if (enableHttpLogging) {
         builder = builder.addNetworkInterceptor(
-            new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY));
+            new HttpLoggingInterceptor(new okhttp3.logging.HttpLoggingInterceptor.Logger() {
+              @Override public void log(String message) {
+                logger.info(message);
+              }
+            })
+                .setLevel(HttpLoggingInterceptor.Level.BODY));
         logger.info("Enabled http tracing");
       }
 
