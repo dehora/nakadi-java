@@ -11,7 +11,6 @@ class SubscriptionOffsetObserver implements StreamOffsetObserver {
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   private final NakadiClient client;
-  private Map<String, StreamCursorContext> lastCheckpointedMap = new HashMap<>();
 
   SubscriptionOffsetObserver(NakadiClient client) {
     this.client = client;
@@ -32,13 +31,6 @@ class SubscriptionOffsetObserver implements StreamOffsetObserver {
 
     String cursorTrackingKey = cursorTrackingKey(context);
 
-    if(lastCheckpointedMap.containsKey(cursorTrackingKey)) {
-      logger.debug("subscription_checkpoint skipping was already checkpointed key={}",
-          cursorTrackingKey);
-      return;
-    }
-
-    //noinspection DanglingJavadoc,TryWithIdenticalCatches
     try {
       CursorCommitResultCollection ccr = resource.checkpoint(context.context(), context.cursor());
 
@@ -51,13 +43,12 @@ class SubscriptionOffsetObserver implements StreamOffsetObserver {
        they're being reconsumed until we catch up. For now don't do anything clever, just let
        the server absorb the commits and keep passing events along.
         */
-        logger.debug("subscription_checkpoint stale cursor {}", ccr);
+        logger.info("subscription_checkpoint server_indicated_stale_cursor {}", ccr);
       } else {
-        logger.debug("subscription_checkpoint ok {}", cursorTrackingKey);
-        lastCheckpointedMap.put(cursorTrackingKey, context);
+        logger.info("subscription_checkpoint server_ok_accepted_cursor {}", cursorTrackingKey);
       }
     } catch (RateLimitException e) {
-      /**
+      /*
        * todo: we need to handle this, rethrow for now
        *
        * option most like is to go into a backoff and retry; we could wrap this up in an observable
@@ -84,6 +75,14 @@ class SubscriptionOffsetObserver implements StreamOffsetObserver {
   }
 
   private String cursorTrackingKey(StreamCursorContext context) {
-    return context.cursor().eventType().orElse("unknown-event-type")+"-"+context.cursor().partition()+"-"+context.cursor().offset();
+    Cursor cursor = context.cursor();
+    if(cursor != null) {
+      String partition = cursor.partition();
+      String offset = cursor.offset();
+      return cursor.eventType().orElse("unknown-event-type") + "-" + partition + "-" + offset;
+    } else {
+      logger.warn("unexpected empty cursor {}", context);
+      return context.toString();
+    }
   }
 }
