@@ -175,8 +175,11 @@ public class NakadiClient {
       if (enableHttpLogging) {
         builder = builder.addNetworkInterceptor(
             new HttpLoggingInterceptor(new okhttp3.logging.HttpLoggingInterceptor.Logger() {
+
+              final Logger httpLogger = LoggerFactory.getLogger("NakadiClientHttpLog");
+
               @Override public void log(String message) {
-                logger.info(message);
+                httpLogger.info(message);
               }
             })
                 .setLevel(HttpLoggingInterceptor.Level.BODY));
