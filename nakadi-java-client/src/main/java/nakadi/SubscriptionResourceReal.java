@@ -9,9 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class SubscriptionResourceReal implements SubscriptionResource {
 
+  private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
   private static final String PATH_CURSORS = "cursors";
   private static final String PATH_STATS = "stats";
   private static final String PATH = "subscriptions";
@@ -155,6 +158,8 @@ class SubscriptionResourceReal implements SubscriptionResource {
         .newResource()
         .retryPolicy(retryPolicy)
         .requestThrowing(Resource.POST, url, options, requestMap);
+
+    logger.info("subscription_checkpoint response {}", response);
 
     if (response.statusCode() == 204) {
       return sentinelCursorCommitResultCollection;
