@@ -178,7 +178,14 @@ public interface MetricCollector {
     /**
      * How long it took to send an event.
      */
-    eventSend("nakadi.java.client.event.sendtime"),;
+    eventSend("nakadi.java.client.event.sendtime"),
+
+    /**
+     * How long it took to post a checkpoint.
+     */
+    checkpointSend("nakadi.java.client.checkpoint.sendtime"),
+
+    ;
 
     private final String path;
 

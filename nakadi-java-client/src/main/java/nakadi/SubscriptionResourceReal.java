@@ -154,12 +154,26 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
     options.header(StreamResourceSupport.X_NAKADI_STREAM_ID, streamId);
 
-    Response response = client.resourceProvider()
+    Resource resource = client.resourceProvider()
         .newResource()
-        .retryPolicy(retryPolicy)
-        .requestThrowing(Resource.POST, url, options, requestMap);
+        .retryPolicy(retryPolicy);
 
-    logger.info("subscription_checkpoint response {}", response);
+    long start = System.nanoTime();
+    long duration = 0L;
+    Response response;
+    try {
+      response = resource.requestThrowing(Resource.POST, url, options, requestMap);
+    } finally {
+      try {
+        duration = System.nanoTime() - start;
+        client.metricCollector()
+            .duration(MetricCollector.Timer.checkpointSend, duration, TimeUnit.NANOSECONDS);
+      } catch (Exception e) {
+        logger.error(e.getMessage(), e);
+      }
+    }
+
+    logger.info("subscription_checkpoint response nanotime={} {}", duration, response);
 
     if (response.statusCode() == 204) {
       return sentinelCursorCommitResultCollection;
