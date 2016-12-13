@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.7.3
+
+- Add experimental support for schema versioning to track the Nakadi API.
+
 ### 0.7.2
 
 - Capture metrics and add more logging for checkpoint requests.
