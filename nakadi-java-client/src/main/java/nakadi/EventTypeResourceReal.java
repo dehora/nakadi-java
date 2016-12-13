@@ -10,6 +10,7 @@ class EventTypeResourceReal implements EventTypeResource {
 
   private static final String PATH_EVENT_TYPES = "event-types";
   private static final String PATH_PARTITIONS = "partitions";
+  private static final String PATH_SCHEMAS = "schemas";
   private static final String APPLICATION_JSON = "application/json";
   private static final Type TYPE = new TypeToken<List<EventType>>() {
   }.getType();
@@ -120,7 +121,7 @@ class EventTypeResourceReal implements EventTypeResource {
       throws AuthorizationException, ClientException, ServerException,
       RateLimitException, NakadiException {
     return loadSchemaPage(
-        collectionUri().path(eventTypeName).path(PATH_PARTITIONS).buildString());
+        collectionUri().path(eventTypeName).path(PATH_SCHEMAS).buildString());
   }
 
   String applyScope(String fallbackScope) {
@@ -161,10 +162,14 @@ class EventTypeResourceReal implements EventTypeResource {
         .retryPolicy(retryPolicy)
         .requestThrowing(Resource.GET, url, options);
 
-    List<EventTypeSchema> collection =
-        client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_P);
+    EventTypeSchemaList list =
+        client.jsonSupport()
+            .fromJson(response.responseBody().asString(), EventTypeSchemaList.class);
 
-    return new EventTypeSchemaCollection(collection, new ArrayList<>(), this);
+    return new EventTypeSchemaCollection(
+        toEventTypeSchema(list.items()),
+        toLinks(list._links()),
+        this);
   }
 
   private ResourceOptions prepareOptions(String fallbackScope) {
@@ -176,5 +181,45 @@ class EventTypeResourceReal implements EventTypeResource {
   private UriBuilder collectionUri() {
     return UriBuilder.builder(client.baseURI()).path(PATH_EVENT_TYPES);
   }
+
+  private List<ResourceLink> toLinks(PaginationLinks _links) {
+    List<ResourceLink> links = new ArrayList<>();
+    if (_links != null) {
+      final PaginationLink prev = _links.prev();
+      final PaginationLink next = _links.next();
+
+      if (prev != null) {
+        links.add(new ResourceLink("prev", prev.href()));
+      }
+
+      if (next != null) {
+        links.add(new ResourceLink("next", next.href()));
+      }
+    }
+    return links;
+  }
+
+  private List<EventTypeSchema> toEventTypeSchema(List<EventTypeSchema> items) {
+    List<EventTypeSchema> subscriptions = new ArrayList<>();
+    if (items != null) {
+      subscriptions.addAll(items);
+    }
+    return subscriptions;
+  }
+
+  private static class EventTypeSchemaList {
+
+    private final PaginationLinks _links = null;
+    private final List<EventTypeSchema> items = new ArrayList<>();
+
+    PaginationLinks _links() {
+      return _links;
+    }
+
+    List<EventTypeSchema> items() {
+      return items;
+    }
+  }
+
 
 }
