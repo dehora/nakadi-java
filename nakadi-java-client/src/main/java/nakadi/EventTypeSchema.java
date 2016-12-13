@@ -1,5 +1,6 @@
 package nakadi;
 
+import java.time.OffsetDateTime;
 import java.util.Objects;
 
 import static nakadi.EventTypeSchema.Type.json_schema;
@@ -8,6 +9,8 @@ public class EventTypeSchema {
 
   private Type type = json_schema;
   private String schema;
+  private String version;
+  private OffsetDateTime createdAt;
 
   public Type type() {
     return type;
@@ -27,8 +30,21 @@ public class EventTypeSchema {
     return this;
   }
 
-  @Override public int hashCode() {
-    return Objects.hash(type, schema);
+  /**
+   * The version of the schema used to validate this event.
+   * @return the version.
+   */
+  @Experimental
+  public String version() {
+    return version;
+  }
+
+  /**
+   * @return the time the event type was created.
+   */
+  @Experimental
+  public OffsetDateTime createdAt() {
+    return createdAt;
   }
 
   @Override public boolean equals(Object o) {
@@ -36,12 +52,20 @@ public class EventTypeSchema {
     if (o == null || getClass() != o.getClass()) return false;
     EventTypeSchema that = (EventTypeSchema) o;
     return type == that.type &&
-        Objects.equals(schema, that.schema);
+        Objects.equals(schema, that.schema) &&
+        Objects.equals(version, that.version) &&
+        Objects.equals(createdAt, that.createdAt);
+  }
+
+  @Override public int hashCode() {
+    return Objects.hash(type, schema, version, createdAt);
   }
 
   @Override public String toString() {
     return "EventTypeSchema{" + "type=" + type +
         ", schema='" + schema + '\'' +
+        ", version='" + version + '\'' +
+        ", createdAt=" + createdAt +
         '}';
   }
 

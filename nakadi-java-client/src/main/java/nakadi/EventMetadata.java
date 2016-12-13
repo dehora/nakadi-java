@@ -17,6 +17,7 @@ public class EventMetadata {
   private List<String> parentEids;
   private String flowId;
   private String partition;
+  private String version;
 
   public EventMetadata() {
     this.flowId = ResourceSupport.nextFlowId();
@@ -161,8 +162,18 @@ public class EventMetadata {
     return this;
   }
 
+  /**
+   * The version of the schema used to validate this event.
+   * @return the version.
+   */
+  @Experimental
+  public String version() {
+    return version;
+  }
+
   @Override public int hashCode() {
-    return Objects.hash(eid, eventType, occurredAt, receivedAt, parentEids, flowId, partition);
+    return Objects.hash(eid, eventType, occurredAt, receivedAt, parentEids, flowId, partition,
+        version);
   }
 
   @Override public boolean equals(Object o) {
@@ -175,7 +186,8 @@ public class EventMetadata {
         Objects.equals(receivedAt, that.receivedAt) &&
         Objects.equals(parentEids, that.parentEids) &&
         Objects.equals(flowId, that.flowId) &&
-        Objects.equals(partition, that.partition);
+        Objects.equals(partition, that.partition) &&
+        Objects.equals(version, that.version);
   }
 
   @Override public String toString() {
@@ -186,6 +198,7 @@ public class EventMetadata {
         ", parentEids=" + parentEids +
         ", flowId='" + flowId + '\'' +
         ", partition='" + partition + '\'' +
+        ", version='" + version + '\'' +
         '}';
   }
 }

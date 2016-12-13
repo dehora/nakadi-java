@@ -15,6 +15,8 @@ class EventTypeResourceReal implements EventTypeResource {
   }.getType();
   private static final Type TYPE_P = new TypeToken<List<Partition>>() {
   }.getType();
+  private static final Type TYPE_ETS = new TypeToken<List<EventTypeSchema>>() {
+  }.getType();
 
   private final NakadiClient client;
   private String scope;
@@ -114,6 +116,13 @@ class EventTypeResourceReal implements EventTypeResource {
         .requestThrowing(Resource.GET, url, options, Partition.class);
   }
 
+  @Override public EventTypeSchemaCollection schemas(String eventTypeName)
+      throws AuthorizationException, ClientException, ServerException,
+      RateLimitException, NakadiException {
+    return loadSchemaPage(
+        collectionUri().path(eventTypeName).path(PATH_PARTITIONS).buildString());
+  }
+
   String applyScope(String fallbackScope) {
     return scope == null ? fallbackScope: scope;
   }
@@ -143,6 +152,19 @@ class EventTypeResourceReal implements EventTypeResource {
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_P);
 
     return new PartitionCollection(collection, new ArrayList<>(), this);
+  }
+
+  EventTypeSchemaCollection loadSchemaPage(String url) {
+    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    Response response = client.resourceProvider()
+        .newResource()
+        .retryPolicy(retryPolicy)
+        .requestThrowing(Resource.GET, url, options);
+
+    List<EventTypeSchema> collection =
+        client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_P);
+
+    return new EventTypeSchemaCollection(collection, new ArrayList<>(), this);
   }
 
   private ResourceOptions prepareOptions(String fallbackScope) {

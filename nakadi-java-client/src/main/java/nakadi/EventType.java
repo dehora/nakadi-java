@@ -1,5 +1,6 @@
 package nakadi;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +25,9 @@ public class EventType {
   private EventTypeOptions options;
   private List<String> readScopes = new ArrayList<>();
   private List<String> writeScopes = new ArrayList<>();
+  private String compatibilityMode;
+  private OffsetDateTime createdAt;
+  private OffsetDateTime updatedAt;
 
   /**
    * @return the event type name
@@ -237,9 +241,41 @@ public class EventType {
     return this;
   }
 
-  @Override public int hashCode() {
-    return Objects.hash(enrichmentStrategies, name, owningApplication, category, partitionStrategy,
-        schema, partitionKeyFields, eventTypeStatistics, options, readScopes, writeScopes);
+  /**
+   * The compatibility mode of the schema.
+   *
+   * @return the compatibility mode.
+   */
+  @Experimental
+  public String compatibilityMode() {
+    return compatibilityMode;
+  }
+
+  /**
+   * Set the compatibility mode of the schema.
+   *
+   * @return this.
+   */
+  @Experimental
+  public EventType compatibilityMode(String compatibilityMode) {
+    this.compatibilityMode = compatibilityMode;
+    return this;
+  }
+
+  /**
+   * @return the time the event type was created.
+   */
+  @Experimental
+  public OffsetDateTime createdAt() {
+    return createdAt;
+  }
+
+  /**
+   * @return the time the event type was updated.
+   */
+  @Experimental
+  public OffsetDateTime updatedAt() {
+    return updatedAt;
   }
 
   @Override public boolean equals(Object o) {
@@ -256,7 +292,14 @@ public class EventType {
         Objects.equals(eventTypeStatistics, eventType.eventTypeStatistics) &&
         Objects.equals(options, eventType.options) &&
         Objects.equals(readScopes, eventType.readScopes) &&
-        Objects.equals(writeScopes, eventType.writeScopes);
+        Objects.equals(writeScopes, eventType.writeScopes) &&
+        Objects.equals(compatibilityMode, eventType.compatibilityMode);
+  }
+
+  @Override public int hashCode() {
+    return Objects.hash(enrichmentStrategies, name, owningApplication, category, partitionStrategy,
+        schema, partitionKeyFields, eventTypeStatistics, options, readScopes, writeScopes,
+        compatibilityMode);
   }
 
   @Override public String toString() {
@@ -271,6 +314,7 @@ public class EventType {
         ", options=" + options +
         ", readScopes=" + readScopes +
         ", writeScopes=" + writeScopes +
+        ", compatibilityMode='" + compatibilityMode + '\'' +
         '}';
   }
 
