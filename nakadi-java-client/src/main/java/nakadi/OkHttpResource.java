@@ -203,9 +203,18 @@ class OkHttpResource implements Resource {
       Req body) {
     Request.Builder builder;
     if (body != null) {
-      RequestBody requestBody = RequestBody.create(MediaType.parse(APPLICATION_JSON_CHARSET_UTF8),
-          jsonSupport.toJson(body));
-      builder = new Request.Builder().url(url).method(method, requestBody);
+      if(body instanceof EventContentSupplier) {
+        EventContentSupplier supplier = (EventContentSupplier)body;
+        RequestBody requestBody =
+            RequestBody.create(MediaType.parse(APPLICATION_JSON_CHARSET_UTF8), supplier.content());
+        builder = new Request.Builder().url(url).method(method, requestBody);
+
+      } else {
+        String content = jsonSupport.toJson(body);
+        RequestBody requestBody =
+            RequestBody.create(MediaType.parse(APPLICATION_JSON_CHARSET_UTF8), content);
+        builder = new Request.Builder().url(url).method(method, requestBody);
+      }
     } else {
       builder = applyMethodForNoBody(method, url, new Request.Builder().url(url));
     }

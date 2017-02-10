@@ -29,6 +29,12 @@ public interface EventResource {
   /**
    * Send a batch of events to the server.
    *
+   *<p>
+   *   If the first item in events is detected to be a String, the list will be treated as raw
+   *   JSON items. Otherwise the event is serialised to JSON. This behaviour is fragile and
+   *   might be changed prior to 1.0.0, most likely by introducing a new signature for raw
+   *   JSON events.
+   * </p>
    * <p>
    *   The response may be a 207 indicating some or none of the events succeeded. See the Nakadi
    *   API definition for details.
@@ -49,7 +55,10 @@ public interface EventResource {
 
   /**
    * Send an event to the server.
-   *
+   * <p>
+   *   If the event is detected to be a String, it will be treated as raw JSON. Otherwise the
+   *   event is serialised to JSON.
+   * </p>
    * <p>
    *   <b>Warning: </b> the ordering and general delivery behaviour for event delivery is
    *   undefined under retries. That is, a delivery retry may result in out or order events being
