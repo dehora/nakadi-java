@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.7.4
+
+- Add support for posting raw JSON strings.
+
 ### 0.7.3
 
 - Add experimental support for schema versioning to track the Nakadi API.
