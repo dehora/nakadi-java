@@ -1,5 +1,6 @@
 package nakadi;
 
+import com.google.common.base.Joiner;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,9 +57,14 @@ public class EventResourceReal implements EventResource {
   public <T> Response send(String eventTypeName, T event) {
     NakadiException.throwNonNull(eventTypeName, "Please provide an event type name");
     NakadiException.throwNonNull(event, "Please provide an event");
-    ArrayList<T> events = new ArrayList<>(1);
-    Collections.addAll(events, event);
-    return send(eventTypeName, events);
+
+    if(event instanceof String) {
+      return sendUsingSupplier(eventTypeName, ("[" + event + "]")::getBytes);
+    } else {
+      ArrayList<T> events = new ArrayList<>(1);
+      Collections.addAll(events, event);
+      return send(eventTypeName, events);
+    }
   }
 
   @Override public EventResource scope(String scope) {
@@ -78,7 +84,26 @@ public class EventResourceReal implements EventResource {
     List<EventRecord<T>> collect =
         events.stream().map(e -> new EventRecord<>(eventTypeName, e)).collect(Collectors.toList());
 
-    return send(collect);
+    if (collect.get(0).event() instanceof String) {
+      return sendUsingSupplier(eventTypeName,
+          () -> ("[" + Joiner.on(",").join(events) + "]").getBytes());
+    } else {
+      return send(collect);
+    }
+  }
+
+  private Response sendUsingSupplier(String eventTypeName, EventContentSupplier supplier) {
+    return timed(() -> {
+          ResourceOptions options =
+              options().scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));
+          return client.resourceProvider()
+              .newResource()
+              .retryPolicy(retryPolicy)
+              .requestThrowing(
+                  Resource.POST, collectionUri(eventTypeName).buildString(), options, supplier);
+        },
+        client,
+        1);
   }
 
   private <T> Response send(List<EventRecord<T>> events) {
