@@ -1,0 +1,14 @@
+[
+  {
+    "eid": "7d7574c3-42ac-4e23-8c92-cd854ab1845a",
+    "publishing_status": "failed",
+    "step": "enriching",
+    "detail": "no good"
+  },
+  {
+    "eid": "980c8aa9-7921-4675-a0c0-0b33b1459944",
+    "publishing_status": "submitted",
+    "step": "none",
+    "detail": null
+  }
+]

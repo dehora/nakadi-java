@@ -1,6 +1,7 @@
 package nakadi;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface EventResource {
 
@@ -71,5 +72,26 @@ public interface EventResource {
    * @return the response
    */
   <T> Response send(String eventTypeName, T event);
+
+
+  /**
+   * Send a batch of events to the server.
+   *
+   * <p>
+   *   If the response is 422 or 207 the BatchItemResponseCollection will contain items.
+   * </p>
+   * <p>
+   *   <b>Warning: </b> the ordering and general delivery behaviour for event delivery is
+   *   undefined under retries. That is, a delivery retry may result in out or order batches being
+   *   sent to the server. Also retrying a partially delivered (207) batch may result in one
+   *   or more events being delivered multiple times.
+   * </p>
+   *
+   * @param eventTypeName the event type name
+   * @param events the events
+   * @return a BatchItemResponseCollection which will be empty if successful or have items
+   * if the post was partially successful (via a 422 or 207 response)
+   */
+  <T> BatchItemResponseCollection sendBatch(String eventTypeName, List<T> events);
 
 }

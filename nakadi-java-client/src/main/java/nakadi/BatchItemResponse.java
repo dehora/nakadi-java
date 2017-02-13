@@ -5,7 +5,7 @@ import java.util.Objects;
 public class BatchItemResponse {
 
   private String eid;
-  private PublishingStatus status;
+  private PublishingStatus publishing_status;
   private Step step;
   private String detail;
 
@@ -13,8 +13,8 @@ public class BatchItemResponse {
     return eid;
   }
 
-  public PublishingStatus status() {
-    return status;
+  public PublishingStatus publishingStatus() {
+    return publishing_status;
   }
 
   public Step step() {
@@ -26,7 +26,7 @@ public class BatchItemResponse {
   }
 
   @Override public int hashCode() {
-    return Objects.hash(eid, status, step, detail);
+    return Objects.hash(eid, publishing_status, step, detail);
   }
 
   @Override public boolean equals(Object o) {
@@ -34,14 +34,14 @@ public class BatchItemResponse {
     if (o == null || getClass() != o.getClass()) return false;
     BatchItemResponse that = (BatchItemResponse) o;
     return Objects.equals(eid, that.eid) &&
-        status == that.status &&
+        publishing_status == that.publishing_status &&
         step == that.step &&
         Objects.equals(detail, that.detail);
   }
 
   @Override public String toString() {
     return "BatchItemResponse{" + "eid='" + eid + '\'' +
-        ", status=" + status +
+        ", publishing_status=" + publishing_status +
         ", step=" + step +
         ", detail='" + detail + '\'' +
         '}';
