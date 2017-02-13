@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.7.5
+
+- Handle batch item responses for event posting. [#116](https://github.com/zalando-incubator/nakadi-java/issues/116)
+
 ### 0.7.4
 
 - Add support for posting raw JSON strings.
