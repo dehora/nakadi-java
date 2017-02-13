@@ -54,4 +54,14 @@ public interface JsonSupport {
    * @return an instance of T
    */
   <T> T fromJson(Reader r, Class<T> c);
+
+  /**
+   * Marshal the JSON data to an instance of T.
+   *
+   * @param r JSON as a Reader
+   * @param tType the type of the target
+   * @param <T> the parameterized target type
+   * @return an instance of T
+   */
+  <T> T fromJson(Reader r, Type tType);
 }

@@ -58,6 +58,10 @@ class GsonSupport implements JsonSupport {
     return gson.fromJson(r, c);
   }
 
+  @Override public <T> T fromJson(Reader r, Type tType) {
+    return gson.fromJson(r, tType);
+  }
+
   /**
    * Punch  a hole in the abstraction to let us deal with business and undefined event types that
    * can't be marshalled sanely otherwise.

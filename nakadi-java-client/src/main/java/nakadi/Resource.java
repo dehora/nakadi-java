@@ -98,6 +98,30 @@ public interface Resource {
       RateLimitException, NakadiException;
 
   /**
+   * Make a request against the server with a request entity. This method is tailored  for
+   * posting events.
+   *
+   * <p>
+   *   If the server returns 422 or 207 indicating partial failures, errors are not thrown.
+   *   Instead callers can inspect the response body for an array of batch item responses.
+   * </p>
+   *
+   * @param url the resource url
+   * @param options requestThrowing options such as headers, and tokens.
+   * @param body the object to create a JSON requestThrowing body from
+   * @param <Req> the body type
+   * @return a http response
+   * @throws AuthorizationException for 401 and 403
+   * @throws ClientException for general 4xx errors (422 does not cause an exception)
+   * @throws ServerException for general 5xx errors
+   * @throws RateLimitException for 429
+   * @throws NakadiException a non HTTP based exception
+   */
+  <Req> Response postEventsThrowing(String url, ResourceOptions options, Req body)
+      throws AuthorizationException, ClientException, ServerException, RateLimitException,
+      NakadiException;
+
+  /**
    * Make a request against the server with an expected response entity. Useful for get
    * requests. Exceptions are thrown for HTTP level errors (4xx and 5xx).
    *

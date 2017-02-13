@@ -1,6 +1,10 @@
 package nakadi;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.gson.reflect.TypeToken;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -8,12 +12,20 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EventResourceReal implements EventResource {
+
+  private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   private static final String PATH_EVENT_TYPES = "event-types";
   private static final String PATH_COLLECTION = "events";
   private static final String APPLICATION_JSON = "application/json";
+
+  private static final List<ResourceLink> LINKS_SENTINEL = Lists.newArrayList();
+  private static Type TYPE_BIR = new TypeToken<List<BatchItemResponse>>() {
+  }.getType();
 
   private final NakadiClient client;
   private String scope;
@@ -92,6 +104,21 @@ public class EventResourceReal implements EventResource {
     }
   }
 
+  @Override public <T> BatchItemResponseCollection sendBatch(String eventTypeName, List<T> events) {
+    Response send = send(eventTypeName, events);
+    List<BatchItemResponse> items = Lists.newArrayList();
+
+    if (send.statusCode() == 207 || send.statusCode() == 422) {
+      try(ResponseBody responseBody = send.responseBody()) {
+        items.addAll(client.jsonSupport().fromJson(responseBody.asReader(), TYPE_BIR));
+      } catch(IOException e) {
+        logger.error("Error handling BatchItemResponse " + e.getMessage(), e);
+      }
+    }
+
+    return new BatchItemResponseCollection(items, LINKS_SENTINEL);
+  }
+
   private Response sendUsingSupplier(String eventTypeName, EventContentSupplier supplier) {
     return timed(() -> {
           ResourceOptions options =
@@ -99,8 +126,8 @@ public class EventResourceReal implements EventResource {
           return client.resourceProvider()
               .newResource()
               .retryPolicy(retryPolicy)
-              .requestThrowing(
-                  Resource.POST, collectionUri(eventTypeName).buildString(), options, supplier);
+              .postEventsThrowing(
+                  collectionUri(eventTypeName).buildString(), options, supplier);
         },
         client,
         1);
@@ -119,8 +146,8 @@ public class EventResourceReal implements EventResource {
           return client.resourceProvider()
               .newResource()
               .retryPolicy(retryPolicy)
-              .requestThrowing(
-                  Resource.POST, collectionUri(topic).buildString(), options, eventList);
+              .postEventsThrowing(
+                  collectionUri(topic).buildString(), options, eventList);
         },
         client,
         eventList.size());

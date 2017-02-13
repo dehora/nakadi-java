@@ -3,11 +3,12 @@ package nakadi;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.InetAddress;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -69,6 +70,95 @@ public class EventResourceRealTest {
       server.shutdown();
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  @Test
+  public void returnedWithABatchItemResponseFor422And207() throws Exception {
+    NakadiClient client = spy(NakadiClient.newBuilder()
+        .baseURI("http://localhost:8312")
+        .build());
+
+    String errJson = TestSupport.load("err_batch_item_response_array.json");
+
+    try {
+      before();
+
+      List<UndefinedEventMapped<UndefinedPayload>> list = ImmutableList.of(
+          new UndefinedEventMapped<UndefinedPayload>().data(
+              new UndefinedPayload("01", "A", "B")),
+          new UndefinedEventMapped<UndefinedPayload>().data(
+              new UndefinedPayload("02", "C", "D"))
+      );
+
+      EventResource resource = client.resources().events();
+
+      // 422 and 207 batch requests shouldn't throw exceptions
+
+      server.enqueue(new MockResponse().setResponseCode(422).setBody(errJson));
+      Response r1 = resource.send("ue-1-1479125860", list);
+      assertTrue(r1.statusCode() == 422);
+
+      server.enqueue(new MockResponse().setResponseCode(207).setBody(errJson));
+      Response r2 = resource.send("ue-1-1479125860", list);
+      assertTrue(r2.statusCode() == 207);
+
+      // 422 and 207 discrete requests shouldn't throw exceptions
+
+      server.enqueue(new MockResponse().setResponseCode(422).setBody(errJson));
+      Response r3 = resource.send("ue-1-1479125860",
+          new UndefinedEventMapped<UndefinedPayload>()
+              .data(new UndefinedPayload("01", "A", "B")));
+      assertTrue(r3.statusCode() == 422);
+
+      server.enqueue(new MockResponse().setResponseCode(207).setBody(errJson));
+      Response r4 = resource.send("ue-1-1479125860",
+          new UndefinedEventMapped<UndefinedPayload>()
+              .data(new UndefinedPayload("01", "A", "B")));
+      assertTrue(r4.statusCode() == 207);
+
+      // 422 and 207 raw requests shouldn't throw exceptions
+
+      String raw = TestSupport.load("event-type-1.json");
+
+      server.enqueue(new MockResponse().setResponseCode(422).setBody(errJson));
+      Response r5 = resource.send("ue-1-1479125860", raw);
+      assertTrue(r5.statusCode() == 422);
+
+      server.enqueue(new MockResponse().setResponseCode(207).setBody(errJson));
+      Response r6 = resource.send("ue-1-1479125860", raw);
+      assertTrue(r6.statusCode() == 207);
+
+      // check we can marshal the content
+
+      String s = r6.responseBody().asString();
+
+      Type TYPE_P = new TypeToken<List<BatchItemResponse>>() {
+      }.getType();
+
+      List<BatchItemResponse> collection = json.fromJson(s, TYPE_P);
+
+      BatchItemResponseCollection bir = new BatchItemResponseCollection(collection, Lists.newArrayList());
+
+      assertTrue(bir.items().size() == 2);
+      BatchItemResponse batchItemResponse = bir.items().get(0);
+      assertEquals ("7d7574c3-42ac-4e23-8c92-cd854ab1845a", batchItemResponse.eid());
+      assertEquals ("failed", batchItemResponse.publishingStatus().name());
+      assertEquals ("enriching", batchItemResponse.step().name());
+      assertEquals ("no good", batchItemResponse.detail());
+
+      // check a collection response
+      server.enqueue(new MockResponse().setResponseCode(207).setBody(errJson));
+      BatchItemResponseCollection batch =
+          resource.sendBatch("ue-1-1479125860", Lists.newArrayList(raw));
+      assertTrue(batch.items().size() == 2);
+
+      HashSet<String> eids =
+          Sets.newHashSet(batch.items().get(0).eid(), batch.items().get(1).eid());
+      assertTrue(eids.contains("7d7574c3-42ac-4e23-8c92-cd854ab1845a"));
+      assertTrue(eids.contains("980c8aa9-7921-4675-a0c0-0b33b1459944"));
+    } finally {
+      after();
     }
   }
 
@@ -238,8 +328,7 @@ public class EventResourceRealTest {
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
 
-    verify(r, times(1)).requestThrowing(
-        Matchers.eq(Resource.POST),
+    verify(r, times(1)).postEventsThrowing(
         Matchers.eq("http://localhost:9080/event-types/foo/events"),
         options.capture(),
         Matchers.anyList());
@@ -275,8 +364,7 @@ public class EventResourceRealTest {
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);
 
-    verify(r, times(1)).requestThrowing(
-        Matchers.eq(Resource.POST),
+    verify(r, times(1)).postEventsThrowing(
         Matchers.eq("http://localhost:9080/event-types/foo/events"),
         options.capture(),
         Matchers.anyList());

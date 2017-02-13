@@ -146,6 +146,17 @@ class OkHttpResource implements Resource {
   }
 
   @Override
+  public <Req> Response postEventsThrowing(String url, ResourceOptions options, Req body)
+      throws AuthorizationException, ClientException, ServerException,
+      RateLimitException, NakadiException {
+    Observable<Response> observable =
+        Observable.defer(() -> Observable.just(
+            throwPostEventsIfError(requestInner(POST, url, options, body))));
+
+    return maybeComposeRetryPolicy(observable).toBlocking().first();
+  }
+
+  @Override
   public <Res> Res requestThrowing(String method, String url, ResourceOptions options,
       Class<Res> res) throws NakadiException {
 
@@ -298,6 +309,14 @@ class OkHttpResource implements Resource {
       this.response = response;
       return handleError(response);
     }
+  }
+
+  private Response throwPostEventsIfError(Response response) {
+    int code = response.statusCode();
+    if (code == 207 || code == 422) {
+      return response;
+    }
+    return throwIfError(response);
   }
 
   private <T> T handleError(Response response) {
