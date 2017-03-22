@@ -52,6 +52,8 @@ class StreamResourceSupport {
         .scope(Optional.ofNullable(scope).orElseGet(() -> TokenProvider.NAKADI_EVENT_STREAM_READ))
         .tokenProvider(client.resourceTokenProvider());
 
+    applyConfiguredHeaders(sc, options);
+
     if (sc.isSubscriptionStream()) {
       return options;
     }
@@ -61,6 +63,10 @@ class StreamResourceSupport {
       options.header(HEADER_X_NAKADI_CURSORS, client.jsonSupport().toJsonCompressed(cursors.get()));
     }
     return options;
+  }
+
+  private static void applyConfiguredHeaders(StreamConfiguration sc, ResourceOptions options) {
+    sc.requestHeaders().entrySet().forEach(e -> options.header(e.getKey(), e.getValue()));
   }
 
   /**

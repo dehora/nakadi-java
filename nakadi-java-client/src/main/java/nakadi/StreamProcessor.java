@@ -408,10 +408,15 @@ public class StreamProcessor implements StreamProcessorManaged {
     if (!sc.isSubscriptionStream()) {
       eventTypeName = sc.eventTypeName();
     } else {
-      nakadi.Subscription sub = client.resources().subscriptions().find(sc.subscriptionId());
-      eventTypeName = sub.eventTypes().get(0);
+      eventTypeName = findEventTypeNameForSubscription(sc);
     }
     return eventTypeName;
+  }
+
+  @VisibleForTesting
+  String findEventTypeNameForSubscription(StreamConfiguration sc) {
+    nakadi.Subscription sub = client.resources().subscriptions().find(sc.subscriptionId());
+    return sub.eventTypes().get(0);
   }
 
   private static ExecutorService newStreamProcessorExecutorService() {

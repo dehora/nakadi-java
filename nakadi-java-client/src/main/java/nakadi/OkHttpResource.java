@@ -231,7 +231,15 @@ class OkHttpResource implements Resource {
     }
     options.headers()
         .entrySet()
+        .stream()
+        /*
+         okhttp deals with this automatically by setting Accept-Encoding: gzip as
+         a default and setting it requires manual decompression
+          */
+        .filter(e -> !"Accept-Encoding".equalsIgnoreCase(e.getKey()) || !"gzip".equalsIgnoreCase(
+            e.getValue().toString()))
         .forEach(e -> builder.addHeader(e.getKey(), e.getValue().toString()));
+
     applyAuthHeaderIfPresent(options, builder);
     return builder;
   }
