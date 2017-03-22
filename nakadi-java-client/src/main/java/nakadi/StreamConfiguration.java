@@ -1,8 +1,11 @@
 package nakadi;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +30,7 @@ public class StreamConfiguration {
   private int streamKeepAliveLimit = DEFAULT_STREAM_KEEPALIVE_COUNT;
   private List<Cursor> cursors;
   private String topic;
+  private final Map<String, String> requestHeaders = new HashMap<>();
   // sub api
   private String subscriptionId;
   private long maxUncommittedEvents = DEFAULT_MAX_UNCOMMITTED_EVENTS;
@@ -230,6 +234,56 @@ public class StreamConfiguration {
 
   public StreamConfiguration maxRetryAttempts(int maxRetryAttempts) {
     this.maxRetryAttempts = maxRetryAttempts;
+    return this;
+  }
+
+  /**
+   * Returns the headers set on this configuration.
+   * 
+   * <p>
+   *   The Map returned is immutable.
+   * </p>
+   *
+   * @return an immutable copy of the headers, which may be empty
+   */
+  public Map<String, String> requestHeaders() {
+    return ImmutableMap.copyOf(requestHeaders);
+  }
+
+  /**
+   * Configure HTTP headers to be set on the stream processor request.
+   * <p>
+   *   These headers are static, in the sense they are set exactly as supplied for
+   *   every request made by the stream processor to the server (i.e., the headers set will
+   *   be identical for the initial request and subsequent reconnects).
+   * </p>
+   *
+   * @param headers one or more HTTP headers
+   * @return this
+   * @throws IllegalArgumentException if the supplied map is null
+   */
+  public StreamConfiguration requestHeaders(Map<String, String> headers) {
+    NakadiException.throwNonNull(headers, "Please provide non null request headers");
+    this.requestHeaders.putAll(headers);
+    return this;
+  }
+
+  /**
+   * Configure a HTTP header to be set on the stream processor request.
+   * <p>
+   *   This header is static, in the sense it is set exactly as supplied for
+   *   every request made by the stream processor to the server (i.e., the header set will
+   *   be identical for the initial request and subsequent reconnects).
+   * </p>
+   *
+   * @param name the name of the HTTP header
+   * @param value the value of the HTTP header
+   * @return this
+   */
+  public StreamConfiguration requestHeader(String name, String value) {
+    NakadiException.throwNonNull(name, "Please provide a header name");
+    NakadiException.throwNonNull(value, "Please provide a header value");
+    this.requestHeaders.put(name, value);
     return this;
   }
 
