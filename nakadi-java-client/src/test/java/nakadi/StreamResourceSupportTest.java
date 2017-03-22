@@ -1,9 +1,15 @@
 package nakadi;
 
+import com.google.common.collect.Maps;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 public class StreamResourceSupportTest {
 
@@ -84,5 +90,33 @@ public class StreamResourceSupportTest {
             + "&max_uncommitted_events=103"
             + "&stream_timeout=102",
         StreamResourceSupport.buildStreamUrl(client.baseURI(), s2));
+  }
+
+  @Test
+  public void testHeaderConfiguration() {
+
+    StreamConfiguration sc = new StreamConfiguration();
+    assertNotNull(sc.requestHeaders());
+
+    try {
+      new StreamConfiguration().requestHeaders(null);
+      fail("should not accept null headers");
+    } catch (IllegalArgumentException e) {
+      assertTrue(e.getMessage().contains("Please provide non null request headers"));
+    }
+
+    Map<String, String> headers = Maps.newHashMap();
+    headers.put("Accept-Encoding", "gzip");
+    sc = new StreamConfiguration().requestHeaders(headers);
+
+    assertNotNull(sc.requestHeaders());
+    assertSame(1, sc.requestHeaders().size());
+    assertTrue(sc.requestHeaders().containsKey("Accept-Encoding"));
+
+    sc.requestHeader("User-Agent", "acme-client");
+    assertSame(2, sc.requestHeaders().size());
+    assertTrue(sc.requestHeaders().containsKey("Accept-Encoding"));
+    assertTrue(sc.requestHeaders().containsKey("User-Agent"));
+
   }
 }
