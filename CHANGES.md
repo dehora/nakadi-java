@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.7.6
+
+- Tests behaviour for Accept-Encoding: gzip from consumers. [#127](https://github.com/zalando-incubator/nakadi-java/issues/127)
+
 ### 0.7.5
 
 - Handle batch item responses for event posting. [#116](https://github.com/zalando-incubator/nakadi-java/issues/116)
