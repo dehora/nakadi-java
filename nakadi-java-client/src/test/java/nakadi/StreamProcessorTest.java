@@ -1,7 +1,18 @@
 package nakadi;
 
+import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Optional;
+import junit.framework.TestCase;
 import okhttp3.OkHttpClient;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+import okio.Buffer;
+import okio.BufferedSink;
+import okio.GzipSink;
+import okio.Okio;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -13,6 +24,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -21,13 +33,141 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class StreamProcessorTest {
 
+  private static final int MOCK_SERVER_PORT = 8313;
+
   private final NakadiClient client =
       NakadiClient.newBuilder().baseURI("http://localhost:9081").build();
   private StreamProcessor processor;
 
+  private MockWebServer server = new MockWebServer();
+  private final String batch = TestSupport.load("data-change-event-batch-oneline-1.json");
+
   @Before
-  public void before() {
+  public void before() throws Exception {
+    server.start(InetAddress.getByName("localhost"), MOCK_SERVER_PORT);
     processor = new StreamProcessor(client);
+  }
+
+  @After
+  public void after() throws Exception {
+    server.shutdown();
+  }
+
+
+  @Test
+  public void acceptEncodingGzipIsDefaulted() throws Exception {
+
+    /*
+    check that okhttp transparently sets the header Accept-Encoding: gzip and handles decompression.
+     */
+
+    Buffer gzipBatch = gzip(batch);
+    server.enqueue(new MockResponse().setResponseCode(200)
+        .setBody(gzipBatch)
+        .setHeader("Content-Type", "application/x-json-stream;charset=UTF-8")
+        .setHeader("Content-Encoding", "gzip")
+    );
+
+    String baseURI = "http://localhost:" + MOCK_SERVER_PORT;
+
+    NakadiClient client = NakadiClient.newBuilder()
+        .baseURI(baseURI)
+        .build();
+
+    StreamConfiguration sc = new StreamConfiguration()
+        .eventTypeName("foo")
+        .batchLimit(2)
+        .streamLimit(5)
+        .streamLimit(1);
+
+    final StreamProcessor processor = client.resources()
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(new LoggingStreamObserverProvider())
+        .build();
+
+    processor.start();
+    Thread.sleep(1000L);
+    processor.stop();
+
+    RecordedRequest request = server.takeRequest();
+    TestCase.assertEquals("gzip", request.getHeaders().get("Accept-Encoding"));
+  }
+
+  @Test
+  public void customHeadersWithEventStream() throws Exception {
+
+    StreamConfiguration sc = new StreamConfiguration()
+        .eventTypeName("foo")
+        .batchLimit(2)
+        .streamLimit(5)
+        .streamLimit(1);
+    /*
+    check setting the header doesn't mess things up; okhttp handles gzip transparently,
+     by always setting Accept-Encoding: gzip. If you set the header you have to handle
+     decompression manually. this tests we don't manually set gzip and stay with transparent
+     handling
+     */
+    sc.requestHeader("Accept-Encoding", "gzip");
+
+    Buffer gzipBatch = gzip(batch);
+    server.enqueue(new MockResponse().setResponseCode(200)
+        .setBody(gzipBatch)
+        .setHeader("Content-Type", "application/x-json-stream;charset=UTF-8")
+        .setHeader("Content-Encoding", "gzip")
+    );
+
+    String baseURI = "http://localhost:" + MOCK_SERVER_PORT;
+
+    NakadiClient client = NakadiClient.newBuilder()
+        .baseURI(baseURI)
+        .build();
+
+    StreamProcessor processor = client.resources()
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(new LoggingStreamObserverProvider())
+        .build();
+
+    processor.start();
+    Thread.sleep(1000L);
+    processor.stop();
+
+    RecordedRequest request = server.takeRequest();
+    TestCase.assertEquals("gzip", request.getHeaders().get("Accept-Encoding"));
+
+    // now check subs
+    sc = new StreamConfiguration()
+        .subscriptionId("ca311263-14e2-448a-a68e-91d50b13fec1")
+        .batchLimit(2)
+        .streamLimit(5)
+        .streamLimit(1);
+
+    sc.requestHeader("Accept-Encoding", "gzip");
+    StreamProcessor processor1 = client.resources()
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(new LoggingStreamObserverProvider())
+        .build();
+
+    StreamProcessor spy = spy(processor1);
+    doReturn("foo").when(spy).findEventTypeNameForSubscription(any());
+
+    server.enqueue(new MockResponse().setResponseCode(200)
+        .setBody(gzipBatch)
+        .setHeader("X-Nakadi-StreamId", "nnn")
+        .setHeader("Content-Type", "application/x-json-stream;charset=UTF-8")
+        .setHeader("Content-Encoding", "gzip")
+    );
+    // this is for the checkpointer
+    server.enqueue(new MockResponse().setResponseCode(204));
+
+    spy.start();
+    Thread.sleep(1000L);
+    spy.stop();
+
+    request = server.takeRequest();
+    TestCase.assertEquals("gzip", request.getHeaders().get("Accept-Encoding"));
   }
 
   @Test
@@ -224,5 +364,13 @@ public class StreamProcessorTest {
         .build();
 
     assertNotNull(sp);
+  }
+
+  private Buffer gzip(String data) throws IOException {
+    Buffer result = new Buffer();
+    BufferedSink sink = Okio.buffer(new GzipSink(result));
+    sink.writeUtf8(data);
+    sink.close();
+    return result;
   }
 }

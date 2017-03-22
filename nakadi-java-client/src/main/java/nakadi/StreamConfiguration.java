@@ -239,7 +239,7 @@ public class StreamConfiguration {
 
   /**
    * Returns the headers set on this configuration.
-   * 
+   *
    * <p>
    *   The Map returned is immutable.
    * </p>

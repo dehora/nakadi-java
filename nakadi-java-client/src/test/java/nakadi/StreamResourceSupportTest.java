@@ -119,4 +119,18 @@ public class StreamResourceSupportTest {
     assertTrue(sc.requestHeaders().containsKey("User-Agent"));
 
   }
+
+  @Test
+  public void testHeaderConfigurationIsApplied() {
+    StreamConfiguration sc = new StreamConfiguration();
+    sc.requestHeader("Accept-Encoding", "gzip");
+
+    NakadiClient client =
+        NakadiClient.newBuilder().baseURI("http://localhost:9080").build();
+
+    final ResourceOptions resourceOptions =
+        StreamResourceSupport.buildResourceOptions(client, sc, null);
+
+    assertTrue(resourceOptions.headers().containsKey("Accept-Encoding"));
+  }
 }
