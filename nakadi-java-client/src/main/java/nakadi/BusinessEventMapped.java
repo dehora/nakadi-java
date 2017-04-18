@@ -16,7 +16,7 @@ import java.util.Objects;
  * the data on the wire.
  * </p>
  */
-public class BusinessEventMapped<T> implements Event {
+public class BusinessEventMapped<T> implements Event<T> {
 
   private T data;
   private EventMetadata metadata;

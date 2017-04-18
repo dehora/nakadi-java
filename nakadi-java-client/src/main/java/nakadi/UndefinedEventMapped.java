@@ -13,7 +13,7 @@ import java.util.Objects;
  * level JSON event into the {@link UndefinedEventMapped#data} field. As such it doesn't exactly
  * represent the data on the wire; instead the on wire representation is in the data field. </p>
  */
-public class UndefinedEventMapped<T> implements Event {
+public class UndefinedEventMapped<T> implements Event<T> {
 
   private T data;
 

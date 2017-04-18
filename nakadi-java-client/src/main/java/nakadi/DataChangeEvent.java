@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * @param <T> the generic type of the custom data for the event
  */
-public class DataChangeEvent<T> implements Event {
+public class DataChangeEvent<T> implements Event<T> {
 
   private T data;
   private EventMetadata metadata;
