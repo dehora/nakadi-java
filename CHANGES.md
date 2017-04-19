@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.7.7
+
+- Fixes generic event types: Event becomes Event<T> [#130](https://github.com/zalando-incubator/nakadi-java/pull/130), @aakavalevich
+
 ### 0.7.6
 
 - Tests behaviour for Accept-Encoding: gzip from consumers. [#127](https://github.com/zalando-incubator/nakadi-java/issues/127)
