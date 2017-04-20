@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.7.8
+
+- Ignores batch limit values set to 0 or less. [#125](https://github.com/zalando-incubator/nakadi-java/pull/125)
+
 ### 0.7.7
 
 - Fixes generic event types: Event becomes Event<T> [#130](https://github.com/zalando-incubator/nakadi-java/pull/130), @aakavalevich
