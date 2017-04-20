@@ -93,6 +93,18 @@ public class StreamResourceSupportTest {
   }
 
   @Test
+  public void testUrlBuilderBatchLimit_gh125() {
+    // see https://github.com/zalando-incubator/nakadi-java/issues/125
+
+    StreamConfiguration et1 = new StreamConfiguration()
+        .eventTypeName("et1")
+        .batchLimit(0);
+
+    assertEquals("http://localhost:9080/event-types/et1/events",
+        StreamResourceSupport.buildStreamUrl(client.baseURI(), et1));
+  }
+
+  @Test
   public void testHeaderConfiguration() {
 
     StreamConfiguration sc = new StreamConfiguration();

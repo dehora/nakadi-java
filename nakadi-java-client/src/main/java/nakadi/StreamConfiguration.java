@@ -106,8 +106,19 @@ public class StreamConfiguration {
   }
 
   /**
-   * Maximum number of Events in each batch of the stream. If 0 or unspecified
-   * will buffer Events indefinitely and flush on reaching of {@link #batchFlushTimeoutSeconds()}.
+   * Maximum number of Events in each batch of the stream. The default is to not set the parameter
+   * and allow the server to define it.
+   *
+   * <p>
+   *  Note 2017/04/20: the API definition says if the value is  0 or unspecified the server will
+   *  buffer events indefinitely and flush on reaching of {@link #batchFlushTimeoutSeconds()}.
+   *  This is incorrect - if the server receives a value of '0' it will not send events at
+   *  all (effectively it's a silent bug). To compensate, if the value is set to 0 here (or
+   *  less than 1), the client will ignore the setting and not add the batch limit query parameter.
+   *  Ignoring instead of throwing makes the method compatible with previous client versions, but
+   *  this behaviour will be changed to raise an exception before 1.0.0.
+   * </p>
+   *
    */
   public StreamConfiguration batchLimit(int batchLimit) {
     this.batchLimit = batchLimit;
