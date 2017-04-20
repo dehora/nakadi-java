@@ -84,8 +84,9 @@ class StreamResourceSupport {
    */
   private static UriBuilder applyParamsTo(UriBuilder uriBuilder, StreamConfiguration sc) {
 
-    if (sc.batchLimit() != StreamConfiguration.DEFAULT_BATCH_LIMIT) {
-      uriBuilder.query(PARAM_BATCH_LIMIT, "" + sc.batchLimit());
+    // ignores 0 or lower values: see https://github.com/zalando-incubator/nakadi-java/issues/125
+    if (sc.batchLimit() > StreamConfiguration.DEFAULT_BATCH_LIMIT) {
+        uriBuilder.query(PARAM_BATCH_LIMIT, "" + sc.batchLimit());
     }
 
     if (sc.streamLimit() != StreamConfiguration.DEFAULT_STREAM_LIMIT) {
