@@ -15,6 +15,7 @@ dependencies {
   compile project.libs.okhttp3
   compile project.libs.okhttp3log
   compile project.libs.rxjava
+  compile project.libs.rxjava2
   compile project.libs.slf4j
 
   testCompile project.libs.junit
@@ -59,6 +60,8 @@ shadowJar {
   relocate "com.google.common", "nakadi.shadow.com.google.common"
   relocate "com.google.thirdparty", "nakadi.shadow.com.google.thirdparty"
   relocate "rx", "nakadi.shadow.rx"
+  relocate "io.reactivex", "nakadi.shadow.io.reactivex"
+  relocate "org.reactivestreams", "nakadi.shadow.org.reactivestreams"
   relocate "okhttp3", "nakadi.shadow.okhttp3"
   relocate "okio", "nakadi.shadow.okio"
   classifier = '' // remove the default all suffix to name it like a regular lib jar
