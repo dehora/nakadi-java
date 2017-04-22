@@ -1,10 +1,10 @@
 package nakadi;
 
+import io.reactivex.subscribers.ResourceSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Subscriber;
 
-class StreamBatchRecordSubscriber<T> extends Subscriber<StreamBatchRecord<T>> {
+class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecord<T>> {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
@@ -12,11 +12,17 @@ class StreamBatchRecordSubscriber<T> extends Subscriber<StreamBatchRecord<T>> {
   private final MetricCollector metricCollector;
 
   StreamBatchRecordSubscriber(StreamObserver<T> observer, MetricCollector metricCollector) {
+    super();
     this.observer = observer;
     this.metricCollector = metricCollector;
   }
 
-  @Override public void onCompleted() {
+  @Override protected void onStart() {
+    super.onStart();
+    observer.onStart();
+  }
+
+  @Override public void onComplete() {
     logger.info("StreamBatchRecordSubscriber.onCompleted");
     observer.onCompleted();
   }
@@ -33,7 +39,9 @@ class StreamBatchRecordSubscriber<T> extends Subscriber<StreamBatchRecord<T>> {
       metricCollector.mark(MetricCollector.Meter.received, record.streamBatch().events().size());
     }
     observer.onNext(record);
-    // allow the observer to set back pressure
+    // allow the observer to set back pressure by requesting a number of items
     observer.requestBackPressure().ifPresent(this::request);
   }
+
+
 }
