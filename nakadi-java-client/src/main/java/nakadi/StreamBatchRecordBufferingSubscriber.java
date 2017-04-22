@@ -1,20 +1,27 @@
 package nakadi;
 
+import io.reactivex.subscribers.ResourceSubscriber;
 import java.util.List;
-import rx.Subscriber;
 
-class StreamBatchRecordBufferingSubscriber<T> extends Subscriber<List<StreamBatchRecord<T>>> {
+class StreamBatchRecordBufferingSubscriber<T> extends
+    ResourceSubscriber<List<StreamBatchRecord<T>>> {
 
   private final StreamObserver<T> observer;
   private MetricCollector metricCollector;
 
   StreamBatchRecordBufferingSubscriber(StreamObserver<T> observer,
       MetricCollector metricCollector) {
+    super();
     this.observer = observer;
     this.metricCollector = metricCollector;
   }
 
-  @Override public void onCompleted() {
+  @Override protected void onStart() {
+    super.onStart();
+    observer.onStart();
+  }
+
+  @Override public void onComplete() {
     observer.onCompleted();
   }
 
@@ -29,8 +36,7 @@ class StreamBatchRecordBufferingSubscriber<T> extends Subscriber<List<StreamBatc
       }
       observer.onNext(record);
     });
-    // allow the observer to set back pressure
-    // todo: revisit this for high volume streams
+    // allow the observer to set back pressure by requesting a number of items
     observer.requestBackPressure().ifPresent(this::request);
   }
 }

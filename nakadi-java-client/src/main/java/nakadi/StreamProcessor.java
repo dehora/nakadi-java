@@ -1,11 +1,19 @@
 package nakadi;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableTransformer;
+import io.reactivex.Scheduler;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,13 +22,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
-import rx.Scheduler;
-import rx.Subscription;
-import rx.functions.Action1;
-import rx.functions.Func0;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
 /**
  * API support for streaming events to a consumer.
@@ -37,6 +38,7 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
   private static final int DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS = 90;
+  private static final int DEFAULT_BUFFER_SIZE = 16000;
 
   private final NakadiClient client;
   private final StreamConfiguration streamConfiguration;
@@ -50,7 +52,6 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   // non builder supplied
   private final AtomicBoolean started = new AtomicBoolean(false);
-  private Subscription subscription;
   private final ExecutorService monoIoExecutor = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder()
           .setUncaughtExceptionHandler(
@@ -64,6 +65,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final Scheduler monoIoScheduler = Schedulers.from(monoIoExecutor);
   private final Scheduler monoComputeScheduler=  Schedulers.from(monoComputeExecutor);
   private final CountDownLatch startBlockingLatch;
+  private CompositeDisposable composite;
 
   @VisibleForTesting
   @SuppressWarnings("unused") StreamProcessor(NakadiClient client) {
@@ -76,6 +78,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.maxRetryDelay = StreamConnectionRetry.DEFAULT_MAX_DELAY_SECONDS;
     this.maxRetryAttempts = StreamConnectionRetry.DEFAULT_MAX_ATTEMPTS;
     this.scope = null;
+    this.composite = new CompositeDisposable();
     startBlockingLatch = new CountDownLatch(1);
   }
 
@@ -89,6 +92,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.maxRetryDelay = streamConfiguration.maxRetryDelaySeconds();
     this.maxRetryAttempts = streamConfiguration.maxRetryAttempts();
     this.scope = builder.scope;
+    this.composite = new CompositeDisposable();
     startBlockingLatch = new CountDownLatch(1);
   }
 
@@ -159,14 +163,16 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   void startStreaming() {
-    stream(streamConfiguration, streamObserverProvider, streamOffsetObserver);
+    stream(streamConfiguration, streamObserverProvider);
   }
 
   void stopStreaming() {
-    subscription.unsubscribe();
-    ExecutorServiceSupport.shutdown(monoIoExecutor);
-    ExecutorServiceSupport.shutdown(monoComputeExecutor);
+    logger.info("stopping stream executor");
     ExecutorServiceSupport.shutdown(executorService());
+    logger.info("stopping stream schedulers");
+    Schedulers.shutdown();
+    logger.info("stopping subscriber");
+    composite.dispose();
     startBlockingLatch.countDown();
   }
 
@@ -180,49 +186,45 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   private <T> void stream(StreamConfiguration sc,
-      StreamObserverProvider<T> observerProvider,
-      StreamOffsetObserver offsetObserver) {
+      StreamObserverProvider<T> observerProvider) {
 
-    StreamObserver<T> observer = observerProvider.createStreamObserver();
-    TypeLiteral<T> typeLiteral = observerProvider.typeLiteral();
-    Observable<StreamBatchRecord<T>> observable =
-        this.buildStreamObservable(observer, sc, offsetObserver, typeLiteral);
-
-    /*
-      if the stream observer wants buffering set that up; it will still see
-      discrete batches but the rx observer wrapping around it here will be given
-      buffered up lists
-     */
+    final StreamObserver<T> observer = observerProvider.createStreamObserver();
+    final TypeLiteral<T> typeLiteral = observerProvider.typeLiteral();
+    final Flowable<StreamBatchRecord<T>> observable =
+        this.buildStreamObservable(observer, sc, typeLiteral);
 
     /*
-    Do processing on monoComputeScheduler; if these also use monoIoScheduler (or any shared
-    single thread executor), the pipeline can lock up as the thread is dominated by io and
-    never frees to process batches. monoComputeScheduler is a single thread executor to make
-    things easier to reason about for now wrt to ordering/sequential batch processing (but the
-    regular computation scheduler could work as well maybe).
-      */
+     Do processing on monoComputeScheduler; if the monoIoScheduler (or any shared
+     single thread executor) is used, the pipeline can lock up as the thread is dominated by
+     io and never frees to process batches. monoComputeScheduler is a single thread executor
+     to make things easier to reason about for now wrt to ordering/sequential batch processing
+     (but the regular computation scheduler could work as well maybe).
+    */
 
     Optional<Integer> maybeBuffering = observer.requestBuffer();
     if (maybeBuffering.isPresent()) {
       logger.info("Creating buffering subscriber buffer={} {}", maybeBuffering.get(), sc);
-      subscription = observable
-          .observeOn(monoComputeScheduler)
-          .buffer(maybeBuffering.get())
-          .subscribe(
-              new StreamBatchRecordBufferingSubscriber<>(observer, client.metricCollector()));
+      /*
+      if the stream observer wants buffering set that up; it will still see
+      discrete batches but the rx observer wrapping around it here will be given
+      buffered up lists
+     */
+      composite.add(observable.observeOn(monoComputeScheduler)
+              .buffer(maybeBuffering.get())
+              .subscribeWith(
+                  new StreamBatchRecordBufferingSubscriber<>(observer, client.metricCollector())));
     } else {
       logger.info("Creating regular subscriber {}", sc);
-      subscription = observable
-          .observeOn(monoComputeScheduler)
-          .subscribe(new StreamBatchRecordSubscriber<>(
-              observer, client.metricCollector()));
+
+      composite.add(observable.observeOn(monoComputeScheduler)
+              .subscribeWith(
+                  new StreamBatchRecordSubscriber<>(observer, client.metricCollector())));
     }
   }
 
-  private <T> Observable<StreamBatchRecord<T>> buildStreamObservable(
+  private <T> Flowable<StreamBatchRecord<T>> buildStreamObservable(
       StreamObserver<T> streamObserver,
       StreamConfiguration streamConfiguration,
-      StreamOffsetObserver streamOffsetObserver,
       TypeLiteral<T> typeLiteral) {
 
     /*
@@ -239,32 +241,35 @@ public class StreamProcessor implements StreamProcessorManaged {
         "configuring half open timeout, batch_flush_timeout={}, grace_period={}, disconnect_after={} {}",
         batchFlushTimeoutSeconds, halfOpenGrace, halfOpenKick, halfOpenUnit.name().toLowerCase());
 
-    /*
-    monoIoScheduler: okhttp needs to be closed on the same thread that opened; using a
-    single thread scheduler allows that to happen whereas the default/io/compute schedulers
-    all use multiple threads which can cause resource leaks: http://bit.ly/2fe4UZH
-    */
+    final Flowable<StreamBatchRecord<T>> flowable = Flowable.using(
+        resourceFactory(streamConfiguration),
+        observableFactory(typeLiteral, streamConfiguration),
+        observableDispose()
+    )
+        /*
+        monoIoScheduler: okhttp needs to be closed on the same thread that opened; using a
+        single thread scheduler allows that to happen whereas the default/io/compute schedulers
+        all use multiple threads which can cause resource leaks: http://bit.ly/2fe4UZH
+        */
+        .subscribeOn(monoIoScheduler)
+        .unsubscribeOn(monoIoScheduler)
+        .doOnSubscribe(subscription -> streamObserver.onStart())
+        .doOnComplete(streamObserver::onCompleted)
+        .doOnCancel(streamObserver::onStop)
+        .timeout(halfOpenKick, halfOpenUnit)
+        .compose(buildRetryHandler(streamConfiguration))
+        .compose(buildRestartHandler())
+        /*
+         todo: investigate why Integer.max causes
+        io.reactivex.exceptions.UndeliverableException: java.lang.NegativeArraySizeException
+         at io.reactivex.plugins.RxJavaPlugins.onError(RxJavaPlugins.java:366)
+         */
+        .onBackpressureBuffer(DEFAULT_BUFFER_SIZE, true, true);
 
-    return
-        Observable.defer(() ->
-            Observable.using(
-                resourceFactory(streamConfiguration),
-                observableFactory(streamOffsetObserver, typeLiteral, streamConfiguration),
-                observableDispose()
-            )
-                .subscribeOn(monoIoScheduler)
-                .unsubscribeOn(monoIoScheduler)
-                .onBackpressureBuffer(Integer.MAX_VALUE)
-                .doOnSubscribe(streamObserver::onStart)
-                .doOnUnsubscribe(streamObserver::onStop)
-                .timeout(halfOpenKick, halfOpenUnit)
-                .compose(buildRetryHandler(streamConfiguration))
-                .compose(buildRestartHandler()
-                )
-        );
+    return Flowable.defer(() -> flowable);
   }
 
-  private <T> Observable.Transformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRetryHandler(
+  private <T> FlowableTransformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRetryHandler(
       StreamConfiguration streamConfiguration) {
     TimeUnit unit = StreamConnectionRetry.DEFAULT_TIME_UNIT;
     RetryPolicy backoff = ExponentialRetry.newBuilder()
@@ -272,22 +277,22 @@ public class StreamProcessor implements StreamProcessorManaged {
         .maxInterval(maxRetryDelay, unit)
         .build();
 
-    final Func1<Throwable, Boolean> isRetryable = buildRetryFunction(streamConfiguration);
+    final Function<Throwable, Boolean> isRetryable = buildRetryFunction(streamConfiguration);
     return new StreamConnectionRetry()
-        .retryWhenWithBackoff(backoff, monoIoScheduler, isRetryable);
+        .retryWhenWithBackoff2(backoff, monoIoScheduler, isRetryable);
   }
 
-  private <T> Observable.Transformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRestartHandler() {
+  private <T> FlowableTransformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRestartHandler() {
     long restartDelay = StreamConnectionRestart.DEFAULT_DELAY_SECONDS;
     TimeUnit restartDelayUnit = StreamConnectionRestart.DEFAULT_DELAY_UNIT;
     int maxRestarts = StreamConnectionRestart.DEFAULT_MAX_RESTARTS;
     return new StreamConnectionRestart()
-        .repeatWhenWithDelayAndUntil(
+        .repeatWhenWithDelayAndUntil2(
             stopRepeatingPredicate(), restartDelay, restartDelayUnit, maxRestarts);
   }
 
-  private Func1<Throwable, Boolean> buildRetryFunction(StreamConfiguration sc) {
-    final Func1<Throwable, Boolean> isRetryable;
+  private Function<Throwable, Boolean> buildRetryFunction(StreamConfiguration sc) {
+    final Function<Throwable, Boolean> isRetryable;
     if (sc.isSubscriptionStream()) {
       isRetryable = ExceptionSupport::isSubscriptionStreamRetryable;
     } else {
@@ -296,7 +301,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     return isRetryable;
   }
 
-  private Func1<Long, Boolean> stopRepeatingPredicate() {
+  private Predicate<Long> stopRepeatingPredicate() {
     return attemptCount -> {
 
       // todo: track the actual events checkpointed or seen instead
@@ -310,9 +315,9 @@ public class StreamProcessor implements StreamProcessorManaged {
     };
   }
 
-  private Action1<? super Response> observableDispose() {
+  private Consumer<? super Response> observableDispose() {
     return (response) -> {
-      logger.info("disposing connection {} {}", response.hashCode(), response);
+      logger.info("disposing connection on thread {} {} {}", Thread.currentThread().getName(), response.hashCode(), response);
       try {
         response.responseBody().close();
       } catch (IOException e) {
@@ -322,27 +327,19 @@ public class StreamProcessor implements StreamProcessorManaged {
     };
   }
 
-  private <T> Func1<? super Response, Observable<StreamBatchRecord<T>>> observableFactory(
-      StreamOffsetObserver streamOffsetObserver, TypeLiteral<T> typeLiteral,
-      StreamConfiguration sc) {
+  private <T> Function<? super Response, Flowable<StreamBatchRecord<T>>> observableFactory(
+      TypeLiteral<T> typeLiteral, StreamConfiguration sc) {
     return (response) -> {
-
-      final List<T> emptyList = new ArrayList<>();
-      final Observable<StreamBatchRecord<T>> forEmpty =
-          response.statusCode() != 200 ?
-              Observable.just(emptyBatch(streamOffsetObserver, emptyList))
-              : Observable.empty();
-
       final BufferedReader br = new BufferedReader(response.responseBody().asReader());
-      return Observable.from(br.lines()::iterator)
-          .onBackpressureBuffer(Integer.MAX_VALUE)
+      return Flowable.fromIterable(br.lines()::iterator)
+          .onBackpressureBuffer(DEFAULT_BUFFER_SIZE, true, true)
           .map(r -> lineToStreamBatchRecord(r, typeLiteral, response, sc))
           ;
     };
   }
 
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
-  Func0<Response> resourceFactory(StreamConfiguration sc) {
+  Callable<Response> resourceFactory(StreamConfiguration sc) {
     return () -> {
 
       String eventTypeName = "UNKNOWN";

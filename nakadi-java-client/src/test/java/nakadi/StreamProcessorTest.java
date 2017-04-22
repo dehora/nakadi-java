@@ -3,6 +3,7 @@ package nakadi;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import junit.framework.TestCase;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
@@ -200,12 +201,13 @@ public class StreamProcessorTest {
     when(sp.buildResource(sc)).thenReturn(r);
 
     // just invoke the resource supplier part of the observable, it's where we open the stream
-    Func0<Response> resourceFactory =
+
+    final Callable<Response> resourceFactory =
         sp.resourceFactory(new StreamConfiguration().subscriptionId("sub1"));
 
     try {
       resourceFactory.call();
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (Exception ignored) {
     }
 
     // check our stream proc was scoped
@@ -262,12 +264,12 @@ public class StreamProcessorTest {
     when(sp.buildResource(sc)).thenReturn(r);
 
     // just invoke the resource supplier part of the observable, it's where we open the stream
-    Func0<Response> resourceFactory =
+    Callable<Response> resourceFactory =
         sp.resourceFactory(new StreamConfiguration().subscriptionId("sub1"));
 
     try {
       resourceFactory.call();
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (Exception ignored) {
     }
 
     // check our stream proc was scoped
