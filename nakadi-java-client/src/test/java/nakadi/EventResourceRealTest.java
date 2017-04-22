@@ -291,7 +291,7 @@ public class EventResourceRealTest {
     String customScope = "custom";
 
     NakadiClient client = spy(NakadiClient.newBuilder()
-        .baseURI("http://localhost:9080")
+        .baseURI("http://localhost:9380")
         .tokenProvider(scope -> {
           if (TokenProvider.NAKADI_EVENT_STREAM_WRITE.equals(scope)) {
             askedForToken[0] = true;
@@ -329,7 +329,7 @@ public class EventResourceRealTest {
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
 
     verify(r, times(1)).postEventsThrowing(
-        Matchers.eq("http://localhost:9080/event-types/foo/events"),
+        Matchers.eq("http://localhost:9380/event-types/foo/events"),
         options.capture(),
         Matchers.anyList());
 
@@ -365,7 +365,7 @@ public class EventResourceRealTest {
     options = ArgumentCaptor.forClass(ResourceOptions.class);
 
     verify(r, times(1)).postEventsThrowing(
-        Matchers.eq("http://localhost:9080/event-types/foo/events"),
+        Matchers.eq("http://localhost:9380/event-types/foo/events"),
         options.capture(),
         Matchers.anyList());
 
