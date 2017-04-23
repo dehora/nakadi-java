@@ -1,8 +1,12 @@
 package nakadi;
 
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExponentialRetry implements RetryPolicy {
+
+  private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   static final int DEFAULT_INITIAL_INTERVAL_MILLIS = 1000;
   static final int DEFAULT_MAX_INTERVAL_MILLIS = 32000;
@@ -49,6 +53,7 @@ public class ExponentialRetry implements RetryPolicy {
   }
 
   public boolean isFinished() {
+    logger.info("isFinished {} {}", (workingAttempts >= maxAttempts ), (workingTime >= maxTime) );
     return workingAttempts >= maxAttempts || workingTime >= maxTime;
   }
 

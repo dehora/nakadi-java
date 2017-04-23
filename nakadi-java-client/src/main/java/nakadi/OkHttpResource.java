@@ -22,6 +22,13 @@ class OkHttpResource implements Resource {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
+  static ExecutorScheduler executorScheduler = new ExecutorScheduler(Executors.newCachedThreadPool(
+      new ThreadFactoryBuilder()
+          .setUncaughtExceptionHandler(
+              (t, e) -> logger.error("http_api_processor {}, {}", t, e.getMessage(), e))
+      .setNameFormat("nakadi-java-api-%d").build()));
+
+
   private static final String HEADER_AUTHORIZATION = "Authorization";
   private static final String APPLICATION_JSON_CHARSET_UTF8 = "application/json; charset=utf8";
 

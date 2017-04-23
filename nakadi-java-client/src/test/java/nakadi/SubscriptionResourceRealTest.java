@@ -45,7 +45,7 @@ public class SubscriptionResourceRealTest {
     verify(r0, times(1)).executeRequest(Matchers.anyObject());
   }
 
-  @Test
+
   public void listWithScope() {
     final boolean[] askedForDefaultToken = {false};
     final boolean[] askedForCustomToken = {false};
