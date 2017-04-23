@@ -279,7 +279,7 @@ public class StreamProcessor implements StreamProcessorManaged {
 
     final Function<Throwable, Boolean> isRetryable = buildRetryFunction(streamConfiguration);
     return new StreamConnectionRetry()
-        .retryWhenWithBackoff2(backoff, monoIoScheduler, isRetryable);
+        .retryWhenWithBackoffTransformer(backoff, monoIoScheduler, isRetryable);
   }
 
   private <T> FlowableTransformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRestartHandler() {

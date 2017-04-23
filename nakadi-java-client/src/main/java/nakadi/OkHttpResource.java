@@ -1,7 +1,13 @@
 package nakadi;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.reactivex.Observable;
+import io.reactivex.ObservableTransformer;
+import io.reactivex.internal.schedulers.ExecutorScheduler;
+import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -9,8 +15,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
-import rx.schedulers.Schedulers;
 
 import static nakadi.MetricCollector.Meter.retrySkipFinished;
 
@@ -76,7 +80,7 @@ class OkHttpResource implements Resource {
           Observable<Response> observable =
               Observable.defer(
                   () -> Observable.just(requestThrowingInner(method, url, options, body)));
-          Response first = observable.compose(buildRetry(retryPolicy)).toBlocking().first();
+          Response first = observable.compose(buildRetry(retryPolicy)).blockingFirst();
           response = null; // zero out any previous responses
           return first;
         } catch (HttpException e) {
@@ -88,7 +92,7 @@ class OkHttpResource implements Resource {
 
     Observable<Response> observable =
         Observable.defer(() -> Observable.just(requestInner(method, url, options, body)));
-    return observable.toBlocking().first();
+    return observable.blockingFirst();
   }
 
   @Override
@@ -110,7 +114,7 @@ class OkHttpResource implements Resource {
           Observable<Response> observable =
               Observable.defer(
                   () -> Observable.just(requestThrowingInner(method, url, options, null)));
-          Response first = observable.compose(buildRetry(retryPolicy)).toBlocking().first();
+          Response first = observable.compose(buildRetry(retryPolicy)).blockingFirst();
           response = null; // zero out any previous responses
           return first;
         } catch (HttpException e) {
@@ -122,7 +126,7 @@ class OkHttpResource implements Resource {
 
     Observable<Response> observable =
         Observable.defer(() -> Observable.just(requestInner(method, url, options, null)));
-    return observable.toBlocking().first();
+    return observable.blockingFirst();
   }
 
   @Override public Response requestThrowing(String method, String url, ResourceOptions options)
@@ -131,7 +135,7 @@ class OkHttpResource implements Resource {
     Observable<Response> observable =
         Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options)));
 
-    return maybeComposeRetryPolicy(observable).toBlocking().first();
+    return maybeComposeRetryPolicy(observable).blockingFirst();
   }
 
   @Override
@@ -142,7 +146,7 @@ class OkHttpResource implements Resource {
     Observable<Response> observable =
         Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options, body)));
 
-    return maybeComposeRetryPolicy(observable).toBlocking().first();
+    return maybeComposeRetryPolicy(observable).blockingFirst();
   }
 
   @Override
@@ -153,7 +157,7 @@ class OkHttpResource implements Resource {
         Observable.defer(() -> Observable.just(
             throwPostEventsIfError(requestInner(POST, url, options, body))));
 
-    return maybeComposeRetryPolicy(observable).toBlocking().first();
+    return maybeComposeRetryPolicy(observable).blockingFirst();
   }
 
   @Override
@@ -163,7 +167,7 @@ class OkHttpResource implements Resource {
     Observable<Response> observable =
         Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options)));
 
-    Response response = maybeComposeRetryPolicy(observable).toBlocking().first();
+    Response response = maybeComposeRetryPolicy(observable).blockingFirst();
     return marshalResponse(response, res);
   }
 
@@ -175,7 +179,7 @@ class OkHttpResource implements Resource {
     Observable<Response> observable =
         Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options, body)));
 
-    Response response = maybeComposeRetryPolicy(observable).toBlocking().first();
+    Response response = maybeComposeRetryPolicy(observable).blockingFirst();
     return marshalResponse(response, res);
   }
 
@@ -257,10 +261,11 @@ class OkHttpResource implements Resource {
     options.supplyToken().ifPresent(t -> builder.header(HEADER_AUTHORIZATION, t));
   }
 
-  private Observable.Transformer<Response, Response> buildRetry(RetryPolicy backoff) {
+  private ObservableTransformer<Response, Response> buildRetry(RetryPolicy backoff) {
     return new StreamConnectionRetry()
-        .retryWhenWithBackoff(
-            backoff, Schedulers.computation(), ExceptionSupport::isEventStreamRetryable);
+        .retryWhenWithBackoffObserver(backoff,
+            Schedulers.computation(),
+            ExceptionSupport::isEventStreamRetryable);
   }
 
   private okhttp3.Response okHttpCall(Request.Builder builder) throws IOException {
