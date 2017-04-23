@@ -2,7 +2,10 @@ package nakadi;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -11,16 +14,22 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
+import org.mockito.Matchers;
 import org.slf4j.LoggerFactory;
 
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -381,6 +390,147 @@ public class OkHttpResourceTest {
         r.retryPolicy(retry)
             .requestThrowing("GET", baseUrl(), options)
             .statusCode());
+  }
+
+
+  @Test
+  public void listWithRetry() {
+    NakadiClient client =
+        spy(NakadiClient.newBuilder()
+            .baseURI("http://localhost:"+9881)
+            .build());
+
+    OkHttpResource r0 = spy(new OkHttpResource(
+        new OkHttpClient.Builder().build(),
+        new GsonSupport(),
+        mock(MetricCollector.class)));
+
+
+    when(client.resourceProvider()).thenReturn(mock(ResourceProvider.class));
+    when(client.resourceProvider().newResource()).thenReturn(r0);
+
+    ExponentialRetry exponentialRetry = ExponentialRetry.newBuilder()
+        .initialInterval(2, TimeUnit.SECONDS)
+        .maxAttempts(3)
+        .maxInterval(2, TimeUnit.SECONDS)
+        .build();
+
+    try {
+      final SubscriptionCollection list = new SubscriptionResourceReal(client)
+          .retryPolicy(exponentialRetry)
+          .list();
+    } catch (NetworkException | NotFoundException ignored) {
+      ignored.printStackTrace();
+    }
+
+    verify(r0, times(3)).executeRequest(Matchers.anyObject());
+  }
+
+  @Test
+  public void checkpointWithScope() {
+    final boolean[] askedForDefaultToken = {false};
+    final boolean[] askedForCustomToken = {false};
+    String customScope = "custom";
+
+    NakadiClient client =
+        spy(NakadiClient.newBuilder()
+            .baseURI("http://localhost:9081")
+            .tokenProvider(scope -> {
+              if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
+                askedForDefaultToken[0] = true;
+              }
+
+              if (customScope.equals(scope)) {
+                askedForCustomToken[0] = true;
+              }
+
+              return Optional.empty();
+            })
+            .build());
+
+    Resource r0 = spy(new OkHttpResource(
+        new OkHttpClient.Builder().build(),
+        new GsonSupport(),
+        mock(MetricCollector.class)));
+
+    when(client.resourceProvider()).thenReturn(mock(ResourceProvider.class));
+    when(client.resourceProvider().newResource()).thenReturn(r0);
+
+    Cursor c = new Cursor().cursorToken("ctoken").eventType("et1").offset("0").partition("1");
+
+    Map<String, Object> requestMap = Maps.newHashMap();
+    requestMap.put("items", Lists.newArrayList(c));
+
+    HashMap<String, String> context = Maps.newHashMap();
+    context.put("X-Nakadi-StreamId", "aa");
+    context.put("SubscriptionId", "woo");
+
+    try {
+
+      RetryPolicy backoff = ExponentialRetry.newBuilder()
+          .initialInterval(1, TimeUnit.SECONDS)
+          .maxAttempts(1)
+          .maxInterval(1, TimeUnit.SECONDS)
+          .build();
+
+      new SubscriptionResourceReal(client)
+          .checkpoint(backoff, context, c);
+    } catch (NetworkException | NotFoundException ignored) {
+    }
+
+    ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
+
+    verify(r0, times(1)).requestThrowing(
+        Matchers.eq(Resource.POST),
+        Matchers.eq("http://localhost:9081/subscriptions/woo/cursors"),
+        options.capture(),
+        Matchers.eq(requestMap)
+    );
+
+    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options.getValue().scope());
+    Assert.assertTrue(askedForDefaultToken[0]);
+    assertFalse(askedForCustomToken[0]);
+
+    Resource r1 = spy(new OkHttpResource(
+        new OkHttpClient.Builder().build(),
+        new GsonSupport(),
+        mock(MetricCollector.class)));
+
+    when(client.resourceProvider()).thenReturn(mock(ResourceProvider.class));
+    when(client.resourceProvider().newResource()).thenReturn(r1);
+
+    try {
+      askedForDefaultToken[0] = false;
+      askedForCustomToken[0] = false;
+      assertFalse(askedForDefaultToken[0]);
+      assertFalse(askedForCustomToken[0]);
+
+      RetryPolicy backoff = ExponentialRetry.newBuilder()
+          .initialInterval(1, TimeUnit.SECONDS)
+          .maxAttempts(1)
+          .maxInterval(1, TimeUnit.SECONDS)
+          .build();
+
+      SubscriptionResource resource = new SubscriptionResourceReal(client).scope(customScope);
+
+      // call the inner method to control the backoff, the interface method's just a wrapper
+      ((SubscriptionResourceReal)resource).checkpoint(backoff, context, c);
+
+    } catch (NetworkException | NotFoundException ignored) {
+    }
+
+    options = ArgumentCaptor.forClass(ResourceOptions.class);
+
+    verify(r1, times(1)).requestThrowing(
+        Matchers.eq(Resource.POST),
+        Matchers.eq("http://localhost:9081/subscriptions/woo/cursors"),
+        options.capture(),
+        Matchers.eq(requestMap)
+    );
+
+    assertEquals(customScope, options.getValue().scope());
+    assertFalse(askedForDefaultToken[0]);
+    Assert.assertTrue(askedForCustomToken[0]);
   }
 
   @Test
