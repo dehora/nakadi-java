@@ -9,9 +9,6 @@ import java.util.Optional;
  * {@link TypeLiteral} and the parameterized type of this factory won't be caught on setup
  * and will result in a runtime error when the stream is being prepared for the observer.</p>
  *
- * <p>Note: the interface based on rx.Observer except that {@link #onNext} receives a
- * {@link StreamBatchRecord} instead of a generic {@code T}.</p>
- *
  * @param <T> the type of the events in the batch
  */
 public interface StreamObserver<T> {
