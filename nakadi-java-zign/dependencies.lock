@@ -16,19 +16,25 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
+        },
+        "io.reactivex.rxjava2:rxjava": {
+            "firstLevelTransitive": [
+                "net.dehora.nakadi:nakadi-java-client"
+            ],
+            "locked": "2.0.9"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.2.3"
+            "locked": "1.2.9"
         },
         "net.dehora.nakadi:nakadi-java-client": {
             "project": true
@@ -37,7 +43,7 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
@@ -58,19 +64,25 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
+        },
+        "io.reactivex.rxjava2:rxjava": {
+            "firstLevelTransitive": [
+                "net.dehora.nakadi:nakadi-java-client"
+            ],
+            "locked": "2.0.9"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.2.3"
+            "locked": "1.2.9"
         },
         "net.dehora.nakadi:nakadi-java-client": {
             "project": true
@@ -79,7 +91,7 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
@@ -100,19 +112,25 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
+        },
+        "io.reactivex.rxjava2:rxjava": {
+            "firstLevelTransitive": [
+                "net.dehora.nakadi:nakadi-java-client"
+            ],
+            "locked": "2.0.9"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.2.3"
+            "locked": "1.2.9"
         },
         "net.dehora.nakadi:nakadi-java-client": {
             "project": true
@@ -121,7 +139,7 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
@@ -142,19 +160,25 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
+        },
+        "io.reactivex.rxjava2:rxjava": {
+            "firstLevelTransitive": [
+                "net.dehora.nakadi:nakadi-java-client"
+            ],
+            "locked": "2.0.9"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.2.3"
+            "locked": "1.2.9"
         },
         "net.dehora.nakadi:nakadi-java-client": {
             "project": true
@@ -163,7 +187,7 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
@@ -184,19 +208,25 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
+        },
+        "io.reactivex.rxjava2:rxjava": {
+            "firstLevelTransitive": [
+                "net.dehora.nakadi:nakadi-java-client"
+            ],
+            "locked": "2.0.9"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.2.3"
+            "locked": "1.2.9"
         },
         "net.dehora.nakadi:nakadi-java-client": {
             "project": true
@@ -205,17 +235,17 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
     "testCompile": {
         "ch.qos.logback:logback-classic": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "ch.qos.logback:logback-core": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "com.google.code.gson:gson": {
@@ -234,19 +264,25 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
+        },
+        "io.reactivex.rxjava2:rxjava": {
+            "firstLevelTransitive": [
+                "net.dehora.nakadi:nakadi-java-client"
+            ],
+            "locked": "2.0.9"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.2.3"
+            "locked": "1.2.9"
         },
         "junit:junit": {
             "locked": "4.12",
@@ -259,17 +295,17 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
     "testCompileClasspath": {
         "ch.qos.logback:logback-classic": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "ch.qos.logback:logback-core": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "com.google.code.gson:gson": {
@@ -288,19 +324,25 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
+        },
+        "io.reactivex.rxjava2:rxjava": {
+            "firstLevelTransitive": [
+                "net.dehora.nakadi:nakadi-java-client"
+            ],
+            "locked": "2.0.9"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.2.3"
+            "locked": "1.2.9"
         },
         "junit:junit": {
             "locked": "4.12",
@@ -313,17 +355,17 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
     "testCompileOnly": {
         "ch.qos.logback:logback-classic": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "ch.qos.logback:logback-core": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "com.google.code.gson:gson": {
@@ -342,19 +384,25 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
+        },
+        "io.reactivex.rxjava2:rxjava": {
+            "firstLevelTransitive": [
+                "net.dehora.nakadi:nakadi-java-client"
+            ],
+            "locked": "2.0.9"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.2.3"
+            "locked": "1.2.9"
         },
         "junit:junit": {
             "locked": "4.12",
@@ -367,17 +415,17 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
     "testRuntime": {
         "ch.qos.logback:logback-classic": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "ch.qos.logback:logback-core": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "com.google.code.gson:gson": {
@@ -396,19 +444,25 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "3.4.2"
+            "locked": "3.7.0"
+        },
+        "io.reactivex.rxjava2:rxjava": {
+            "firstLevelTransitive": [
+                "net.dehora.nakadi:nakadi-java-client"
+            ],
+            "locked": "2.0.9"
         },
         "io.reactivex:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.2.3"
+            "locked": "1.2.9"
         },
         "junit:junit": {
             "locked": "4.12",
@@ -421,7 +475,7 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     }

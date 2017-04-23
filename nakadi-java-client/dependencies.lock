@@ -9,19 +9,23 @@
             "requested": "19.+"
         },
         "com.squareup.okhttp3:logging-interceptor": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:okhttp": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
+        "io.reactivex.rxjava2:rxjava": {
+            "locked": "2.0.9",
+            "requested": "2.+"
+        },
         "io.reactivex:rxjava": {
-            "locked": "1.2.3",
+            "locked": "1.2.9",
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
@@ -35,19 +39,23 @@
             "requested": "19.+"
         },
         "com.squareup.okhttp3:logging-interceptor": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:okhttp": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
+        "io.reactivex.rxjava2:rxjava": {
+            "locked": "2.0.9",
+            "requested": "2.+"
+        },
         "io.reactivex:rxjava": {
-            "locked": "1.2.3",
+            "locked": "1.2.9",
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
@@ -61,19 +69,23 @@
             "requested": "19.+"
         },
         "com.squareup.okhttp3:logging-interceptor": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:okhttp": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
+        "io.reactivex.rxjava2:rxjava": {
+            "locked": "2.0.9",
+            "requested": "2.+"
+        },
         "io.reactivex:rxjava": {
-            "locked": "1.2.3",
+            "locked": "1.2.9",
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
@@ -87,19 +99,23 @@
             "requested": "19.+"
         },
         "com.squareup.okhttp3:logging-interceptor": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:okhttp": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
+        "io.reactivex.rxjava2:rxjava": {
+            "locked": "2.0.9",
+            "requested": "2.+"
+        },
         "io.reactivex:rxjava": {
-            "locked": "1.2.3",
+            "locked": "1.2.9",
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
@@ -113,29 +129,33 @@
             "requested": "19.+"
         },
         "com.squareup.okhttp3:logging-interceptor": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:okhttp": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
+        "io.reactivex.rxjava2:rxjava": {
+            "locked": "2.0.9",
+            "requested": "2.+"
+        },
         "io.reactivex:rxjava": {
-            "locked": "1.2.3",
+            "locked": "1.2.9",
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
     "testCompile": {
         "ch.qos.logback:logback-classic": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "ch.qos.logback:logback-core": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "com.google.code.gson:gson": {
@@ -147,19 +167,23 @@
             "requested": "19.+"
         },
         "com.squareup.okhttp3:logging-interceptor": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:mockwebserver": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:okhttp": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
+        "io.reactivex.rxjava2:rxjava": {
+            "locked": "2.0.9",
+            "requested": "2.+"
+        },
         "io.reactivex:rxjava": {
-            "locked": "1.2.3",
+            "locked": "1.2.9",
             "requested": "1.+"
         },
         "junit:junit": {
@@ -171,17 +195,17 @@
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
     "testCompileClasspath": {
         "ch.qos.logback:logback-classic": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "ch.qos.logback:logback-core": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "com.google.code.gson:gson": {
@@ -193,19 +217,23 @@
             "requested": "19.+"
         },
         "com.squareup.okhttp3:logging-interceptor": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:mockwebserver": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:okhttp": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
+        "io.reactivex.rxjava2:rxjava": {
+            "locked": "2.0.9",
+            "requested": "2.+"
+        },
         "io.reactivex:rxjava": {
-            "locked": "1.2.3",
+            "locked": "1.2.9",
             "requested": "1.+"
         },
         "junit:junit": {
@@ -217,17 +245,17 @@
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
     "testCompileOnly": {
         "ch.qos.logback:logback-classic": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "ch.qos.logback:logback-core": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "com.google.code.gson:gson": {
@@ -239,19 +267,23 @@
             "requested": "19.+"
         },
         "com.squareup.okhttp3:logging-interceptor": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:mockwebserver": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:okhttp": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
+        "io.reactivex.rxjava2:rxjava": {
+            "locked": "2.0.9",
+            "requested": "2.+"
+        },
         "io.reactivex:rxjava": {
-            "locked": "1.2.3",
+            "locked": "1.2.9",
             "requested": "1.+"
         },
         "junit:junit": {
@@ -263,17 +295,17 @@
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     },
     "testRuntime": {
         "ch.qos.logback:logback-classic": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "ch.qos.logback:logback-core": {
-            "locked": "1.1.7",
+            "locked": "1.1.11",
             "requested": "[1.1.+, 1.1.99)"
         },
         "com.google.code.gson:gson": {
@@ -285,19 +317,23 @@
             "requested": "19.+"
         },
         "com.squareup.okhttp3:logging-interceptor": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:mockwebserver": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
         "com.squareup.okhttp3:okhttp": {
-            "locked": "3.4.2",
+            "locked": "3.7.0",
             "requested": "3.+"
         },
+        "io.reactivex.rxjava2:rxjava": {
+            "locked": "2.0.9",
+            "requested": "2.+"
+        },
         "io.reactivex:rxjava": {
-            "locked": "1.2.3",
+            "locked": "1.2.9",
             "requested": "1.+"
         },
         "junit:junit": {
@@ -309,7 +345,7 @@
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.21",
+            "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
         }
     }
