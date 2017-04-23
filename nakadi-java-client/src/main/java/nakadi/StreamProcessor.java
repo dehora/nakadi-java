@@ -287,7 +287,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     TimeUnit restartDelayUnit = StreamConnectionRestart.DEFAULT_DELAY_UNIT;
     int maxRestarts = StreamConnectionRestart.DEFAULT_MAX_RESTARTS;
     return new StreamConnectionRestart()
-        .repeatWhenWithDelayAndUntil2(
+        .repeatWhenWithDelayAndUntil(
             stopRepeatingPredicate(), restartDelay, restartDelayUnit, maxRestarts);
   }
 
