@@ -9,7 +9,7 @@ versions += [
   gson: "2.+",
   junit: "4.+",
   metrics: "3.1.0", // depends on slf4j, don't use for now
-  okhttp3: "3.+",
+  okhttp3: "3.7.+",
   rxjava: "1.+",
   rxjava2: "2.+",
   slf4j: "[1.7.+, 1.7.99)",

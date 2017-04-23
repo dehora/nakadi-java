@@ -49,6 +49,7 @@ javadoc {
 
 sourceJar {
   exclude "**/spike/**"
+  exclude "**/Spike/**"
 }
 
 /*
