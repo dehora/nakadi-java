@@ -18,7 +18,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
-import rx.functions.Func0;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
