@@ -1,12 +1,12 @@
 package nakadi;
 
 import com.google.gson.GsonBuilder;
+import io.reactivex.Flowable;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import okhttp3.OkHttpClient;
-import rx.Observable;
 
 /**
  * Essentially a dummy main class to keep the Shadow plugin happy, but also lets us check the
@@ -27,6 +27,6 @@ public class NakadiClientMain {
     List<String> strings = new ArrayList<>(names.length);
     Collections.addAll(strings, names);
     new GsonBuilder().create().toJson(strings, System.out);
-    Observable.from(names).subscribe(s -> System.out.println("Hello " + s + "!"));
+    Flowable.fromIterable(strings).subscribe(s -> System.out.println("Hello " + s + "!"));
   }
 }
