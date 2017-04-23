@@ -13,8 +13,10 @@ import static org.junit.Assert.assertTrue;
 
 public class StreamResourceSupportTest {
 
+  private static final int MOCK_SERVER_PORT = 8314;
+
   private final NakadiClient client =
-      NakadiClient.newBuilder().baseURI("http://localhost:9080").build();
+      NakadiClient.newBuilder().baseURI(baseUrl()).build();
 
   @Test
   public void testScope() {
@@ -42,18 +44,17 @@ public class StreamResourceSupportTest {
         StreamResourceSupport.buildResourceOptions(client,
             new StreamConfiguration().subscriptionId("sub1"), "custom").scope()
     );
-
   }
 
   @Test
   public void testUrlBuilder() {
 
     StreamConfiguration et = new StreamConfiguration().eventTypeName("et");
-    assertEquals("http://localhost:9080/event-types/et/events",
+    assertEquals(baseUrl()+ "/event-types/et/events",
         StreamResourceSupport.buildStreamUrl(client.baseURI(), et));
 
     StreamConfiguration s1 = new StreamConfiguration().subscriptionId("s1");
-    assertEquals("http://localhost:9080/subscriptions/s1/events",
+    assertEquals(baseUrl()+ "/subscriptions/s1/events",
         StreamResourceSupport.buildStreamUrl(client.baseURI(), s1));
 
     StreamConfiguration et1 = new StreamConfiguration()
@@ -66,7 +67,7 @@ public class StreamResourceSupportTest {
         .maxUncommittedEvents(103) // this should not show up on an event stream uri
         ;
 
-    assertEquals("http://localhost:9080/event-types/et1/events?"
+    assertEquals(baseUrl() + "/event-types/et1/events?"
             + "stream_keep_alive_limit=100"
             + "&stream_limit=101"
             + "&batch_limit=105"
@@ -83,7 +84,7 @@ public class StreamResourceSupportTest {
         .batchLimit(105)
         .maxUncommittedEvents(103);
 
-    assertEquals("http://localhost:9080/subscriptions/s2/events?"
+    assertEquals(baseUrl()+ "/subscriptions/s2/events?"
             + "stream_keep_alive_limit=100"
             + "&stream_limit=101&batch_limit=105"
             + "&batch_flush_timeout=104"
@@ -100,7 +101,7 @@ public class StreamResourceSupportTest {
         .eventTypeName("et1")
         .batchLimit(0);
 
-    assertEquals("http://localhost:9080/event-types/et1/events",
+    assertEquals(baseUrl()+ "/event-types/et1/events",
         StreamResourceSupport.buildStreamUrl(client.baseURI(), et1));
   }
 
@@ -129,7 +130,6 @@ public class StreamResourceSupportTest {
     assertSame(2, sc.requestHeaders().size());
     assertTrue(sc.requestHeaders().containsKey("Accept-Encoding"));
     assertTrue(sc.requestHeaders().containsKey("User-Agent"));
-
   }
 
   @Test
@@ -138,11 +138,15 @@ public class StreamResourceSupportTest {
     sc.requestHeader("Accept-Encoding", "gzip");
 
     NakadiClient client =
-        NakadiClient.newBuilder().baseURI("http://localhost:9080").build();
+        NakadiClient.newBuilder().baseURI(baseUrl()).build();
 
     final ResourceOptions resourceOptions =
         StreamResourceSupport.buildResourceOptions(client, sc, null);
 
     assertTrue(resourceOptions.headers().containsKey("Accept-Encoding"));
+  }
+
+  private String baseUrl() {
+    return "http://localhost:" + MOCK_SERVER_PORT;
   }
 }
