@@ -20,10 +20,6 @@
             "locked": "2.0.9",
             "requested": "2.+"
         },
-        "io.reactivex:rxjava": {
-            "locked": "1.2.9",
-            "requested": "1.+"
-        },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
@@ -49,10 +45,6 @@
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
             "requested": "2.+"
-        },
-        "io.reactivex:rxjava": {
-            "locked": "1.2.9",
-            "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
@@ -80,10 +72,6 @@
             "locked": "2.0.9",
             "requested": "2.+"
         },
-        "io.reactivex:rxjava": {
-            "locked": "1.2.9",
-            "requested": "1.+"
-        },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
@@ -110,10 +98,6 @@
             "locked": "2.0.9",
             "requested": "2.+"
         },
-        "io.reactivex:rxjava": {
-            "locked": "1.2.9",
-            "requested": "1.+"
-        },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
             "requested": "[1.7.+, 1.7.99)"
@@ -139,10 +123,6 @@
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
             "requested": "2.+"
-        },
-        "io.reactivex:rxjava": {
-            "locked": "1.2.9",
-            "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
@@ -181,10 +161,6 @@
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
             "requested": "2.+"
-        },
-        "io.reactivex:rxjava": {
-            "locked": "1.2.9",
-            "requested": "1.+"
         },
         "junit:junit": {
             "locked": "4.12",
@@ -232,10 +208,6 @@
             "locked": "2.0.9",
             "requested": "2.+"
         },
-        "io.reactivex:rxjava": {
-            "locked": "1.2.9",
-            "requested": "1.+"
-        },
         "junit:junit": {
             "locked": "4.12",
             "requested": "4.+"
@@ -282,10 +254,6 @@
             "locked": "2.0.9",
             "requested": "2.+"
         },
-        "io.reactivex:rxjava": {
-            "locked": "1.2.9",
-            "requested": "1.+"
-        },
         "junit:junit": {
             "locked": "4.12",
             "requested": "4.+"
@@ -331,10 +299,6 @@
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
             "requested": "2.+"
-        },
-        "io.reactivex:rxjava": {
-            "locked": "1.2.9",
-            "requested": "1.+"
         },
         "junit:junit": {
             "locked": "4.12",

@@ -14,7 +14,6 @@ dependencies {
   compile project.libs.gson
   compile project.libs.okhttp3
   compile project.libs.okhttp3log
-  compile project.libs.rxjava
   compile project.libs.rxjava2
   compile project.libs.slf4j
 

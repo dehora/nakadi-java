@@ -10,7 +10,6 @@ versions += [
   junit: "4.+",
   metrics: "3.1.0", // depends on slf4j, don't use for now
   okhttp3: "3.+",
-  rxjava: "1.+",
   rxjava2: "2.+",
   slf4j: "[1.7.+, 1.7.99)",
   logback: "[1.1.+, 1.1.99)",
@@ -25,7 +24,6 @@ libs += [
   okhttp3: "com.squareup.okhttp3:okhttp:$versions.okhttp3",
   okhttp3log: "com.squareup.okhttp3:logging-interceptor:$versions.okhttp3",
   okhttp3mockwebserver: "com.squareup.okhttp3:mockwebserver:$versions.okhttp3",
-  rxjava: "io.reactivex:rxjava:$versions.rxjava",
   rxjava2: "io.reactivex.rxjava2:rxjava:$versions.rxjava2",
   slf4j: "org.slf4j:slf4j-api:$versions.slf4j",
   slf4jsimple: "org.slf4j:slf4j-simple:$versions.slf4j",
