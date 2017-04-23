@@ -537,9 +537,9 @@ public class SubscriptionResourceRealTest {
     try {
 
       RetryPolicy backoff = ExponentialRetry.newBuilder()
-          .initialInterval(1, TimeUnit.MILLISECONDS)
+          .initialInterval(1, TimeUnit.SECONDS)
           .maxAttempts(1)
-          .maxInterval(1, TimeUnit.MILLISECONDS)
+          .maxInterval(1, TimeUnit.SECONDS)
           .build();
 
       new SubscriptionResourceReal(client)
@@ -575,9 +575,9 @@ public class SubscriptionResourceRealTest {
       assertFalse(askedForCustomToken[0]);
 
       RetryPolicy backoff = ExponentialRetry.newBuilder()
-          .initialInterval(1, TimeUnit.MILLISECONDS)
+          .initialInterval(1, TimeUnit.SECONDS)
           .maxAttempts(1)
-          .maxInterval(1, TimeUnit.MILLISECONDS)
+          .maxInterval(1, TimeUnit.SECONDS)
           .build();
 
       SubscriptionResource resource = new SubscriptionResourceReal(client).scope(customScope);
