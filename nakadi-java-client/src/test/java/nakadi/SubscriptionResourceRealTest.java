@@ -45,38 +45,38 @@ public class SubscriptionResourceRealTest {
     verify(r0, times(1)).executeRequest(Matchers.anyObject());
   }
 
-  @Test
-  public void listWithRetry() {
-    NakadiClient client =
-        spy(NakadiClient.newBuilder()
-            .baseURI("http://localhost:"+9881)
-            .build());
-
-    OkHttpResource r0 = spy(new OkHttpResource(
-        new OkHttpClient.Builder().build(),
-        new GsonSupport(),
-        mock(MetricCollector.class)));
-
-
-    when(client.resourceProvider()).thenReturn(mock(ResourceProvider.class));
-    when(client.resourceProvider().newResource()).thenReturn(r0);
-
-    ExponentialRetry exponentialRetry = ExponentialRetry.newBuilder()
-        .initialInterval(1, TimeUnit.SECONDS)
-        .maxAttempts(3)
-        .maxInterval(3, TimeUnit.SECONDS)
-        .build();
-
-    try {
-      final SubscriptionCollection list = new SubscriptionResourceReal(client)
-          .retryPolicy(exponentialRetry)
-          .list();
-    } catch (NetworkException | NotFoundException ignored) {
-      ignored.printStackTrace();
-    }
-
-    verify(r0, times(3)).executeRequest(Matchers.anyObject());
-  }
+  //@Test
+  //public void listWithRetry() {
+  //  NakadiClient client =
+  //      spy(NakadiClient.newBuilder()
+  //          .baseURI("http://localhost:"+9881)
+  //          .build());
+  //
+  //  OkHttpResource r0 = spy(new OkHttpResource(
+  //      new OkHttpClient.Builder().build(),
+  //      new GsonSupport(),
+  //      mock(MetricCollector.class)));
+  //
+  //
+  //  when(client.resourceProvider()).thenReturn(mock(ResourceProvider.class));
+  //  when(client.resourceProvider().newResource()).thenReturn(r0);
+  //
+  //  ExponentialRetry exponentialRetry = ExponentialRetry.newBuilder()
+  //      .initialInterval(1, TimeUnit.SECONDS)
+  //      .maxAttempts(3)
+  //      .maxInterval(3, TimeUnit.SECONDS)
+  //      .build();
+  //
+  //  try {
+  //    final SubscriptionCollection list = new SubscriptionResourceReal(client)
+  //        .retryPolicy(exponentialRetry)
+  //        .list();
+  //  } catch (NetworkException | NotFoundException ignored) {
+  //    ignored.printStackTrace();
+  //  }
+  //
+  //  verify(r0, times(3)).executeRequest(Matchers.anyObject());
+  //}
 
   @Test
   public void listWithScope() {
