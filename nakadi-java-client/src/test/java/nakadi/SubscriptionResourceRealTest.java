@@ -49,7 +49,7 @@ public class SubscriptionResourceRealTest {
   public void listWithRetry() {
     NakadiClient client =
         spy(NakadiClient.newBuilder()
-            .baseURI("http://localhost:9081")
+            .baseURI("http://localhost:"+9881)
             .build());
 
     OkHttpResource r0 = spy(new OkHttpResource(
@@ -62,16 +62,17 @@ public class SubscriptionResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r0);
 
     ExponentialRetry exponentialRetry = ExponentialRetry.newBuilder()
-        .initialInterval(1, TimeUnit.MILLISECONDS)
+        .initialInterval(1, TimeUnit.SECONDS)
         .maxAttempts(3)
-        .maxInterval(3, TimeUnit.MILLISECONDS)
+        .maxInterval(3, TimeUnit.SECONDS)
         .build();
 
     try {
-      new SubscriptionResourceReal(client)
+      final SubscriptionCollection list = new SubscriptionResourceReal(client)
           .retryPolicy(exponentialRetry)
           .list();
     } catch (NetworkException | NotFoundException ignored) {
+      ignored.printStackTrace();
     }
 
     verify(r0, times(3)).executeRequest(Matchers.anyObject());
