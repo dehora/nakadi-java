@@ -26,13 +26,14 @@ import static org.mockito.Mockito.when;
 
 public class OkHttpResourceTest {
 
+  public static final int MOCK_SERVER_PORT = 8311;
   private final MetricCollectorDevnull collector = new MetricCollectorDevnull();
   private GsonSupport json = new GsonSupport();
   MockWebServer server = new MockWebServer();
 
   @Before
   public void before() throws Exception {
-    server.start(InetAddress.getByName("localhost"), 8311);
+    server.start(InetAddress.getByName("localhost"), MOCK_SERVER_PORT);
   }
 
   @After
@@ -47,7 +48,7 @@ public class OkHttpResourceTest {
       try {
         server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
 
-        buildResource().requestThrowing("GET", "http://localhost:8311/", buildOptions());
+        buildResource().requestThrowing("GET", baseUrl(), buildOptions());
         fail("expected exception for " + entry.getValue());
 
       } catch (NakadiException e) {
@@ -69,7 +70,7 @@ public class OkHttpResourceTest {
       try {
         server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
 
-        buildResource().requestThrowing("POST", "http://localhost:8311/", buildOptions(), "{}");
+        buildResource().requestThrowing("POST", baseUrl(), buildOptions(), "{}");
         fail("expected exception for " + entry.getValue());
 
       } catch (NakadiException e) {
@@ -86,7 +87,7 @@ public class OkHttpResourceTest {
       try {
         server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
 
-        buildResource().requestThrowing("POST", "http://localhost:8311/", buildOptions(), String.class);
+        buildResource().requestThrowing("POST", baseUrl(), buildOptions(), String.class);
         fail("expected exception for " + entry.getValue());
       } catch (NakadiException e) {
         assertEquals(entry.getValue(), e.getClass());
@@ -102,7 +103,7 @@ public class OkHttpResourceTest {
       try {
         server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
 
-        buildResource().requestThrowing("POST", "http://localhost:8311/", buildOptions(), "{}", String.class);
+        buildResource().requestThrowing("POST", baseUrl(), buildOptions(), "{}", String.class);
         fail("expected exception for " + entry.getValue());
       } catch (NakadiException e) {
         assertEquals(entry.getValue(), e.getClass());
@@ -120,7 +121,7 @@ public class OkHttpResourceTest {
 
     Subscription response = buildResource().requestThrowing(
         "POST",
-        "http://localhost:8311/",
+        baseUrl(),
         buildOptions(),
         request,
         Subscription.class);
@@ -164,14 +165,14 @@ public class OkHttpResourceTest {
     server.enqueue(new MockResponse().setResponseCode(200));
 
     ExponentialRetry retry = ExponentialRetry.newBuilder()
-        .initialInterval(1, TimeUnit.MILLISECONDS)
+        .initialInterval(1, TimeUnit.SECONDS)
         .maxAttempts(3)
-        .maxInterval(3, TimeUnit.MILLISECONDS)
+        .maxInterval(3, TimeUnit.SECONDS)
         .build();
 
 
       assertEquals(200,
-          r.retryPolicy(retry).request("GET", "http://localhost:8311/", options).statusCode());
+          r.retryPolicy(retry).request("GET", baseUrl(), options).statusCode());
 
 
     // now check we don't retry with an exhausted policy
@@ -193,7 +194,7 @@ public class OkHttpResourceTest {
       we're calling a dud retry against requestThrowing; this should throw, not return a response
        */
       r.retryPolicy(retry)
-          .requestThrowing("GET", "http://localhost:8311/", options);
+          .requestThrowing("GET", baseUrl(), options);
       fail();
     } catch (RateLimitException ignored) {
     }
@@ -238,14 +239,14 @@ public class OkHttpResourceTest {
     server.enqueue(new MockResponse().setResponseCode(200));
 
     ExponentialRetry retry = ExponentialRetry.newBuilder()
-        .initialInterval(1, TimeUnit.MILLISECONDS)
+        .initialInterval(1, TimeUnit.SECONDS)
         .maxAttempts(3)
-        .maxInterval(3, TimeUnit.MILLISECONDS)
+        .maxInterval(3, TimeUnit.SECONDS)
         .build();
 
 
     assertEquals(200,
-        r.retryPolicy(retry).request("GET", "http://localhost:8311/", options).statusCode());
+        r.retryPolicy(retry).request("GET", baseUrl(), options).statusCode());
 
 
     // now check we don't retry with an exhausted policy
@@ -267,7 +268,7 @@ public class OkHttpResourceTest {
       we're calling a dud retry against request; this should return a response and not throw
        */
       Response response = r.retryPolicy(retry)
-          .request("GET", "http://localhost:8311/", options);
+          .request("GET", baseUrl(), options);
 
       assertEquals(429, response.statusCode());
 
@@ -298,7 +299,7 @@ public class OkHttpResourceTest {
     ResourceOptions options = buildOptions();
 
     try {
-      r.requestThrowing("GET", "http://localhost:8311/", options);
+      r.requestThrowing("GET", baseUrl(), options);
     } catch (RateLimitException e) {
       // also test we got no problem back from the server and handled it
       assertEquals(Problem.T1000_TYPE, e.problem().type());
@@ -307,9 +308,9 @@ public class OkHttpResourceTest {
     // retry past the remaining 2 429s
 
     ExponentialRetry retry = ExponentialRetry.newBuilder()
-        .initialInterval(1, TimeUnit.MILLISECONDS)
+        .initialInterval(1, TimeUnit.SECONDS)
         .maxAttempts(3)
-        .maxInterval(3, TimeUnit.MILLISECONDS)
+        .maxInterval(3, TimeUnit.SECONDS)
         .build();
 
     /*
@@ -319,7 +320,7 @@ public class OkHttpResourceTest {
      is for coverage only; the sanest way to use retries is with requestThrowing
      */
       assertEquals(200,
-          r.retryPolicy(retry).request("GET", "http://localhost:8311/", options).statusCode());
+          r.retryPolicy(retry).request("GET", baseUrl(), options).statusCode());
 
     RecordedRequest request = server.takeRequest();
 
@@ -339,7 +340,7 @@ public class OkHttpResourceTest {
 
     Subscription subscription = buildSubscription();
 
-    r.request("POST", "http://localhost:8311/subscriptions", options, subscription);
+    r.request("POST", "http://localhost:"+ MOCK_SERVER_PORT +"/subscriptions", options, subscription);
     RecordedRequest request = server.takeRequest();
 
     assertEquals("POST /subscriptions HTTP/1.1", request.getRequestLine());
@@ -364,21 +365,21 @@ public class OkHttpResourceTest {
     ResourceOptions options = buildOptions();
 
     try {
-      r.requestThrowing("GET", "http://localhost:8311/", options);
+      r.requestThrowing("GET", baseUrl(), options);
     } catch (RateLimitException e) {
       // also test we got no problem back from the server and handled it
       assertEquals(Problem.T1000_TYPE, e.problem().type());
     }
 
     ExponentialRetry retry = ExponentialRetry.newBuilder()
-        .initialInterval(1, TimeUnit.MILLISECONDS)
+        .initialInterval(1, TimeUnit.SECONDS)
         .maxAttempts(3)
-        .maxInterval(3, TimeUnit.MILLISECONDS)
+        .maxInterval(3, TimeUnit.SECONDS)
         .build();
 
     assertEquals(200,
         r.retryPolicy(retry)
-            .requestThrowing("GET", "http://localhost:8311/", options)
+            .requestThrowing("GET", baseUrl(), options)
             .statusCode());
   }
 
@@ -391,7 +392,7 @@ public class OkHttpResourceTest {
 
     Subscription subscription = buildSubscription();
 
-    r.requestThrowing("POST", "http://localhost:8311/subscriptions", options, subscription);
+    r.requestThrowing("POST", "http://localhost:"+ MOCK_SERVER_PORT +"/subscriptions", options, subscription);
     RecordedRequest request = server.takeRequest();
 
     assertEquals("POST /subscriptions HTTP/1.1", request.getRequestLine());
@@ -418,17 +419,21 @@ public class OkHttpResourceTest {
         .setHeader("Content-Type", "application/json"));
 
     Subscription get =
-        r.requestThrowing("GET", "http://localhost:8311/subscriptions/thingies", options,
+        r.requestThrowing("GET", baseUrl() + "/subscriptions/thingies", options,
             Subscription.class);
 
     assertEquals(subscription, get);
 
   }
 
+  private String baseUrl() {
+    return "http://localhost:" + MOCK_SERVER_PORT;
+  }
+
   private Subscription buildSubscription() {
     return new Subscription()
-          .consumerGroup("mccaffrey-cg")
-          .eventType("ue-1-1479125860")
-          .owningApplication("shaper");
+        .consumerGroup("mccaffrey-cg")
+        .eventType("ue-1-1479125860")
+        .owningApplication("shaper");
   }
 }
