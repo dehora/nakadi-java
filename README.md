@@ -391,7 +391,7 @@ Response batch = resource.send("priority-requisitions", list);
 
 ### Subscriptions
 
-You can create, edit and delete susbcriptions as well as list them:
+You can create, edit and delete subscriptions as well as list them:
 
 ```java
 // grab a subscription resource
@@ -404,7 +404,18 @@ Subscription subscription = new Subscription()
     .owningApplication("shaper");
  
 Response response = resource.create(subscription);
- 
+
+// create a subscription from a given offset
+Cursor c0 = new Cursor("0", "000000000000002009", "priority-requisitions");
+Cursor c1 = new Cursor("1", "000000000000002008", "priority-requisitions");
+
+Subscription offsetSubscription = new Subscription()
+    .consumerGroup("roja-cg")
+    .eventType("priority-requisitions")
+    .owningApplication("anarch")
+    .readFrom("cursors")
+    .initialCursors(Lists.newArrayList(c0, c1));    
+
 // find a subscription
 Subscription found = resource.find("a2ab0b7c-ee58-48e5-b96a-d13bce73d857");
  

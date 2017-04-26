@@ -1,5 +1,7 @@
 package nakadi;
 
+import java.util.Collection;
+
 /**
  * An exception representing an error from the client. All client API exceptions extend this one.
  */
@@ -36,6 +38,19 @@ public class NakadiException extends RuntimeException {
       throw new IllegalArgumentException(message);
     }
     return arg;
+  }
+
+  /**
+   * Throw an IllegalArgumentException if the argument is null or an empty collection.
+   *
+   * @param arg the collection to check
+   * @param message the exception message
+   * @throws IllegalArgumentException if {@code obj} is {@code null} or an empty collection
+   */
+  public static void throwNotNullOrEmpty(Collection arg, String message) {
+    if (arg == null || arg.isEmpty()) {
+      throw new IllegalArgumentException(message);
+    }
   }
 
   /**

@@ -46,6 +46,17 @@ public class Cursor {
   }
 
   /**
+   * Constructor representing the Cursor model used for offset based subscriptions.
+   *
+   * @param partition the partition for the cursor
+   * @param offset the current offset
+   * @param eventType the event type for the cursor
+   */
+  public Cursor(String partition, String offset, String eventType) {
+    this(partition, offset, eventType, null);
+  }
+
+  /**
    * @return the event type if a named event stream, or {@link Optional#empty}
    */
   public Optional<String> eventType() {
