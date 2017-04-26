@@ -87,7 +87,7 @@ class StreamConnectionRetry {
                 long delay = backoff.nextBackoffMillis();
                 if (delay == RetryPolicy.STOP) {
                   logger.warn(String.format(
-                      "connection_retry being stopped agyer %d attempts, propagating error %s, %s",
+                      "connection_retry being stopped after %d attempts, propagating error %s, %s",
                       narp.attempt, throwable.getClass().getSimpleName(), throwable.getMessage()));
                   return Flowable.error(throwable);
                 }
@@ -96,10 +96,7 @@ class StreamConnectionRetry {
                     "connection_retry: will sleep for a bit, sleep=%s attempt=%d/%d error=%s",
                     delay, narp.attempt, backoff.maxAttempts(), throwable.getMessage()));
 
-                //Thread.sleep(3000);
-
-                //return Flowable.timer(delay, TimeUnit.MILLISECONDS);
-                return Flowable.just(0L);
+                return Flowable.timer(delay, TimeUnit.MILLISECONDS);
               }
             }
         )
