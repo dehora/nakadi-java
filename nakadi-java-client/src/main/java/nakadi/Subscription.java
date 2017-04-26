@@ -3,8 +3,12 @@ package nakadi;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Represents an API subscription.
@@ -22,6 +26,7 @@ public class Subscription {
   private String readFrom;
   private List<String> eventTypes = new ArrayList<>();
   private OffsetDateTime createdAt;
+  private List<Cursor> initialCursors;
 
   /**
    * @return the subscription id
@@ -85,11 +90,12 @@ public class Subscription {
   /**
    * Set where to read from.
    *
-   * <p>2016-11-10: Known values are:</p>
+   * <p>2017-04-26: Known values are:</p>
    *
    * <ul>
    *   <li><code>begin</code>: read from the oldest available event.</li>
    *   <li><code>end</code>: read from the most recent offset. </li>
+   *   <li><code>cursors</code>: read from the supplied cursors. See {@link #consumerGroup()} </li>
    * </ul>
    *
    * @param readFrom where to read from.
@@ -141,6 +147,48 @@ public class Subscription {
    */
   public OffsetDateTime createdAt() {
     return createdAt;
+  }
+
+  /**
+   *  List of cursors to start reading from.
+   *
+   * @return  the cursor offsets to read from, or null.
+   */
+  public List<Cursor> initialCursors() {
+    return initialCursors;
+  }
+
+  /**
+   *  List of cursors to start reading from.
+   *  <p>
+   *    This is applied only if the {@link #readFrom(String)} method is configured to use cursors.
+   *    If the cursors contain cursor token values, those will removed.
+   *  </p>
+   * @param initialCursors the cursor offsets to read from
+   * @return this
+   */
+  public Subscription initialCursors(List<Cursor> initialCursors) {
+    NakadiException.throwNotNullOrEmpty(initialCursors,
+        "Please supply a non-null non-empty list of cursors");
+
+    this.initialCursors = prepareCursors(initialCursors);
+    return this;
+  }
+
+  private List<Cursor> prepareCursors(List<Cursor> cursors) {
+    // copy and strip out any session ids
+    return cursors.stream()
+        .map(this::newSubscriptionCursor)
+        .collect(collectingAndThen(toList(), Collections::unmodifiableList));
+  }
+
+  private Cursor newSubscriptionCursor(Cursor cursor) {
+    return new Cursor(
+        cursor.partition(),
+        cursor.offset(),
+        cursor.eventType().orElseThrow(
+            () -> new IllegalArgumentException("Please supply a cursor with an event type"))
+    );
   }
 
   @Override public int hashCode() {
