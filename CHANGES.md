@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.7.9
+
+- Supports initial_cursors for creating Subscriptions. [#139](https://github.com/zalando-incubator/nakadi-java/pull/139)
+- Upgrades stream processors and resources to RxJava2.
+- Upgrades OkHttp to 3.7.0
+
 ### 0.7.8
 
 - Ignores batch limit values set to 0 or less. [#125](https://github.com/zalando-incubator/nakadi-java/pull/125)
