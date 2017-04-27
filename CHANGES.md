@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.7.10
+
+- Fixes retry handling preventing per stream event batches being emitted to observers.
+- Exposes number of retries to date in RetryPolicy.
+- Fixes retry delay timer to honor backoff times.
+
 ### 0.7.9
 
 - Supports initial_cursors for creating Subscriptions. [#139](https://github.com/zalando-incubator/nakadi-java/pull/139)
