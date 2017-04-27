@@ -389,10 +389,6 @@ public class StreamProcessor implements StreamProcessorManaged {
     return resource.requestThrowing(Resource.GET, url, options);
   }
 
-  private <T> StreamBatchRecordReal<T> emptyBatch(StreamOffsetObserver observer, List<T> list) {
-    return new StreamBatchRecordReal<>(new EventStreamBatch<>(null, null, list), observer);
-  }
-
   private <T> StreamBatchRecord<T> lineToStreamBatchRecord(String line,
       TypeLiteral<T> typeLiteral, Response response, StreamConfiguration sc) {
 
