@@ -257,7 +257,7 @@ public class StreamProcessor implements StreamProcessorManaged {
         .doOnComplete(streamObserver::onCompleted)
         .doOnCancel(streamObserver::onStop)
         .timeout(halfOpenKick, halfOpenUnit)
-        .compose(buildRetryHandler(streamConfiguration))
+        .retryWhen(buildStreamConnectionRetryFlowable(streamConfiguration))
         .compose(buildRestartHandler())
         /*
          todo: investigate why Integer.max causes
@@ -269,6 +269,22 @@ public class StreamProcessor implements StreamProcessorManaged {
     return Flowable.defer(() -> flowable);
   }
 
+  private StreamConnectionRetryFlowable buildStreamConnectionRetryFlowable(
+      StreamConfiguration streamConfiguration
+  ) {
+    return new StreamConnectionRetryFlowable(ExponentialRetry.newBuilder()
+        .initialInterval(StreamConnectionRetry.DEFAULT_INITIAL_DELAY_SECONDS,
+            StreamConnectionRetry.DEFAULT_TIME_UNIT)
+        .maxInterval(maxRetryDelay, StreamConnectionRetry.DEFAULT_TIME_UNIT)
+        .build(),
+        buildRetryFunction(streamConfiguration));
+  }
+
+  /*
+  todo: fix for rxjava2 or remove
+  Since rxjava2 StreamConnectionRetry is failing to release each event
+  */
+  @Deprecated
   private <T> FlowableTransformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRetryHandler(
       StreamConfiguration streamConfiguration) {
     TimeUnit unit = StreamConnectionRetry.DEFAULT_TIME_UNIT;
