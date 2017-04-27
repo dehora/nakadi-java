@@ -16,6 +16,13 @@ import org.slf4j.LoggerFactory;
  * configured to run up to {@link Integer#MAX_VALUE} times with an arbitrary time delay and limited
  * to a maximum delay time.
  */
+@Deprecated
+/*
+todo: fix for rxjaav2 or remove
+Since rxjava2 this is failing to release each event; it buffers them up until the sub checkpointer
+times out which causes a disconnect that invalidates the session id for the released event set.
+ The StreamConnectionRetryFlowable class is a workaround until this is debugged properly
+ */
 class StreamConnectionRetry {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
@@ -41,6 +48,7 @@ class StreamConnectionRetry {
    * are the same type)
    * @return an {@link FlowableTransformer} that can be given to  {@link Flowable#compose}
    */
+  @Deprecated
   <T> FlowableTransformer<T, T> retryWhenWithBackoffTransformer(
       RetryPolicy backoff,
       io.reactivex.Scheduler scheduler,
