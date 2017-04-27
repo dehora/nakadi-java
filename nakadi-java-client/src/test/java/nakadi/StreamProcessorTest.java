@@ -337,7 +337,7 @@ public class StreamProcessorTest {
       fail();
     } catch (NakadiException e) {
       assertEquals(
-          "Cannot be configured with both a subscription id or an event type; subscriptionId=s1 eventTypeName=et (400)",
+          "Cannot be configured with both a subscriptionId and an eventTypeName; subscriptionId=s1 eventTypeName=et (400)",
           e.getMessage());
     }
 
