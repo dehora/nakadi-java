@@ -47,7 +47,6 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final ExecutorService streamProcessorExecutorService;
   private final JsonBatchSupport jsonBatchSupport;
   private final long maxRetryDelay;
-  private final int maxRetryAttempts;
   private final String scope;
 
   // non builder supplied
@@ -76,7 +75,6 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.streamProcessorExecutorService = null;
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
     this.maxRetryDelay = StreamConnectionRetry.DEFAULT_MAX_DELAY_SECONDS;
-    this.maxRetryAttempts = StreamConnectionRetry.DEFAULT_MAX_ATTEMPTS;
     this.scope = null;
     this.composite = new CompositeDisposable();
     startBlockingLatch = new CountDownLatch(1);
@@ -90,7 +88,6 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.streamProcessorExecutorService = builder.executorService;
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
     this.maxRetryDelay = streamConfiguration.maxRetryDelaySeconds();
-    this.maxRetryAttempts = streamConfiguration.maxRetryAttempts();
     this.scope = builder.scope;
     this.composite = new CompositeDisposable();
     startBlockingLatch = new CountDownLatch(1);
