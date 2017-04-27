@@ -53,10 +53,12 @@ public class LoggingStreamObserver extends StreamObserverBackPressure<String> {
           for (String event : events) {
             logger.info("LoggingStreamObserver received count {} event: {}", ++eventCount, event);
           }
-          offsetObserver.onNext(record.streamCursorContext());
           logger.info(
               "LoggingStreamObserver events processed =====================================");
         }
+
+        offsetObserver.onNext(record.streamCursorContext());
+
       } finally {
         MDC.remove("cursor_context");
       }
