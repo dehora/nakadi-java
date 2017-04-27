@@ -78,6 +78,10 @@ public class ExponentialRetry implements RetryPolicy {
     return workingInterval;
   }
 
+  @Override public long workingAttempts() {
+    return workingAttempts;
+  }
+
   @Override public String toString() {
     return "ExponentialRetry{" + "workingInterval=" + workingInterval +
         ", initialInterval=" + initialInterval +
