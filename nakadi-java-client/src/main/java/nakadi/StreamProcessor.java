@@ -459,7 +459,7 @@ public class StreamProcessor implements StreamProcessorManaged {
 
       if (streamConfiguration.isSubscriptionStream() && streamConfiguration.isEventTypeStream()) {
         throw new NakadiException(Problem.localProblem(
-            "Cannot be configured with both a subscription id or an event type",
+            "Cannot be configured with both a subscriptionId and an eventTypeName",
             String.format("subscriptionId=%s eventTypeName=%s",
                 streamConfiguration.subscriptionId(), streamConfiguration.eventTypeName())));
       }
