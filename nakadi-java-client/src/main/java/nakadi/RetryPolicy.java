@@ -9,4 +9,6 @@ public interface RetryPolicy {
   long nextBackoffMillis();
 
   int maxAttempts();
+
+  long workingAttempts();
 }
