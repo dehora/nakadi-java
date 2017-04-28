@@ -3,6 +3,7 @@ package nakadi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Unstable
 public class SubscriptionOffsetCheckpointer {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
@@ -13,8 +14,26 @@ public class SubscriptionOffsetCheckpointer {
     this.client = client;
   }
 
-
+  /**
+   * Ask the server to commit the supplied {@link StreamCursorContext} moving the subscription
+   * offset to that value.
+   *
+   * @param context holds the cursor information.
+   */
   public void checkpoint(StreamCursorContext context) {
+    checkpoint(context, false);
+  }
+
+  /**
+   * Ask the server to commit the supplied {@link StreamCursorContext} moving the subscription
+   * offset to that point.
+   *
+   * @param context holds the cursor information.
+   * @param suppressUnknownSessionError if true this will not throw 422 errors. See
+   * <a href="https://github.com/zalando-incubator/nakadi-java/issues/117">issue 117</a> for
+   *
+   */
+  public void checkpoint(StreamCursorContext context, boolean suppressUnknownSessionError) {
     SubscriptionResource resource = client.resources().subscriptions();
 
     try {
@@ -48,12 +67,13 @@ public class SubscriptionOffsetCheckpointer {
        */
       logger.warn("subscription_checkpoint_err "+e.getMessage(), e);
       throw e;
-    } catch (PreconditionFailedException e) {
-      // eg bad cursors: Precondition Failed; offset 98 for partition 0 is unavailable (412)
-      throw e;
     } catch (InvalidException e) {
-      // eg Session with stream id 331bc59a-c4cb-4fc8-a63d-5946b0190340 not found
-      throw e;
+      // todo: we need to get the server to send a specific problem, 422 is too broad
+      if(suppressUnknownSessionError) {
+        logger.info("suppressed_invalid_checkpoint_err {}", e.problem().title());
+      } else {
+        throw e;
+      }
     } catch (NakadiException e) {
       throw e;
     } catch (Exception e) {
@@ -61,7 +81,8 @@ public class SubscriptionOffsetCheckpointer {
     }
   }
 
-  private CursorCommitResultCollection checkpoint(
+  @VisibleForTesting
+  CursorCommitResultCollection checkpoint(
       StreamCursorContext context, SubscriptionResource resource) {
     return resource.checkpoint(context.context(), context.cursor());
   }
