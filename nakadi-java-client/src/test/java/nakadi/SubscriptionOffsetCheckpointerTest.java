@@ -9,9 +9,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
-import static org.junit.Assert.assertSame;
 
 public class SubscriptionOffsetCheckpointerTest {
 
@@ -69,6 +67,24 @@ public class SubscriptionOffsetCheckpointerTest {
       } catch (Exception e) {
         fail(e.getMessage());
       }
+
+      checkpointer = new SubscriptionOffsetCheckpointer(client, true);
+      try {
+        server.enqueue(new MockResponse().setResponseCode(422).setBody(errJson));
+        checkpointer.checkpoint(streamCursorContext, true);
+      } catch (Exception e) {
+        fail("expected default true to suppress errors " + e.getMessage());
+      }
+
+      try {
+        server.enqueue(new MockResponse().setResponseCode(422).setBody(errJson));
+        checkpointer.checkpoint(streamCursorContext, false);
+        fail("expecting overriding default true to produce a 422 error");
+      } catch (InvalidException e) {
+        assertEquals(422, e.problem().status());
+      }
+
+
     } finally {
       after();
     }
