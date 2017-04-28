@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Unstable
-public class SubscriptionOffsetObserverPublisher implements StreamOffsetObserver {
+public class SubscriptionOffsetPublisher implements StreamOffsetObserver {
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(
@@ -24,7 +24,7 @@ public class SubscriptionOffsetObserverPublisher implements StreamOffsetObserver
   private final PublishProcessor<StreamCursorContext> processor;
   private final Flowable<StreamCursorContext> flowable;
 
-  private SubscriptionOffsetObserverPublisher() {
+  private SubscriptionOffsetPublisher() {
     processor = PublishProcessor.create();
     flowable = Flowable
         .fromPublisher(processor)
@@ -35,11 +35,11 @@ public class SubscriptionOffsetObserverPublisher implements StreamOffsetObserver
     processor.onNext(streamCursorContext);
   }
 
-  static SubscriptionOffsetObserverPublisher create() {
-    return new SubscriptionOffsetObserverPublisher();
+  static SubscriptionOffsetPublisher create() {
+    return new SubscriptionOffsetPublisher();
   }
 
-  SubscriptionOffsetObserverPublisher subscribe(StreamOffsetObserver streamOffsetObserver) {
+  SubscriptionOffsetPublisher subscribe(StreamOffsetObserver streamOffsetObserver) {
     flowable.subscribe(new StreamCursorContextSubscriber(streamOffsetObserver));
     return this;
   }
@@ -65,11 +65,11 @@ public class SubscriptionOffsetObserverPublisher implements StreamOffsetObserver
     }
 
     @Override public void onError(Throwable t) {
-      logger.error("SubscriptionOffsetObserverPublisher.subscriber onError "+t.getMessage(), t);
+      logger.error("SubscriptionOffsetPublisher.subscriber onError "+t.getMessage(), t);
     }
 
     @Override public void onComplete() {
-      logger.info("SubscriptionOffsetObserverPublisher.subscriber onComplete ");
+      logger.info("SubscriptionOffsetPublisher.subscriber onComplete ");
     }
   }
 

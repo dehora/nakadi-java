@@ -1,5 +1,11 @@
 ### Changes
 
+- Allows batch offset data to be routed to one or more subscribers.
+- Allows the checkpointer to be provided in configuration.
+- Allows 422 exceptions from offset commits to be suppressed [#117](https://github.com/zalando-incubator/nakadi-java/pull/117).
+- Adds a marker interface, `@Unstable` for candidate API classes and methods.
+- Extracts the subscription checkpoint API call to a utility checkpointer class.
+
 ### 0.7.10
 
 - Fixes retry handling preventing per stream event batches being emitted to observers.

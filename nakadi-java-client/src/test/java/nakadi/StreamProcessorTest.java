@@ -1,7 +1,9 @@
 package nakadi;
 
+import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import junit.framework.TestCase;
@@ -366,7 +368,6 @@ public class StreamProcessorTest {
 
     assertNotNull(sp);
 
-
     SubscriptionOffsetCheckpointer checkpointer = new SubscriptionOffsetCheckpointer(client, true);
     final StreamProcessor sp1 = StreamProcessor.newBuilder(client)
         .checkpointer(checkpointer)
@@ -375,8 +376,10 @@ public class StreamProcessorTest {
         .build();
 
     assertTrue(sp1.streamOffsetObserver() instanceof SubscriptionOffsetObserver);
-    assertEquals(checkpointer, ((SubscriptionOffsetObserver)sp1.streamOffsetObserver()).checkpointer());
-    assertEquals(true, ((SubscriptionOffsetObserver)sp1.streamOffsetObserver()).checkpointer().suppressingInvalidSessions());
+    assertEquals(checkpointer,
+        ((SubscriptionOffsetObserver) sp1.streamOffsetObserver()).checkpointer());
+    assertEquals(true, ((SubscriptionOffsetObserver) sp1.streamOffsetObserver()).checkpointer()
+        .suppressingInvalidSessions());
 
     final StreamProcessor sp2 = StreamProcessor.newBuilder(client)
         .streamConfiguration(new StreamConfiguration().subscriptionId("s1"))
@@ -384,8 +387,44 @@ public class StreamProcessorTest {
         .build();
 
     assertTrue(sp1.streamOffsetObserver() instanceof SubscriptionOffsetObserver);
-    assertTrue(null != ((SubscriptionOffsetObserver)sp1.streamOffsetObserver()).checkpointer());
-    assertEquals(true, ((SubscriptionOffsetObserver)sp1.streamOffsetObserver()).checkpointer().suppressingInvalidSessions());
+    assertTrue(null != ((SubscriptionOffsetObserver) sp1.streamOffsetObserver()).checkpointer());
+    assertEquals(true, ((SubscriptionOffsetObserver) sp1.streamOffsetObserver()).checkpointer()
+        .suppressingInvalidSessions());
+  }
+
+  @Test
+  public void testBuilderSubscriptionOffsetPublisher() throws Exception {
+
+    final SubscriptionOffsetCheckpointer checkpointer1 = new SubscriptionOffsetCheckpointer(client, true);
+    SubscriptionOffsetObserver observer = new SubscriptionOffsetObserver(checkpointer1);
+    observer = spy(observer);
+
+    final SubscriptionOffsetPublisher publisher = SubscriptionOffsetPublisher.create();
+    publisher.subscribe(observer);
+
+    final StreamProcessor sp3 = StreamProcessor.newBuilder(client)
+        .streamConfiguration(new StreamConfiguration().subscriptionId("s1"))
+        .streamOffsetObserver(publisher)
+        .streamObserverFactory(new LoggingStreamObserverProvider())
+        .build();
+
+    assertTrue(sp3.streamOffsetObserver() instanceof SubscriptionOffsetPublisher);
+
+    final SubscriptionOffsetPublisher foundPublisher =
+        (SubscriptionOffsetPublisher) sp3.streamOffsetObserver();
+
+    final HashMap<String, String> context = Maps.newHashMap();
+    context.put(StreamResourceSupport.X_NAKADI_STREAM_ID, "aa");
+    context.put(StreamResourceSupport.SUBSCRIPTION_ID, "bb");
+    final StreamCursorContext streamCursorContext =
+        new StreamCursorContextReal(new Cursor("p", "o", "e"), context);
+
+
+    when(observer.checkpointer()).thenReturn(mock(SubscriptionOffsetCheckpointer.class));
+    foundPublisher.onNext(streamCursorContext);
+    // because I'm wicked and I'm lazy. todo: replace with a latch or something more certain
+    Thread.sleep(1200);
+    verify(observer, times(1)).onNext(streamCursorContext);
   }
 
   private Buffer gzip(String data) throws IOException {

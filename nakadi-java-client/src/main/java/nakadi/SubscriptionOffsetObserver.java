@@ -18,10 +18,14 @@ class SubscriptionOffsetObserver implements StreamOffsetObserver {
     try {
       MDC.put("cursor_context", context.toString());
       logger.debug("subscription_checkpoint starting checkpoint {}", context);
-      checkpointer.checkpoint(context);
+      checkpoint(context);
     } finally {
       MDC.remove("cursor_context");
     }
+  }
+
+  private void checkpoint(StreamCursorContext context) {
+    checkpointer().checkpoint(context);
   }
 
   @VisibleForTesting
