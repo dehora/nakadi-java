@@ -11,7 +11,6 @@ import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -439,6 +438,7 @@ public class StreamProcessor implements StreamProcessorManaged {
 
     private NakadiClient client;
     private StreamObserverProvider streamObserverProvider;
+    private SubscriptionOffsetCheckpointer checkpointer;
     private StreamOffsetObserver streamOffsetObserver;
     private StreamConfiguration streamConfiguration;
     private ExecutorService executorService;
@@ -466,7 +466,11 @@ public class StreamProcessor implements StreamProcessorManaged {
       NakadiException.throwNonNull(streamObserverProvider, "Please provide a StreamObserverProvider");
 
       if (streamConfiguration.isSubscriptionStream() && streamOffsetObserver == null) {
-        this.streamOffsetObserver = new SubscriptionOffsetObserver(client);
+        if(checkpointer == null) {
+          this.checkpointer = new SubscriptionOffsetCheckpointer(client, false);
+        }
+
+        this.streamOffsetObserver = new SubscriptionOffsetObserver(checkpointer);
       }
 
       if (streamConfiguration.isEventTypeStream() && streamOffsetObserver == null) {
@@ -512,6 +516,11 @@ public class StreamProcessor implements StreamProcessorManaged {
     @SuppressWarnings("unused")
     public Builder executorService(ExecutorService executorService) {
       this.executorService = executorService;
+      return this;
+    }
+
+    public Builder checkpointer(SubscriptionOffsetCheckpointer checkpointer) {
+      this.checkpointer = checkpointer;
       return this;
     }
   }
