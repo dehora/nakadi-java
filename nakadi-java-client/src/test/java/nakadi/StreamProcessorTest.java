@@ -365,6 +365,27 @@ public class StreamProcessorTest {
         .build();
 
     assertNotNull(sp);
+
+
+    SubscriptionOffsetCheckpointer checkpointer = new SubscriptionOffsetCheckpointer(client, true);
+    final StreamProcessor sp1 = StreamProcessor.newBuilder(client)
+        .checkpointer(checkpointer)
+        .streamConfiguration(new StreamConfiguration().subscriptionId("s1"))
+        .streamObserverFactory(new LoggingStreamObserverProvider())
+        .build();
+
+    assertTrue(sp1.streamOffsetObserver() instanceof SubscriptionOffsetObserver);
+    assertEquals(checkpointer, ((SubscriptionOffsetObserver)sp1.streamOffsetObserver()).checkpointer());
+    assertEquals(true, ((SubscriptionOffsetObserver)sp1.streamOffsetObserver()).checkpointer().suppressingInvalidSessions());
+
+    final StreamProcessor sp2 = StreamProcessor.newBuilder(client)
+        .streamConfiguration(new StreamConfiguration().subscriptionId("s1"))
+        .streamObserverFactory(new LoggingStreamObserverProvider())
+        .build();
+
+    assertTrue(sp1.streamOffsetObserver() instanceof SubscriptionOffsetObserver);
+    assertTrue(null != ((SubscriptionOffsetObserver)sp1.streamOffsetObserver()).checkpointer());
+    assertEquals(true, ((SubscriptionOffsetObserver)sp1.streamOffsetObserver()).checkpointer().suppressingInvalidSessions());
   }
 
   private Buffer gzip(String data) throws IOException {

@@ -1,5 +1,7 @@
 package nakadi;
 
+import com.google.common.base.MoreObjects;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,5 +104,29 @@ public class SubscriptionOffsetCheckpointer {
       logger.warn("unexpected empty cursor {}", context);
       return context.toString();
     }
+  }
+
+  @VisibleForTesting
+  boolean suppressingInvalidSessions() {
+    return suppressingInvalidSessions;
+  }
+
+  @Override public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("client", client)
+        .add("suppressingInvalidSessions", suppressingInvalidSessions)
+        .toString();
+  }
+
+  @Override public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    SubscriptionOffsetCheckpointer that = (SubscriptionOffsetCheckpointer) o;
+    return suppressingInvalidSessions == that.suppressingInvalidSessions &&
+        Objects.equals(client, that.client);
+  }
+
+  @Override public int hashCode() {
+    return Objects.hash(client, suppressingInvalidSessions);
   }
 }
