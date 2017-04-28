@@ -23,4 +23,9 @@ class SubscriptionOffsetObserver implements StreamOffsetObserver {
       MDC.remove("cursor_context");
     }
   }
+
+  @VisibleForTesting
+  SubscriptionOffsetCheckpointer checkpointer() {
+    return checkpointer;
+  }
 }

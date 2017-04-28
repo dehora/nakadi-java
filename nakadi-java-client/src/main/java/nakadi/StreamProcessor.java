@@ -519,6 +519,7 @@ public class StreamProcessor implements StreamProcessorManaged {
       return this;
     }
 
+    @Unstable
     public Builder checkpointer(SubscriptionOffsetCheckpointer checkpointer) {
       this.checkpointer = checkpointer;
       return this;
