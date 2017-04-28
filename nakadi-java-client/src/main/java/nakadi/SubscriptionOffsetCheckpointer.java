@@ -17,10 +17,8 @@ public class SubscriptionOffsetCheckpointer {
   public void checkpoint(StreamCursorContext context) {
     SubscriptionResource resource = client.resources().subscriptions();
 
-    String cursorTrackingKey = cursorTrackingKey(context);
-
     try {
-      CursorCommitResultCollection ccr = resource.checkpoint(context.context(), context.cursor());
+      final CursorCommitResultCollection ccr = checkpoint(context, resource);
 
       if (!ccr.items().isEmpty()) {
         /*
@@ -33,7 +31,8 @@ public class SubscriptionOffsetCheckpointer {
         */
         logger.info("subscription_checkpoint server_indicated_stale_cursor {}", ccr);
       } else {
-        logger.info("subscription_checkpoint server_ok_accepted_cursor {}", cursorTrackingKey);
+        logger.info("subscription_checkpoint server_ok_accepted_cursor {}",
+            cursorTrackingKey(context));
       }
     } catch (RateLimitException e) {
       /*
@@ -47,7 +46,7 @@ public class SubscriptionOffsetCheckpointer {
        * we get dropped by the server. if we do we have to spin for maybe another 60s to
        * reestablish the consumer connection.
        */
-      logger.warn("subscription_checkpoint "+e.getMessage(), e);
+      logger.warn("subscription_checkpoint_err "+e.getMessage(), e);
       throw e;
     } catch (PreconditionFailedException e) {
       // eg bad cursors: Precondition Failed; offset 98 for partition 0 is unavailable (412)
@@ -60,6 +59,11 @@ public class SubscriptionOffsetCheckpointer {
     } catch (Exception e) {
       throw new NakadiException(Problem.localProblem(e.getMessage(), ""), e);
     }
+  }
+
+  private CursorCommitResultCollection checkpoint(
+      StreamCursorContext context, SubscriptionResource resource) {
+    return resource.checkpoint(context.context(), context.cursor());
   }
 
   private String cursorTrackingKey(StreamCursorContext context) {
