@@ -9,9 +9,15 @@ public class SubscriptionOffsetCheckpointer {
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   private final NakadiClient client;
+  private boolean suppressingInvalidSessions;
 
   public SubscriptionOffsetCheckpointer(NakadiClient client) {
+    this(client, false);
+  }
+
+  public SubscriptionOffsetCheckpointer(NakadiClient client, boolean suppressingInvalidSessions) {
     this.client = client;
+    this.suppressingInvalidSessions = suppressingInvalidSessions;
   }
 
   /**
@@ -21,7 +27,7 @@ public class SubscriptionOffsetCheckpointer {
    * @param context holds the cursor information.
    */
   public void checkpoint(StreamCursorContext context) {
-    checkpoint(context, false);
+    checkpoint(context, suppressingInvalidSessions);
   }
 
   /**
@@ -29,9 +35,8 @@ public class SubscriptionOffsetCheckpointer {
    * offset to that point.
    *
    * @param context holds the cursor information.
-   * @param suppressUnknownSessionError if true this will not throw 422 errors. See
-   * <a href="https://github.com/zalando-incubator/nakadi-java/issues/117">issue 117</a> for
-   *
+   * @param suppressUnknownSessionError if true this will not throw 422 errors. See <a
+   * href="https://github.com/zalando-incubator/nakadi-java/issues/117">issue 117</a> for details.
    */
   public void checkpoint(StreamCursorContext context, boolean suppressUnknownSessionError) {
     SubscriptionResource resource = client.resources().subscriptions();
@@ -65,11 +70,11 @@ public class SubscriptionOffsetCheckpointer {
        * we get dropped by the server. if we do we have to spin for maybe another 60s to
        * reestablish the consumer connection.
        */
-      logger.warn("subscription_checkpoint_err "+e.getMessage(), e);
+      logger.warn("subscription_checkpoint_err " + e.getMessage(), e);
       throw e;
     } catch (InvalidException e) {
       // todo: we need to get the server to send a specific problem, 422 is too broad
-      if(suppressUnknownSessionError) {
+      if (suppressUnknownSessionError) {
         logger.info("suppressed_invalid_checkpoint_err {}", e.problem().title());
       } else {
         throw e;
@@ -89,7 +94,7 @@ public class SubscriptionOffsetCheckpointer {
 
   private String cursorTrackingKey(StreamCursorContext context) {
     Cursor cursor = context.cursor();
-    if(cursor != null) {
+    if (cursor != null) {
       String partition = cursor.partition();
       String offset = cursor.offset();
       return cursor.eventType().orElse("unknown-event-type") + "-" + partition + "-" + offset;
