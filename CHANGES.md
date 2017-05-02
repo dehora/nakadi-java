@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.7.13
+
+- Coerces raw string event posting to UTF-8. [124](https://github.com/zalando-incubator/nakadi-java/issues/124)
+- Allows a specific cert to be loaded from the classpath. [126](https://github.com/zalando-incubator/nakadi-java/issues/126)
+- Fixes integers in BusinessEventMapped being serialised to floats. [119](https://github.com/zalando-incubator/nakadi-java/issues/119)
+
 ### 0.7.12
 
 - Adds support for requesting `consumed_offset` per partition. [155](https://github.com/zalando-incubator/nakadi-java/issues/155)
