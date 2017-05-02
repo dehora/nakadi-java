@@ -2,15 +2,12 @@ package nakadi;
 
 import com.google.common.collect.Lists;
 import java.net.InetAddress;
-import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
@@ -28,25 +25,74 @@ public class EventTypeResourceRealTest {
 
   public static final int MOCK_SERVER_PORT = 8316;
   MockWebServer server = new MockWebServer();
+  final NakadiClient client =
+      NakadiClient.newBuilder().baseURI("http://localhost:" + MOCK_SERVER_PORT).build();
 
-  @Before
   public void before() throws Exception {
     server.start(InetAddress.getByName("localhost"), MOCK_SERVER_PORT);
   }
 
-  @After
   public void after() throws Exception {
     server.shutdown();
   }
 
   @Test
-  public void testSendShiftRequest() throws Exception {
+  public void testSendRequests() throws Exception {
+
+    try {
+      before();
+      testShiftRequests();
+      testDistanceRequests();
+    } finally {
+      after();
+    }
+  }
+
+  private void testDistanceRequests() throws Exception {
+
+    final String json = TestSupport.load("cursor-distance-response-ok.json");
+    server.enqueue(new MockResponse().setResponseCode(200).setBody(json));
+
+    Cursor i = new Cursor().partition("1").offset("000000000000000021");
+    Cursor f = new Cursor().partition("0").offset("000000000000000025");
+    CursorDistance cd = new CursorDistance().initialCursor(i).finalCursor(f);
+
+    final CursorDistanceCollection collection =
+        client.resources().eventTypes().distance("et1", Lists.newArrayList(cd));
+
+    assertEquals(1, collection.items().size());
+
+    boolean seen0 = false;
+    for (CursorDistance cursor : collection.items()) {
+      if(cursor.distance() == 5L) {
+        seen0 = true;
+      }
+    }
+    assertTrue("expected distance to be marshalled", seen0);
+
+    final RecordedRequest request = server.takeRequest();
+    assertEquals("/event-types/et1/cursor-distances", request.getPath());
+
+    final String sentJson = request.getBody().readUtf8();
+    TypeLiteral<List<CursorDistance>> typeLiteral = new TypeLiteral<List<CursorDistance>>() {
+    };
+
+    final List<CursorDistance> sentObj = GsonSupport.gson().fromJson(sentJson, typeLiteral.type());
+    assertEquals("expected one distance value to be sent to server",  1, sentObj.size());
+    
+    boolean sent = false;
+    for (CursorDistance cd1 : sentObj) {
+      if(cd1.finalCursor() != null && cd1.initialCursor() != null) {
+        sent = true;
+      }
+    }
+    assertTrue("expected two cursor values to be sent to server", sent);
+  }
+
+  private void testShiftRequests() throws Exception {
 
     final String json = TestSupport.load("cursor-shift-response-ok.json");
     server.enqueue(new MockResponse().setResponseCode(200).setBody(json));
-
-    final NakadiClient client =
-        NakadiClient.newBuilder().baseURI("http://localhost:" + MOCK_SERVER_PORT).build();
 
     Cursor c0 = new Cursor().partition("0").offset("000000000000000025").shift(-1L);
     Cursor c1 = new Cursor().partition("1").offset("000000000000000021").shift(2L);
