@@ -210,11 +210,26 @@ NakadiClient client = NakadiClient.newBuilder()
   .build();
 ```
 
-This will cause the client to install any certificates it finds in the 
-supplied directory; files with `*.crt` and `*.pem` extensions are loaded. The 
-path must begin with `"file:///"` or `"classpath:"` to indicate whether the 
-certs are loaded from a file directory or  the classpath. If no 
-`certificatePath` is supplied, the system defaults are used.
+This will cause the client to install any certificates it finds. There are three 
+loading options
+
+- A path beginning with `"file:///"` will load from the supplied directory any 
+files with `*.crt` and `*.pem` extensions
+
+- A path beginning with `"classpath:"` and ending with `*.crt` or `*.pem` will 
+load that resource item from the classpath. 
+ 
+- A path beginning with `"classpath:"` will load from the supplied classpath 
+directory any files with `*.crt` and `*.pem` extensions.
+
+
+The classpath option targeting a directory is for local development and not meant 
+for production/deployed situations. If you must use the classpath for deployed apps, 
+use the cert resource option as that will allow the classpath resolver to work more 
+ generally.
+
+If no `certificatePath` is supplied, the system defaults are used. This is the 
+strongly recommended option for deployments.
 
 #### Metric Collector
 
