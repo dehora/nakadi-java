@@ -16,6 +16,7 @@ public class Cursor {
   private String offset;
   private String eventType;
   private String cursorToken;
+  private Long shift;
 
   public Cursor() {
   }
@@ -133,6 +134,26 @@ public class Cursor {
   }
 
   /**
+   * The shift value.
+   *
+   * @return the shift value or null if not set.
+   */
+  public Long shift() {
+    return shift;
+  }
+
+  /**
+   * Set the shift value
+   *
+   * @param shift the new shift value.
+   * @return this.
+   */
+  public Cursor shift(Long shift) {
+    this.shift = shift;
+    return this;
+  }
+
+  /**
    * Detect if this is a cursorfor a susbcription stream.
    *
    * @return true if a subscription, false if a named event stream
@@ -142,7 +163,7 @@ public class Cursor {
   }
 
   @Override public int hashCode() {
-    return Objects.hash(partition, offset, eventType, cursorToken);
+    return Objects.hash(partition, offset, eventType, cursorToken, shift);
   }
 
   @Override public boolean equals(Object o) {
@@ -152,14 +173,20 @@ public class Cursor {
     return Objects.equals(partition, cursor.partition) &&
         Objects.equals(offset, cursor.offset) &&
         Objects.equals(eventType, cursor.eventType) &&
-        Objects.equals(cursorToken, cursor.cursorToken);
+        Objects.equals(cursorToken, cursor.cursorToken) &&
+        Objects.equals(shift, cursor.shift);
   }
 
   @Override public String toString() {
-    return "Cursor={" + "partition='" + partition + '\'' +
+    String sb = "Cursor{" + "partition='" + partition + '\'' +
         ", offset='" + offset + '\'' +
         ", eventType='" + eventType + '\'' +
-        ", cursorToken='" + cursorToken + '\'' +
-        '}';
+        ", cursorToken='" + cursorToken + '\'';
+
+    if (shift != null) {
+      sb += ", shift='" + shift + '\'';
+    }
+
+    return sb + '}';
   }
 }
