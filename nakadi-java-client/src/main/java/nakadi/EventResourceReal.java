@@ -1,5 +1,6 @@
 package nakadi;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.gson.reflect.TypeToken;
@@ -71,7 +72,7 @@ public class EventResourceReal implements EventResource {
     NakadiException.throwNonNull(event, "Please provide an event");
 
     if(event instanceof String) {
-      return sendUsingSupplier(eventTypeName, ("[" + event + "]")::getBytes);
+      return sendUsingSupplier(eventTypeName, () -> ("[" + event + "]").getBytes(Charsets.UTF_8));
     } else {
       ArrayList<T> events = new ArrayList<>(1);
       Collections.addAll(events, event);
