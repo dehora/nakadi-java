@@ -126,6 +126,18 @@ class EventTypeResourceReal implements EventTypeResource {
         .requestThrowing(Resource.GET, url, options, Partition.class);
   }
 
+  @Override public Partition partition(String eventTypeName, String partitionId, QueryParams params)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, NakadiException {
+    final String url =
+        collectionUri().path(eventTypeName).path(PATH_PARTITIONS).path(partitionId).query(params).buildString();
+    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    return client.resourceProvider()
+        .newResource()
+        .retryPolicy(retryPolicy)
+        .requestThrowing(Resource.GET, url, options, Partition.class);
+  }
+
   @Override public EventTypeSchemaCollection schemas(String eventTypeName)
       throws AuthorizationException, ClientException, ServerException,
       RateLimitException, NakadiException {

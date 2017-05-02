@@ -142,6 +142,24 @@ public interface EventTypeResource {
       RateLimitException, NakadiException;
 
   /**
+   * Fetch the partition for an event type.
+   *
+   * @param eventTypeName the event type
+   * @param partitionId the partition
+   * @param params the query parameters
+   * @throws AuthorizationException
+   * @throws ClientException
+   * @throws ServerException
+   * @throws InvalidException
+   * @throws RateLimitException
+   * @throws NakadiException
+   */
+  Partition partition(String eventTypeName, String partitionId, QueryParams params)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, NakadiException;
+
+
+  /**
    * @return the event type schemas for the event type.
    *
    * @param eventTypeName the event type
