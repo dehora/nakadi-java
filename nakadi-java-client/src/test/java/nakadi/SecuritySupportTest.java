@@ -45,6 +45,28 @@ public class SecuritySupportTest {
   }
 
   @Test
+  public void createOne() throws IOException {
+    SecuritySupport securitySupport = new SecuritySupport("classpath:certs/letsencryptauthorityx1.pem");
+    X509TrustManager x509TrustManager = securitySupport.trustManager();
+    SSLContext sslContext = securitySupport.sslContext();
+    assertNotNull(x509TrustManager);
+    assertNotNull(sslContext);
+
+    X509Certificate[] acceptedIssuers = x509TrustManager.getAcceptedIssuers();
+    assertEquals(1, acceptedIssuers.length);
+    String issuer1 = "CN=Let's Encrypt Authority X1, O=Let's Encrypt, C=US";
+    Set<String> seen = Sets.newHashSet();
+    for (X509Certificate acceptedIssuer : acceptedIssuers) {
+      String name = acceptedIssuer.getSubjectDN().getName();
+      if (issuer1.equals(name)) {
+        seen.add(name);
+      }
+    }
+    assertEquals(1, seen.size());
+    assertTrue(seen.contains(issuer1));
+  }
+
+  @Test
   public void createSome() throws IOException {
     /*
     certs contains the 2 letsencrypt root, with .crt and .pem file extensions

@@ -1,5 +1,7 @@
 package nakadi;
 
+import com.google.common.io.Resources;
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +18,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.function.Consumer;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -68,36 +71,53 @@ public class SecuritySupport {
     }
   }
 
-  void create(String certificatePath)
-      throws NakadiException {
+  void create(String certificatePath) throws NakadiException {
 
-      if (certificatePath == null) {
-        logger.info("no custom certificate path supplied, skipping creation");
-        return;
-      }
+    if (certificatePath == null) {
+      logger.info("no custom certificate path supplied, skipping creation");
+      return;
+    }
 
-      Path path = SecuritySupport.resolvePath(certificatePath);
-
+    if (isSpecificClasspathResource(certificatePath)) {
+      final URL url = Resources.getResource(classpathBareName(certificatePath));
       try {
-        logger.info("will create custom certs from path {}", path.toRealPath());
-        create(path);
+        final byte[] bytes = Resources.toByteArray(url);
+        create(keyStore -> installClasspathCertificate(certificatePath, bytes, keyStore));
       } catch (Exception e) {
         throw new NakadiException(
             Problem.localProblem("configuring keystore failed, path " + certificatePath,
                 e.getMessage()),
             e);
       }
+      return;
     }
 
+    Path path = SecuritySupport.resolvePath(certificatePath);
 
-  private void create(Path path)
+    try {
+      logger.info("will create custom certs from path {}", path.toRealPath());
+      create(keyStore -> installCertificates(path, keyStore));
+    } catch (Exception e) {
+      throw new NakadiException(
+          Problem.localProblem("configuring keystore failed, path " + certificatePath,
+              e.getMessage()),
+          e);
+    }
+  }
+
+  private boolean isSpecificClasspathResource(String certificatePath) {
+    return isClasspath(certificatePath) && (certificatePath.endsWith(".pem")
+        || certificatePath.endsWith(".crt"));
+  }
+
+  private void create(Consumer<KeyStore> installer)
       throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException,
       KeyManagementException {
     TrustManager[] trustManagers;
     KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
     keyStore.load(null, null);
 
-    installCertificates(path, keyStore);
+    installer.accept(keyStore);
 
     String defaultAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
     TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(defaultAlgorithm);
@@ -113,27 +133,44 @@ public class SecuritySupport {
     }
   }
 
-  private void installCertificates(Path path, KeyStore keyStore)
-      throws IOException, CertificateException {
-    CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+  private void installClasspathCertificate(
+      String certificatePath, byte[] certData, KeyStore keyStore) {
+    try {
+      final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+      final ByteArrayInputStream bais = new ByteArrayInputStream(certData);
+      final Certificate cert = certificateFactory.generateCertificate(bais);
+      keyStore.setCertificateEntry(certificatePath, cert);
+      logger.info("ok, installed cert with alias {} from classpath {}",
+          certificatePath, certificatePath);
+    } catch (KeyStoreException | CertificateException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-    try (DirectoryStream<Path> paths = Files.newDirectoryStream(path, "*.{crt,pem}")) {
-      for (Path certPath : paths) {
-        logger.info("installing cert from path {}", certPath.toRealPath());
-        if (Files.isRegularFile(certPath)) {
-          try (InputStream inputStream = Files.newInputStream(certPath)) {
-            Certificate cert = certificateFactory.generateCertificate(inputStream);
-            String alias = certPath.getFileName().toString();
-            keyStore.setCertificateEntry(alias, cert);
-            logger.info("ok, installed cert with alias {} from path {}", alias,
-                certPath.toRealPath());
-          } catch (Exception e) {
-            logger.warn("error, skipping cert, path {} {}", certPath.toRealPath(), e.getMessage());
+  private void installCertificates(Path path, KeyStore keyStore) {
+    try {
+      CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+
+      try (DirectoryStream<Path> paths = Files.newDirectoryStream(path, "*.{crt,pem}")) {
+        for (Path certPath : paths) {
+          logger.info("installing cert from path {}", certPath.toRealPath());
+          if (Files.isRegularFile(certPath)) {
+            try (InputStream inputStream = Files.newInputStream(certPath)) {
+              Certificate cert = certificateFactory.generateCertificate(inputStream);
+              String alias = certPath.getFileName().toString();
+              keyStore.setCertificateEntry(alias, cert);
+              logger.info("ok, installed cert with alias {} from path {}", alias,
+                  certPath.toRealPath());
+            } catch (Exception e) {
+              logger.warn("error, skipping cert, path {} {}", certPath.toRealPath(), e.getMessage());
+            }
+          } else {
+            logger.info("skipping cert, not a regular file {}", certPath.toRealPath());
           }
-        } else {
-          logger.info("skipping cert, not a regular file {}", certPath.toRealPath());
         }
       }
+    } catch (CertificateException | IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -155,16 +192,22 @@ public class SecuritySupport {
       }
     }
 
-    if (certificatePath.startsWith("classpath:")) {
+    if (isClasspath(certificatePath)) {
       logger.info("using classpath resolver for {}", certificatePath);
-      String resource = getResourceUrl(
-          certificatePath.substring("classpath:".length(), certificatePath.length())).getPath();
-      return Paths.get(resource);
+      return Paths.get(getResourceUrl(classpathBareName(certificatePath)).getPath());
     }
 
     throw new NakadiException(
         Problem.localProblem(
             "certificatePath must start with file: or classpath: " + certificatePath, ""));
+  }
+
+  private static boolean isClasspath(String certificatePath) {
+    return certificatePath.startsWith("classpath:");
+  }
+
+  private static String classpathBareName(String certificatePath) {
+    return certificatePath.substring("classpath:".length(), certificatePath.length());
   }
 
   public SSLContext sslContext() {
