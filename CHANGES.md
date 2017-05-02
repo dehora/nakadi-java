@@ -1,5 +1,12 @@
 ### Changes
 
+### 0.7.12
+
+- Adds support for requesting `consumed_offset` per partition. [155](https://github.com/zalando-incubator/nakadi-java/issues/155)
+- Adds support for requesting cursor lag. [153](https://github.com/zalando-incubator/nakadi-java/issues/153)
+- Adds support for requesting cursor shifts. [#152](https://github.com/zalando-incubator/nakadi-java/issues/152)
+- Adds support for cursor distance checks. [#151](https://github.com/zalando-incubator/nakadi-java/issues/151)
+
 ### 0.7.11
 
 - Allows batch offset data to be routed to one or more subscribers.
