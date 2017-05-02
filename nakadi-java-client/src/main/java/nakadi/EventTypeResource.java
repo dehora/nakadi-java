@@ -174,4 +174,13 @@ public interface EventTypeResource {
    */
   CursorDistanceCollection distance(String eventTypeName, List<CursorDistance> cursorDistanceList);
 
+  /**
+   * Check the the number of unconsumed events for each cursor's partition.
+   *
+   * @param eventTypeName the event type
+   * @param cursors the cursors to check.
+   * @return the result from the server.
+   */
+  PartitionCollection lag(String eventTypeName, List<Cursor> cursors);
+
 }
