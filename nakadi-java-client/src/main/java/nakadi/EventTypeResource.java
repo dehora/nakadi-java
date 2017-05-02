@@ -1,5 +1,6 @@
 package nakadi;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -154,4 +155,12 @@ public interface EventTypeResource {
   EventTypeSchemaCollection schemas(String eventTypeName)
       throws AuthorizationException, ClientException, ServerException,
       RateLimitException, NakadiException;
+
+  /**
+   * Make a request to shift cursors.
+   *
+   * @param cursorList the cursors to shift
+   * @return the resulting shifted cursors
+   */
+  CursorCollection shift(String eventTypeName, List<Cursor> cursorList);
 }

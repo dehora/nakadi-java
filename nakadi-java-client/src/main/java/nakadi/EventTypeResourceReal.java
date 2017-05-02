@@ -11,12 +11,15 @@ class EventTypeResourceReal implements EventTypeResource {
   private static final String PATH_EVENT_TYPES = "event-types";
   private static final String PATH_PARTITIONS = "partitions";
   private static final String PATH_SCHEMAS = "schemas";
+  private static final String PATH_CURSOR_SHIFTS = "shifted-cursors";
   private static final String APPLICATION_JSON = "application/json";
   private static final Type TYPE = new TypeToken<List<EventType>>() {
   }.getType();
   private static final Type TYPE_P = new TypeToken<List<Partition>>() {
   }.getType();
   private static final Type TYPE_ETS = new TypeToken<List<EventTypeSchema>>() {
+  }.getType();
+  private static final Type TYPE_C = new TypeToken<List<Cursor>>() {
   }.getType();
 
   private final NakadiClient client;
@@ -122,6 +125,22 @@ class EventTypeResourceReal implements EventTypeResource {
       RateLimitException, NakadiException {
     return loadSchemaPage(
         collectionUri().path(eventTypeName).path(PATH_SCHEMAS).buildString());
+  }
+
+  @Override public CursorCollection shift(String eventTypeName, List<Cursor> cursorList) {
+    NakadiException.throwNotNullOrEmpty(cursorList, "Please provide at least one cursor");
+
+    final String url = collectionUri().path(eventTypeName).path(PATH_CURSOR_SHIFTS).buildString();
+    final ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    final Response response = client.resourceProvider()
+        .newResource()
+        .retryPolicy(retryPolicy)
+        .requestThrowing(Resource.POST, url, options, cursorList);
+
+    final List<Cursor> collection =
+        client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_C);
+
+    return new CursorCollection(collection, new ArrayList<>(), this);
   }
 
   String applyScope(String fallbackScope) {

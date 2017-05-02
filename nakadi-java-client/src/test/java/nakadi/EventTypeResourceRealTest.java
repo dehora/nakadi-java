@@ -1,7 +1,16 @@
 package nakadi;
 
+import com.google.common.collect.Lists;
+import java.net.InetAddress;
+import java.util.Currency;
+import java.util.List;
 import java.util.Optional;
 import okhttp3.OkHttpClient;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
@@ -16,6 +25,71 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class EventTypeResourceRealTest {
+
+  public static final int MOCK_SERVER_PORT = 8316;
+  MockWebServer server = new MockWebServer();
+
+  @Before
+  public void before() throws Exception {
+    server.start(InetAddress.getByName("localhost"), MOCK_SERVER_PORT);
+  }
+
+  @After
+  public void after() throws Exception {
+    server.shutdown();
+  }
+
+  @Test
+  public void testSendShiftRequest() throws Exception {
+
+    final String json = TestSupport.load("cursor-shift-response-ok.json");
+    server.enqueue(new MockResponse().setResponseCode(200).setBody(json));
+
+    final NakadiClient client =
+        NakadiClient.newBuilder().baseURI("http://localhost:" + MOCK_SERVER_PORT).build();
+
+    Cursor c0 = new Cursor().partition("0").offset("000000000000000025").shift(-1L);
+    Cursor c1 = new Cursor().partition("1").offset("000000000000000021").shift(2L);
+
+    final CursorCollection shift =
+        client.resources().eventTypes().shift("et1", Lists.newArrayList(c0, c1));
+
+    assertEquals(2, shift.items().size());
+
+    boolean seen0 = false;
+    boolean seen1 = false;
+
+    for (Cursor cursor : shift.items()) {
+      if(cursor.partition().equals("0")) {
+        seen0 = true;
+      }
+      if(cursor.partition().equals("1")) {
+        seen1 = true;
+      }
+    }
+    assertTrue("expected two partitions to be marshalled", seen0 && seen1);
+
+    final RecordedRequest request = server.takeRequest();
+    assertEquals("/event-types/et1/shifted-cursors", request.getPath());
+
+    final String sentJson = request.getBody().readUtf8();
+    TypeLiteral<List<Cursor>> typeLiteral = new TypeLiteral<List<Cursor>>() {
+    };
+
+    final List<Cursor> sentObj = GsonSupport.gson().fromJson(sentJson, typeLiteral.type());
+    boolean sent0 = false;
+    boolean sent1 = false;
+    for (Cursor cursor : sentObj) {
+      if(cursor.shift().equals(-1L)) {
+        sent0 = true;
+      }
+      if(cursor.shift().equals(2L)) {
+        sent1 = true;
+      }
+    }
+
+    assertTrue("expected two shift values to be sent to server", sent0 && sent1);
+  }
 
   @Test
   public void createWithScope() {
