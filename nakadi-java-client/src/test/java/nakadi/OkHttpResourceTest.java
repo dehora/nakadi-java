@@ -50,6 +50,38 @@ public class OkHttpResourceTest {
     server.shutdown();
   }
 
+
+  public static class Model {
+    Integer id;
+    Double num;
+  }
+
+  @Test
+  public void intsAndDoublesAreNotCoerced_gh119() throws Exception {
+
+    final Model m = new Model();
+    m.id = 100;
+    m.num = 26.3;
+
+    BusinessEventMapped<Model> change = new BusinessEventMapped<Model>()
+        .metadata(new EventMetadata())
+        .data(m);
+
+    server.enqueue(new MockResponse().setResponseCode(200));
+
+    NakadiClient client = NakadiClient.newBuilder()
+        .baseURI("http://localhost:"+8311)
+        .build();
+
+    client.resources().events().send("et", change);
+
+    final RecordedRequest request = server.takeRequest();
+    final String s = request.getBody().readUtf8();
+    assertFalse("expecting ints to not be converted to floats by gson", s.contains(": 100.0"));
+    assertTrue("expecting ints to be present if set", s.contains(": 100"));
+    assertTrue("expecting floats to be present if set", s.contains(": 26.3"));
+  }
+
   @Test
   public void requestThrowing_NoBody_ExceptionMapping() throws Exception {
 

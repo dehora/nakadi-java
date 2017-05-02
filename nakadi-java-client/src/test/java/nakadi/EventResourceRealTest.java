@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -410,18 +412,30 @@ public class EventResourceRealTest {
     EventMetadata em = new EventMetadata();
     em.eid("eid1");
     Map<String, Object> uemap = Maps.newHashMap();
-    uemap.put("a", "1");
+    uemap.put("a", 1);
+    uemap.put("b", 22.0001);
+    uemap.put("c", "40.0001");
+    uemap.put("d", "c22.0001");
     be.data(uemap);
     be.metadata(em);
 
     EventRecord<BusinessEventMapped> er = new EventRecord<>("topic", be);
-    Map<String, Object> outmap = (Map<String, Object>) eventResource.mapEventRecordToSerdes(er);
-    assertTrue(outmap.size() == 2);
-    assertTrue(outmap.containsKey("metadata"));
-    assertTrue(outmap.containsKey("a"));
-    assertEquals("1", outmap.get("a"));
+    JsonObject outmap = (JsonObject) eventResource.mapEventRecordToSerdes(er);
+    assertTrue(outmap.size() == 5);
+    assertTrue(outmap.get("metadata") != null);
+    assertTrue(outmap.get("a") != null);
+    assertEquals(1, outmap.get("a").getAsInt());
+    assertEquals(22.0001, outmap.get("b").getAsDouble(), 0.0d);
+    assertEquals("40.0001", outmap.get("c").getAsString());
+    assertEquals("c22.0001", outmap.get("d").getAsString());
 
-    assertEquals(em, outmap.get("metadata"));
+    final JsonElement metadata = outmap.get("metadata");
+    assertEquals(em.eid(), metadata.getAsJsonObject().get("eid").getAsString());
+    assertEquals(em.flowId(), metadata.getAsJsonObject().get("flow_id").getAsString());
+    assertEquals(
+        em.occurredAt(),
+        new OffsetDateTimeSerdes().toOffsetDateTime(
+            metadata.getAsJsonObject().get("occurred_at").getAsString()));
   }
 
   static class EventThing implements Event {
