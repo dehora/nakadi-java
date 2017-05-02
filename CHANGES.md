@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.8.0
+
+- Promotes 0.7.13 to 0.8.0
+
 ### 0.7.13
 
 - Coerces raw string event posting to UTF-8. [124](https://github.com/zalando-incubator/nakadi-java/issues/124)
