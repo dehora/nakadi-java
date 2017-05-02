@@ -43,9 +43,42 @@ public class EventTypeResourceRealTest {
       before();
       testShiftRequests();
       testDistanceRequests();
+      testLagRequests();
     } finally {
       after();
     }
+  }
+
+  private void testLagRequests() throws Exception {
+
+    final String json = TestSupport.load("cursor-lag-response-ok.json");
+    server.enqueue(new MockResponse().setResponseCode(200).setBody(json));
+    Cursor c = new Cursor().partition("0").offset("000000000000000020");
+
+    final PartitionCollection collection =
+        client.resources().eventTypes().lag("et1", Lists.newArrayList(c));
+
+    assertEquals(1, collection.items().size());
+
+    Partition p = collection.items().get(0);
+    assertEquals("000000000000000029", p.newestAvailableOffset());
+    assertEquals("000000000000000020", p.oldestAvailableOffset());
+    assertEquals("0", p.partition());
+    assertTrue(9L == p.unconsumedEvents());
+
+    final RecordedRequest request = server.takeRequest();
+    assertEquals("/event-types/et1/cursors-lag", request.getPath());
+
+    final String sentJson = request.getBody().readUtf8();
+    TypeLiteral<List<Cursor>> typeLiteral = new TypeLiteral<List<Cursor>>() {
+    };
+
+    final List<Cursor> sentObj = GsonSupport.gson().fromJson(sentJson, typeLiteral.type());
+    assertEquals("expected one cursor value to be sent to server",  1, sentObj.size());
+
+    Cursor cSent = sentObj.get(0);
+    assertEquals("0", cSent.partition());
+    assertEquals("000000000000000020", cSent.offset());
   }
 
   private void testDistanceRequests() throws Exception {

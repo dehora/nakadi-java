@@ -1,0 +1,8 @@
+[
+  {
+    "partition": "0",
+    "oldest_available_offset": "000000000000000020",
+    "newest_available_offset": "000000000000000029",
+    "unconsumed_events": 9
+  }
+]

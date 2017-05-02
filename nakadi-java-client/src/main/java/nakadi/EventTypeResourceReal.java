@@ -166,6 +166,21 @@ class EventTypeResourceReal implements EventTypeResource {
     return new CursorDistanceCollection(collection, SENTINEL_LINKS);
   }
 
+  @Override public PartitionCollection lag(String eventTypeName, List<Cursor> cursors) {
+    final String url = collectionUri().path(eventTypeName).path("cursors-lag").buildString();
+    final ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+
+    final Response response = client.resourceProvider()
+        .newResource()
+        .retryPolicy(retryPolicy)
+        .requestThrowing(Resource.POST, url, options, cursors);
+
+    final List<Partition> collection =
+        client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_P);
+
+    return new PartitionCollection(collection, SENTINEL_LINKS, this);
+  }
+
   String applyScope(String fallbackScope) {
     return scope == null ? fallbackScope: scope;
   }
