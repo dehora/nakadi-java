@@ -44,9 +44,26 @@ public class EventTypeResourceRealTest {
       testShiftRequests();
       testDistanceRequests();
       testLagRequests();
+      testPartitionParam();
     } finally {
       after();
     }
+  }
+
+  private void testPartitionParam() throws Exception {
+
+    final String json = TestSupport.load("partition-unconsumed-response-ok.json");
+    server.enqueue(new MockResponse().setResponseCode(200).setBody(json));
+
+    client.resources()
+        .eventTypes()
+        .partition("et1", "0", new QueryParams().param("consumed_offset", "000000000000000020"));
+
+    final RecordedRequest request = server.takeRequest();
+    assertEquals(
+        "/event-types/et1/partitions/0?consumed_offset=000000000000000020",
+        request.getPath());
+
   }
 
   private void testLagRequests() throws Exception {
