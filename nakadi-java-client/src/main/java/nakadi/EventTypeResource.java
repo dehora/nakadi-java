@@ -159,8 +159,19 @@ public interface EventTypeResource {
   /**
    * Make a request to shift cursors.
    *
+   * @param eventTypeName the event type
    * @param cursorList the cursors to shift
    * @return the resulting shifted cursors
    */
   CursorCollection shift(String eventTypeName, List<Cursor> cursorList);
+
+  /**
+   * Request a calculation of the distance between one or more pairs of cursor offsets.
+   *
+   * @param eventTypeName the event type
+   * @param cursorDistanceList the cursors distances to check.
+   * @return the result from the server.
+   */
+  CursorDistanceCollection distance(String eventTypeName, List<CursorDistance> cursorDistanceList);
+
 }

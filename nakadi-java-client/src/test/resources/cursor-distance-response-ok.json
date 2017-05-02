@@ -1,0 +1,13 @@
+[
+  {
+    "initial_cursor": {
+      "partition": "0",
+      "offset": "000000000000000020"
+    },
+    "final_cursor": {
+      "partition": "0",
+      "offset": "000000000000000025"
+    },
+    "distance": 5
+  }
+]

@@ -1,8 +1,10 @@
 package nakadi;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +14,7 @@ class EventTypeResourceReal implements EventTypeResource {
   private static final String PATH_PARTITIONS = "partitions";
   private static final String PATH_SCHEMAS = "schemas";
   private static final String PATH_CURSOR_SHIFTS = "shifted-cursors";
+  private static final String PATH_CURSOR_DISTANCE = "cursor-distances";
   private static final String APPLICATION_JSON = "application/json";
   private static final Type TYPE = new TypeToken<List<EventType>>() {
   }.getType();
@@ -21,6 +24,9 @@ class EventTypeResourceReal implements EventTypeResource {
   }.getType();
   private static final Type TYPE_C = new TypeToken<List<Cursor>>() {
   }.getType();
+  private static final Type TYPE_CD = new TypeToken<List<CursorDistance>>() {
+  }.getType();
+  private static final List<ResourceLink> SENTINEL_LINKS = Collections.emptyList();
 
   private final NakadiClient client;
   private String scope;
@@ -140,7 +146,24 @@ class EventTypeResourceReal implements EventTypeResource {
     final List<Cursor> collection =
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_C);
 
-    return new CursorCollection(collection, new ArrayList<>(), this);
+    return new CursorCollection(collection, SENTINEL_LINKS, this);
+  }
+
+  @Override
+  public CursorDistanceCollection distance(
+      String eventTypeName, List<CursorDistance> cursorDistanceList) {
+
+    final String url = collectionUri().path(eventTypeName).path(PATH_CURSOR_DISTANCE).buildString();
+    final ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    final Response response = client.resourceProvider()
+        .newResource()
+        .retryPolicy(retryPolicy)
+        .requestThrowing(Resource.POST, url, options, cursorDistanceList);
+
+    final List<CursorDistance> collection =
+        client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_CD);
+
+    return new CursorDistanceCollection(collection, SENTINEL_LINKS);
   }
 
   String applyScope(String fallbackScope) {
