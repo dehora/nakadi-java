@@ -1,11 +1,14 @@
 package nakadi;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 class EventMappedSupport {
 
@@ -21,17 +24,20 @@ class EventMappedSupport {
     if (eventRecord.event().getClass().isAssignableFrom(BusinessEventMapped.class)) {
 
       BusinessEventMapped businessEvent = (BusinessEventMapped) eventRecord.event();
-      Map<String, Object> jsonEvent = new HashMap();
-      jsonEvent.put("metadata", businessEvent.metadata());
       /*
-      :hack: take the businessEvent.data field whose type we don't know and roundtrip it to
-      a JSON string and back into to a regular map, so we can place that resulting map's fields
-      into the top level of the jsonEvent. The result is an event that gets published to
-      Nakadi whose fields are all in the top level JSON doc as per the the business category
-      definition.
+      :hack: take the businessEvent.data field whose type we don't know and build up a
+      JSON object merging the businessEvent.data fields with a "metadata" field. The result is
+      an event that gets published to Nakadi whose fields are all in the top level JSON doc as
+      per the the business category definition.
        */
-      jsonEvent.putAll(gson.fromJson(gson.toJson(businessEvent.data()), MAP_TYPE));
-      return jsonEvent;
+      final Gson gson = GsonSupport.gson();
+      final JsonObject jsonObject = new JsonObject();
+      jsonObject.add("metadata", gson.toJsonTree(businessEvent.metadata()));
+      final JsonElement jsonElement = gson.toJsonTree(businessEvent.data());
+      for (Map.Entry<String, JsonElement> entry : jsonElement.getAsJsonObject().entrySet()) {
+        jsonObject.add(entry.getKey(), entry.getValue());
+      }
+      return jsonObject;
     }
 
     if (eventRecord.event().getClass().isAssignableFrom(UndefinedEventMapped.class)) {
