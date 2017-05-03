@@ -11,9 +11,10 @@ public class ExponentialRetryTest {
   public void tempusFugit() throws Exception {
 
     ExponentialRetry exponentialRetry = ExponentialRetry.newBuilder()
-        .initialInterval(1, TimeUnit.MILLISECONDS)
+        .initialInterval(11, TimeUnit.MILLISECONDS)
         .maxAttempts(Integer.MAX_VALUE)
-        .maxInterval(3, TimeUnit.MILLISECONDS)
+        .maxInterval(20, TimeUnit.MILLISECONDS)
+        .percentOfMaxIntervalForJitter(20)
         .maxTime(3, TimeUnit.SECONDS)
         .build();
 
@@ -49,7 +50,7 @@ public class ExponentialRetryTest {
   public void annumero() throws Exception {
 
     ExponentialRetry exponentialRetry = ExponentialRetry.newBuilder()
-        .initialInterval(1, TimeUnit.MILLISECONDS)
+        .initialInterval(101, TimeUnit.MILLISECONDS)
         .maxAttempts(20)
         .maxInterval(100, TimeUnit.MILLISECONDS)
         .maxTime(Integer.MAX_VALUE, TimeUnit.SECONDS)

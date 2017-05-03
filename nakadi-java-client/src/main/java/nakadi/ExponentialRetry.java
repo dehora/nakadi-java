@@ -1,5 +1,6 @@
 package nakadi;
 
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 public class ExponentialRetry implements RetryPolicy {
@@ -8,37 +9,38 @@ public class ExponentialRetry implements RetryPolicy {
   static final int DEFAULT_MAX_INTERVAL_MILLIS = 32000;
   static final int DEFAULT_MAX_ATTEMPTS = Integer.MAX_VALUE;
   static final long DEFAULT_MAX_TIME = Long.MAX_VALUE;
+  public static final int MAX_INTERVAL_MIN_AS_MILLIS = 20;
+  public static final int INITIAL_INTERVAL_MIN_AS_MILLIS = 10;
+  public static final float PERCENT_OF_MAX_INTERVAL_AS_JITTER = 10.0f;
 
-  long workingInterval;
-  long initialInterval;
-  long maxInterval;
+  private long workingInterval;
+  private final long initialInterval;
+  private final long maxInterval;
   int maxAttempts;
   long workingAttempts = 1;
   long maxTime;
   long workingTime = 0L;
-  volatile long startTime = 0L;
+  private volatile long startTime = 0L;
   TimeUnit unit;
+  private float percentOfMaxIntervalForJitter;
 
   public static Builder newBuilder() {
     return new Builder();
   }
 
-  private ExponentialRetry() {
-  }
-
   ExponentialRetry(Builder builder) {
-    this.initialInterval = builder.initialInterval;
+    this.initialInterval = Math.min(builder.maxInterval, builder.initialInterval);
     this.maxInterval = builder.maxInterval;
+    this.workingInterval = initialInterval;
     this.maxAttempts = builder.maxAttempts;
     this.unit = builder.unit;
-    this.workingInterval = initialInterval;
     this.maxTime = builder.maxTime;
+    this.percentOfMaxIntervalForJitter = builder.percentOfMaxIntervalForJitter;
   }
 
   public long initialInterval() {
     return initialInterval;
   }
-
 
   public long maxIntervalMillis() {
     return maxInterval;
@@ -67,12 +69,23 @@ public class ExponentialRetry implements RetryPolicy {
     workingInterval = unit.toMillis(workingInterval) * (workingAttempts * workingAttempts);
     workingAttempts++;
 
-    if(workingInterval <= 0 ) {
+    if(workingInterval <= 0) {
       workingInterval = unit.toMillis(maxInterval);
     }
 
-    if(workingInterval > maxInterval) {
-      workingInterval = unit.toMillis(maxInterval);
+
+    if (initialInterval != workingInterval) {
+      workingInterval = Math.min(maxInterval, ThreadLocalRandom.current().nextLong(initialInterval, workingInterval));
+      if (workingInterval == maxInterval) {
+        /*
+         avoid fixating on the max by picking a wait between it and a percentage less than it
+         We have some retries that can run for very long periods, eg consumers and will eventually
+         settle and coordinate on the max value
+          */
+        final long percentMax = (long) (maxInterval * (percentOfMaxIntervalForJitter / 100.0f));
+        workingInterval =
+            ThreadLocalRandom.current().nextLong(maxInterval - percentMax, maxInterval);
+      }
     }
 
     return workingInterval;
@@ -99,6 +112,7 @@ public class ExponentialRetry implements RetryPolicy {
     private int maxAttempts = DEFAULT_MAX_ATTEMPTS;
     private long maxTime = DEFAULT_MAX_TIME;
     private final TimeUnit unit = TimeUnit.MILLISECONDS;
+    public float percentOfMaxIntervalForJitter = PERCENT_OF_MAX_INTERVAL_AS_JITTER;
 
     private Builder() {
     }
@@ -106,12 +120,22 @@ public class ExponentialRetry implements RetryPolicy {
     public Builder initialInterval(long initialInterval, TimeUnit unit) {
       NakadiException.throwNonNull(unit, "Please provide a TimeUnit");
       this.initialInterval = unit.toMillis(initialInterval);
+      if (this.initialInterval < INITIAL_INTERVAL_MIN_AS_MILLIS) {
+        NakadiException.throwNonNull(null, "Please provide an initial value of at least "
+            + INITIAL_INTERVAL_MIN_AS_MILLIS
+            + " millis");
+      }
       return this;
     }
 
     public Builder maxInterval(long maxInterval, TimeUnit unit) {
       NakadiException.throwNonNull(unit, "Please provide a TimeUnit");
-      this.maxInterval = unit.toMillis(maxInterval);;
+      this.maxInterval = unit.toMillis(maxInterval);
+      if (this.maxInterval < MAX_INTERVAL_MIN_AS_MILLIS) {
+        NakadiException.throwNonNull(null, "Please provide a max interval value of at least "
+            + MAX_INTERVAL_MIN_AS_MILLIS
+            + " millis");
+      }
       return this;
     }
 
@@ -123,6 +147,11 @@ public class ExponentialRetry implements RetryPolicy {
     public Builder maxTime(long maxTime, TimeUnit unit) {
       NakadiException.throwNonNull(unit, "Please provide a TimeUnit");
       this.maxTime = unit.toMillis(maxTime);
+      return this;
+    }
+
+    public Builder percentOfMaxIntervalForJitter(int percentOfMaxIntervalForJitter) {
+      this.percentOfMaxIntervalForJitter = percentOfMaxIntervalForJitter + 0.0f;
       return this;
     }
 
