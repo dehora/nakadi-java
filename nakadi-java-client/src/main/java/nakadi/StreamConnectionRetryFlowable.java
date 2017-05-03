@@ -15,11 +15,15 @@ public class StreamConnectionRetryFlowable implements
 
   private final RetryPolicy backoff;
   private final Function<Throwable, Boolean> isRetryable;
+  private MetricCollector metricCollector;
 
   StreamConnectionRetryFlowable(RetryPolicy backoff,
-      Function<Throwable, Boolean> isRetryable) {
+      Function<Throwable, Boolean> isRetryable,
+      MetricCollector metricCollector
+  ) {
     this.backoff = backoff;
     this.isRetryable = isRetryable;
+    this.metricCollector = metricCollector;
   }
 
   @Override public Publisher<Object> apply(Flowable<? extends Throwable> flowable)
@@ -53,6 +57,8 @@ public class StreamConnectionRetryFlowable implements
         logger.info(String.format(
             "stream_retry: will sleep for a bit, sleep=%s attempt=%d/%d error=%s",
             delay, backoff.workingAttempts(), backoff.maxAttempts(), throwable.getMessage()));
+
+        metricCollector.mark(MetricCollector.Meter.consumerRetry);
 
         return Flowable.timer(delay, MILLISECONDS);
       }

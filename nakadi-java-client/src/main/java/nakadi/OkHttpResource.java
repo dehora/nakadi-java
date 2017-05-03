@@ -341,8 +341,11 @@ class OkHttpResource implements Resource {
   }
 
   private <T> T throwProblem(int code, Problem problem) {
-    if (code == 403 || code == 401) {
+    if (code == 401) {
       metricCollector.mark(MetricCollector.Meter.http401);
+      throw new AuthorizationException(problem);
+    } else if (code == 403) {
+      metricCollector.mark(MetricCollector.Meter.http403);
       throw new AuthorizationException(problem);
     } else if (code == 404 || code == 410) {
       metricCollector.mark(MetricCollector.Meter.http404);

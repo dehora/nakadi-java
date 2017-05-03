@@ -76,6 +76,7 @@ public class SubscriptionOffsetCheckpointer {
       throw e;
     } catch (InvalidException e) {
       // todo: we need to get the server to send a specific problem, 422 is too broad
+      client.metricCollector().mark(MetricCollector.Meter.sessionCheckpointMismatch, 1);
       if (suppressUnknownSessionError) {
         logger.info("suppressed_invalid_checkpoint_err {}", e.problem().title());
       } else {
