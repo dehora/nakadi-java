@@ -32,7 +32,10 @@ class StreamBatchRecordBufferingSubscriber<T> extends
   @Override public void onNext(List<StreamBatchRecord<T>> records) {
     records.forEach(record -> {
       if (!record.streamBatch().isEmpty()) {
+        metricCollector.mark(MetricCollector.Meter.receivedBatch, 1);
         metricCollector.mark(MetricCollector.Meter.received, record.streamBatch().events().size());
+      } else {
+        metricCollector.mark(MetricCollector.Meter.receivedKeepalive, 1);
       }
       observer.onNext(record);
     });

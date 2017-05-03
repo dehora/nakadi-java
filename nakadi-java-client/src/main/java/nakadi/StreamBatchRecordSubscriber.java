@@ -36,7 +36,10 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
   @Override public void onNext(StreamBatchRecord<T> record) {
     logger.debug("StreamBatchRecordSubscriber.onNext");
     if (!record.streamBatch().isEmpty()) {
+      metricCollector.mark(MetricCollector.Meter.receivedBatch, 1);
       metricCollector.mark(MetricCollector.Meter.received, record.streamBatch().events().size());
+    } else {
+      metricCollector.mark(MetricCollector.Meter.receivedKeepalive, 1);
     }
     observer.onNext(record);
     // allow the observer to set back pressure by requesting a number of items

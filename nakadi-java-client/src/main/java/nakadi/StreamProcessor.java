@@ -273,7 +273,7 @@ public class StreamProcessor implements StreamProcessorManaged {
             StreamConnectionRetry.DEFAULT_TIME_UNIT)
         .maxInterval(maxRetryDelay, StreamConnectionRetry.DEFAULT_TIME_UNIT)
         .build(),
-        buildRetryFunction(streamConfiguration));
+        buildRetryFunction(streamConfiguration), client.metricCollector());
   }
 
   /*
@@ -323,6 +323,9 @@ public class StreamProcessor implements StreamProcessorManaged {
             streamConfiguration.streamLimit(), attemptCount);
         return true;
       }
+
+      client.metricCollector().mark(MetricCollector.Meter.streamRestart);
+
       return false;
     };
   }

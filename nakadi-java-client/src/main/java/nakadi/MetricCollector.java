@@ -59,24 +59,29 @@ public interface MetricCollector {
     streamRestart("nakadi.java.client.stream.event.restart"),
 
     /**
-     * Each time an event stream processor connection is retried.
+     * Each time an event stream or subscription processor connection is retried.
      */
-    streamRetry("nakadi.java.client.stream.event.retry"),
-
-    /**
-     * Each time the overall subscription stream processor is retried.
-     */
-    subscriptionRestart("nakadi.java.client.stream.subscription.restart"),
-
-    /**
-     * Each time a subscription stream processor connection is retried.
-     */
-    subscriptionRetry("nakadi.java.client.stream.subscription.retry"),
+    consumerRetry("nakadi.java.client.stream.consumer.retry"),
 
     /**
      * Each time an event is consumed from the stream.
      */
     received("nakadi.java.client.event.received"),
+
+    /**
+     * Each time a batch is consumed from the stream.
+     */
+    receivedBatch("nakadi.java.client.event.receivedBatch"),
+
+    /**
+     * Each time a batch keepalive is consumed from the stream.
+     */
+    receivedKeepalive("nakadi.java.client.event.receivedKeepalive"),
+
+    /**
+     * Each time the server rejects a checkpoint due to a bad session id.
+     */
+    sessionCheckpointMismatch("nakadi.java.client.event.sessionCheckpointMismatch"),
 
     /**
      * Each time an unknown error response is seen.
@@ -102,6 +107,11 @@ public interface MetricCollector {
      * Each time a 401 response is seen.
      */
     http401("nakadi.java.client.http.401"),
+
+    /**
+     * Each time a 403 response is seen.
+     */
+    http403("nakadi.java.client.http.403"),
 
     /**
      * Each time a 404 response is seen.
