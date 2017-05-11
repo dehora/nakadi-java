@@ -84,6 +84,11 @@ public interface MetricCollector {
     sessionCheckpointMismatch("nakadi.java.client.event.sessionCheckpointMismatch"),
 
     /**
+     * Each time the server rejects a checkpoint due to a network timeout.
+     */
+    sessionCheckpointNetworkException("nakadi.java.client.event.sessionCheckpointNetworkException"),
+
+    /**
      * Each time an unknown error response is seen.
      */
     httpUnknown("nakadi.java.client.http.error"),

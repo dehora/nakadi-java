@@ -10,6 +10,9 @@ import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
 public class SubscriptionOffsetCheckpointerTest {
 
@@ -33,6 +36,38 @@ public class SubscriptionOffsetCheckpointerTest {
       server.shutdown();
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  @Test
+  public void suppressesNetwork() throws InvalidException {
+
+    Cursor cursor = new Cursor("p", "o", "e");
+    final HashMap<String, String> context = Maps.newHashMap();
+    context.put(StreamResourceSupport.X_NAKADI_STREAM_ID, "aa");
+    context.put(StreamResourceSupport.SUBSCRIPTION_ID, "bb");
+    StreamCursorContext streamCursorContext = new StreamCursorContextReal(cursor, context);
+
+    SubscriptionOffsetCheckpointer checkpointer = new SubscriptionOffsetCheckpointer(client);
+    checkpointer = spy(checkpointer);
+    doThrow(NetworkException.class).when(checkpointer).checkpointInner(any(), any());
+
+    try {
+      checkpointer.checkpoint(streamCursorContext);
+      fail("expecting a network error");
+    } catch (NetworkException ignored) {
+    }
+
+    checkpointer = new SubscriptionOffsetCheckpointer(client).suppressNetworkException(true);
+    checkpointer = spy(checkpointer);
+    doThrow(new NetworkException(Problem.networkProblem("fake", "it")))
+        .when(checkpointer)
+        .checkpointInner(any(), any());
+
+    try {
+      checkpointer.checkpoint(streamCursorContext);
+    } catch (NetworkException e) {
+      fail(e.getMessage());
     }
   }
 
