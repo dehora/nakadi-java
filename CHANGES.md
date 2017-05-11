@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.8.1
+
+- Allows network errors on checkpoint requests to be suppressed. 
+
 ### 0.8.0
 
 - Promotes 0.7.13 to 0.8.0
