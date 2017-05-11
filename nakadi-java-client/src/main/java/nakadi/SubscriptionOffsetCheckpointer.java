@@ -11,7 +11,7 @@ public class SubscriptionOffsetCheckpointer {
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   private final NakadiClient client;
-  private boolean suppressingInvalidSessions;
+  private final boolean suppressingInvalidSessions;
 
   public SubscriptionOffsetCheckpointer(NakadiClient client) {
     this(client, false);
