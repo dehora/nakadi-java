@@ -1,6 +1,5 @@
 package nakadi;
 
-import com.google.common.base.MoreObjects;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,15 +10,49 @@ public class SubscriptionOffsetCheckpointer {
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   private final NakadiClient client;
-  private final boolean suppressingInvalidSessions;
+  private volatile boolean suppressInvalidSessionException;
+  private volatile boolean suppressNetworkException;
 
   public SubscriptionOffsetCheckpointer(NakadiClient client) {
-    this(client, false);
+    this.client = client;
   }
 
-  public SubscriptionOffsetCheckpointer(NakadiClient client, boolean suppressingInvalidSessions) {
+  /**
+   * This is deprecated and will be removed in 0.9.0. Prefer setting the
+   * {@link #suppressInvalidSessionException} method instead.
+   *
+   * @param client the client
+   * @param suppressingInvalidSessions whether or not to throw invalid session responses
+   */
+  @Deprecated
+  public SubscriptionOffsetCheckpointer(
+      NakadiClient client, @Deprecated boolean suppressingInvalidSessions) {
     this.client = client;
-    this.suppressingInvalidSessions = suppressingInvalidSessions;
+    this.suppressInvalidSessionException = suppressingInvalidSessions;
+  }
+
+  /**
+   * If true tells the checkpointer to suppress invalid session responses from the server instead
+   * of throwing {@link NetworkException}.
+   *
+   * @param suppressInvalidSessions whether or not to throw invalid session responses
+   * @return this
+   */
+  public SubscriptionOffsetCheckpointer suppressInvalidSessionException(boolean suppressInvalidSessions) {
+    this.suppressInvalidSessionException = suppressInvalidSessions;
+    return this;
+  }
+
+  /**
+   * If true tells the checkpointer to suppress network level errors via the server instead
+   * of throwing {@link InvalidException}.
+   *
+   * @param suppressNetworkException whether or not to throw network level exceptions
+   * @return this
+   */
+  public SubscriptionOffsetCheckpointer suppressNetworkException(boolean suppressNetworkException) {
+    this.suppressNetworkException = suppressNetworkException;
+    return this;
   }
 
   /**
@@ -29,22 +62,36 @@ public class SubscriptionOffsetCheckpointer {
    * @param context holds the cursor information.
    */
   public void checkpoint(StreamCursorContext context) {
-    checkpoint(context, suppressingInvalidSessions);
+    checkpointInner(context, suppressInvalidSessionException, suppressNetworkException);
   }
 
   /**
    * Ask the server to commit the supplied {@link StreamCursorContext} moving the subscription
    * offset to that point.
+   * <p>
+   *   This is deprecated and will be removed in 0.9.0. Prefer setting the
+   *   {@link #suppressInvalidSessionException} method instead and calling
+   *   {@link #checkpoint(StreamCursorContext)}.
+   * </p>
    *
    * @param context holds the cursor information.
    * @param suppressUnknownSessionError if true this will not throw 422 errors. See <a
    * href="https://github.com/zalando-incubator/nakadi-java/issues/117">issue 117</a> for details.
    */
+  @Deprecated
   public void checkpoint(StreamCursorContext context, boolean suppressUnknownSessionError) {
+    checkpointInner(context, suppressUnknownSessionError, suppressNetworkException);
+  }
+
+  private void checkpointInner(
+      StreamCursorContext context,
+      boolean suppressInvalidSessionException,
+      boolean suppressNetworkException)
+  {
     SubscriptionResource resource = client.resources().subscriptions();
 
     try {
-      final CursorCommitResultCollection ccr = checkpoint(context, resource);
+      final CursorCommitResultCollection ccr = checkpointInner(context, resource);
 
       if (!ccr.items().isEmpty()) {
         /*
@@ -75,10 +122,17 @@ public class SubscriptionOffsetCheckpointer {
       logger.warn("subscription_checkpoint_err " + e.getMessage(), e);
       throw e;
     } catch (InvalidException e) {
-      // todo: we need to get the server to send a specific problem, 422 is too broad
+      // todo: waiting on https://github.com/zalando/nakadi/issues/651 to provide a specific error
       client.metricCollector().mark(MetricCollector.Meter.sessionCheckpointMismatch, 1);
-      if (suppressUnknownSessionError) {
+      if (suppressInvalidSessionException) {
         logger.info("suppressed_invalid_checkpoint_err {}", e.problem().title());
+      } else {
+        throw e;
+      }
+    } catch (NetworkException e) {
+      client.metricCollector().mark(MetricCollector.Meter.sessionCheckpointNetworkException, 1);
+      if (suppressNetworkException) {
+        logger.info("suppressed_network_checkpoint_err {}", e.problem().title());
       } else {
         throw e;
       }
@@ -90,7 +144,7 @@ public class SubscriptionOffsetCheckpointer {
   }
 
   @VisibleForTesting
-  CursorCommitResultCollection checkpoint(
+  CursorCommitResultCollection checkpointInner(
       StreamCursorContext context, SubscriptionResource resource) {
     return resource.checkpoint(context.context(), context.cursor());
   }
@@ -108,26 +162,32 @@ public class SubscriptionOffsetCheckpointer {
   }
 
   @VisibleForTesting
-  boolean suppressingInvalidSessions() {
-    return suppressingInvalidSessions;
+  boolean suppressInvalidSessionException() {
+    return suppressInvalidSessionException;
+  }
+
+  @VisibleForTesting
+  boolean suppressNetworkException() {
+    return suppressNetworkException;
   }
 
   @Override public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("client", client)
-        .add("suppressingInvalidSessions", suppressingInvalidSessions)
-        .toString();
+    return "SubscriptionOffsetCheckpointer{" + "client=" + client +
+        ", suppressInvalidSessionException=" + suppressInvalidSessionException +
+        ", suppressNetworkException=" + suppressNetworkException +
+        '}';
   }
 
   @Override public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     SubscriptionOffsetCheckpointer that = (SubscriptionOffsetCheckpointer) o;
-    return suppressingInvalidSessions == that.suppressingInvalidSessions &&
+    return suppressInvalidSessionException == that.suppressInvalidSessionException &&
+        suppressNetworkException == that.suppressNetworkException &&
         Objects.equals(client, that.client);
   }
 
   @Override public int hashCode() {
-    return Objects.hash(client, suppressingInvalidSessions);
+    return Objects.hash(client, suppressInvalidSessionException, suppressNetworkException);
   }
 }
