@@ -80,6 +80,10 @@ implementations with larger dependencies, but which are idiomatic to certain
 frameworks, whereas the aim of nakadi-java is to provide a full client with a 
 reduced dependency footprint to allow portability. 
 
+Nakadi-java is designed for application development. If you're just looking to 
+for a quick way browse and examine steams, take a look at the excellent 
+[Peek library](https://github.com/zalando-incubator/peek).
+
 ## Requirements and Getting Started
 
 See the [installation section](#installation) on how to add the client library 
