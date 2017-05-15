@@ -4,6 +4,7 @@
 build/
 */**/Spike*
 client-spike
+spike**
 
 # Ignore Gradle GUI config
 gradle-app.setting
