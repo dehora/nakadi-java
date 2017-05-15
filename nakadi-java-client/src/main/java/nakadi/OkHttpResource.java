@@ -1,13 +1,10 @@
 package nakadi;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
-import io.reactivex.internal.schedulers.ExecutorScheduler;
 import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -333,11 +330,32 @@ class OkHttpResource implements Resource {
   }
 
   private <T> T handleError(Response response) {
-    String raw = response.responseBody().asString();
-    Problem problem = Optional.ofNullable(jsonSupport.fromJson(raw, Problem.class))
-        .orElse(Problem.noProblemo("no problem sent back from server", "", response.statusCode()));
+    String raw = null;
+    try {
+      raw = response.responseBody().asString();
+    } catch (ClientException e) {
+      return throwProblem(response.statusCode(), e.problem());
+    }
 
-    return throwProblem(response.statusCode(), problem);
+    Problem problem = jsonSupport.fromJson(raw, Problem.class);
+
+    if(problem == null) {
+      problem = Problem.noProblemo("no problem sent back from server", "", response.statusCode());
+    }
+
+    if(problem.status() == 0 && response.statusCode() == 400) {
+      // workaround for https://github.com/zalando/nakadi/issues/645
+      if(raw.contains("'accessToken' failed")) {
+        problem = Problem.authProblem("token_assumed_rejected",
+            "Inferred from invalid response there was a token issue, "
+                + "see https://github.com/zalando/nakadi/issues/645 raw_response="+raw);
+      }
+    }
+
+    problem = Optional.ofNullable(problem)
+        .orElse(Problem.noProblemo("no problem sent back from server", "", response.statusCode()));
+    // use problem status instead of http code, also a workaround for #nakadi/issues/645
+    return throwProblem(problem.status(), problem);
   }
 
   private <T> T throwProblem(int code, Problem problem) {

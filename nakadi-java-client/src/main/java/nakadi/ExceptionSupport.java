@@ -78,10 +78,15 @@ class ExceptionSupport {
         logger.warn("Rate limit exception: " + n.getMessage());
         return true;
       }
+
+      if (n instanceof AuthorizationException) {
+        logger.warn("retryable_auth_error exception: " + n.getMessage());
+        return true;
+      }
     }
 
     if (e instanceof IOException) {
-      logger.warn(String.format("Non-retryable  io exception %s", e.getMessage()));
+      logger.warn(String.format("Non-retryable io exception %s", e.getMessage()), e);
       return false; // todo: investigate if this can be retryable
     }
 
@@ -93,7 +98,7 @@ class ExceptionSupport {
     }
 
     logger.warn(
-        String.format("Non-retryable exception: %s %s", e.getClass(), e.getMessage()));
+        String.format("Non-retryable exception: %s %s", e.getClass(), e.getMessage()), e);
 
     return false; // likelihood is we'll be coming back here for a while qualifying errors.
   }
