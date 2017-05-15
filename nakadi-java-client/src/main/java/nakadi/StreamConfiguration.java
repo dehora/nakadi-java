@@ -37,9 +37,9 @@ public class StreamConfiguration {
   // local settings
   private long connectTimeout = 30_000L;
   private long readTimeout = 60_000L;
-  private long maxRetryDelay = StreamConnectionRetry.DEFAULT_MAX_DELAY_SECONDS;
-  private long minRetryDelay = StreamConnectionRetry.DEFAULT_MIN_DELAY_SECONDS;
-  private int maxRetryAttempts = StreamConnectionRetry.DEFAULT_MAX_ATTEMPTS;
+  private long maxRetryDelay = StreamConnectionRetryFlowable.DEFAULT_MAX_DELAY_SECONDS;
+  private long minRetryDelay = StreamConnectionRetryFlowable.DEFAULT_MIN_DELAY_SECONDS;
+  private int maxRetryAttempts = StreamConnectionRetryFlowable.DEFAULT_MAX_ATTEMPTS;
 
   public String eventTypeName() {
     return topic;

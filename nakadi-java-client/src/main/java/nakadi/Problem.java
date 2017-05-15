@@ -13,6 +13,8 @@ public class Problem {
 
   private static final URI DEFAULT_TYPE = URI.create("about:blank");
   private static final URI LOCAL_TYPE = URI.create("about:local");
+  private static final URI AUTH_TYPE = URI.create("about:auth");
+  private static final URI OBSERVER_TYPE = URI.create("about:observer");
   static final URI T1000_TYPE = URI.create("about:t1000");
   private static final URI CONTRACT_TYPE = URI.create("about:contract");
   private static final URI NETWORK_TYPE = URI.create("about:wire");
@@ -40,6 +42,31 @@ public class Problem {
         .data(SENTINEL_MAP)
         .status(400)
         .type(LOCAL_TYPE);
+  }
+
+  public static Problem authProblem(String title, String detail) {
+    return new Problem()
+        .title(title)
+        .detail(detail)
+        .data(SENTINEL_MAP)
+        .status(401)
+        .type(AUTH_TYPE);
+  }
+
+  /**
+   * Quick way to create a Problem object that indicates a stream observer throw an exception.
+   *
+   * @param title the problem title
+   * @param detail the problem detail
+   * @return a Problem object with a status of 500 and a type of "about:observer"
+   */
+  public static Problem observerProblem(String title, String detail) {
+    return new Problem()
+        .title(title)
+        .detail(detail)
+        .data(SENTINEL_MAP)
+        .status(400)
+        .type(OBSERVER_TYPE);
   }
 
   /**

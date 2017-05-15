@@ -22,6 +22,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 /**
  * API support for streaming events to a consumer.
  * <p>
@@ -53,12 +55,14 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final ExecutorService monoIoExecutor = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder()
           .setUncaughtExceptionHandler(
-              (t, e) -> logger.error("stream_processor_err_io {}, {}", t, e.getMessage(), e))
+              (t, e) -> logger.error(
+                  "stream_processor_err_io thread=" + t + " msg=" + e.getMessage(), e))
           .setNameFormat("nakadi-java-io-%d").build());
   private final ExecutorService monoComputeExecutor = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder()
           .setUncaughtExceptionHandler(
-              (t, e) -> logger.error("stream_processor_err_compute {}, {}", t, e.getMessage(), e))
+              (t, e) -> logger.error(
+                  "stream_processor_err_compute thread=" + t + " msg=" + e.getMessage(), e))
           .setNameFormat("nakadi-java-compute-%d").build());
   private final Scheduler monoIoScheduler = Schedulers.from(monoIoExecutor);
   private final Scheduler monoComputeScheduler=  Schedulers.from(monoComputeExecutor);
@@ -73,7 +77,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.streamOffsetObserver = null;
     this.streamProcessorExecutorService = null;
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
-    this.maxRetryDelay = StreamConnectionRetry.DEFAULT_MAX_DELAY_SECONDS;
+    this.maxRetryDelay = StreamConnectionRetryFlowable.DEFAULT_MAX_DELAY_SECONDS;
     this.scope = null;
     this.composite = new CompositeDisposable();
     startBlockingLatch = new CountDownLatch(1);
@@ -253,8 +257,35 @@ public class StreamProcessor implements StreamProcessorManaged {
         .doOnComplete(streamObserver::onCompleted)
         .doOnCancel(streamObserver::onStop)
         .timeout(halfOpenKick, halfOpenUnit)
+
+        // retryWhen(Function<? super Flowable<Throwable>,? extends org.reactivestreams.Publisher<?>> handler)
         .retryWhen(buildStreamConnectionRetryFlowable(streamConfiguration))
-        .compose(buildRestartHandler())
+        .repeatWhen(objectFlowable -> objectFlowable.flatMap(o -> {
+              logger.warn("repeatWhen " + objectFlowable);
+              return objectFlowable.delay(1000, MILLISECONDS);
+            }).takeUntil(o -> {
+              logger.warn("takeUntil " + o);
+              return true;
+            })
+        )
+
+
+        //.repeatWhen(new Function<Flowable<Object>, Publisher<?>>() {
+        //  @Override public Publisher<?> apply(Flowable<Object> flowable1) throws Exception {
+        //    logger.warn("repeatWhen ");
+        //    return flowable1.flatMap(o -> {
+        //      logger.warn("repeatWhen 1 " +o);
+        //          return Flowable.timer(3000, MILLISECONDS);
+        //        }
+        //
+        //    )
+        //        .takeUntil(s -> {
+        //          logger.warn("takeUntil "+s);
+        //
+        //        });
+        //  }
+        //})
+        //.compose(buildRestartHandler())
         /*
          todo: investigate why Integer.max causes
         io.reactivex.exceptions.UndeliverableException: java.lang.NegativeArraySizeException
@@ -268,30 +299,14 @@ public class StreamProcessor implements StreamProcessorManaged {
   private StreamConnectionRetryFlowable buildStreamConnectionRetryFlowable(
       StreamConfiguration streamConfiguration
   ) {
-    return new StreamConnectionRetryFlowable(ExponentialRetry.newBuilder()
-        .initialInterval(StreamConnectionRetry.DEFAULT_INITIAL_DELAY_SECONDS,
-            StreamConnectionRetry.DEFAULT_TIME_UNIT)
-        .maxInterval(maxRetryDelay, StreamConnectionRetry.DEFAULT_TIME_UNIT)
-        .build(),
-        buildRetryFunction(streamConfiguration), client.metricCollector());
-  }
-
-  /*
-  todo: fix for rxjava2 or remove
-  Since rxjava2 StreamConnectionRetry is failing to release each event
-  */
-  @Deprecated
-  private <T> FlowableTransformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRetryHandler(
-      StreamConfiguration streamConfiguration) {
-    TimeUnit unit = StreamConnectionRetry.DEFAULT_TIME_UNIT;
-    RetryPolicy backoff = ExponentialRetry.newBuilder()
-        .initialInterval(StreamConnectionRetry.DEFAULT_INITIAL_DELAY_SECONDS, unit)
-        .maxInterval(maxRetryDelay, unit)
+    final ExponentialRetry ebo = ExponentialRetry.newBuilder()
+        .initialInterval(StreamConnectionRetryFlowable.DEFAULT_INITIAL_DELAY_SECONDS,
+            StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
+        .maxInterval(maxRetryDelay, StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
         .build();
 
-    final Function<Throwable, Boolean> isRetryable = buildRetryFunction(streamConfiguration);
-    return new StreamConnectionRetry()
-        .retryWhenWithBackoffTransformer(backoff, monoIoScheduler, isRetryable);
+    return new StreamConnectionRetryFlowable(
+        ebo, buildRetryFunction(streamConfiguration), client.metricCollector());
   }
 
   private <T> FlowableTransformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRestartHandler() {
