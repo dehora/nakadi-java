@@ -334,10 +334,21 @@ class OkHttpResource implements Resource {
 
   private <T> T handleError(Response response) {
     String raw = response.responseBody().asString();
-    Problem problem = Optional.ofNullable(jsonSupport.fromJson(raw, Problem.class))
-        .orElse(Problem.noProblemo("no problem sent back from server", "", response.statusCode()));
+    Problem problem = jsonSupport.fromJson(raw, Problem.class);
 
-    return throwProblem(response.statusCode(), problem);
+    if(problem.status() == 0 && response.statusCode() == 400) {
+      // workaround for https://github.com/zalando/nakadi/issues/645
+      if(raw.contains("'accessToken' failed")) {
+        problem = Problem.authProblem("token_assumed_rejected",
+            "Inferred from invalid response there was a token issue, "
+                + "see https://github.com/zalando/nakadi/issues/645 raw_response="+raw);
+      }
+    }
+
+    problem = Optional.ofNullable(problem)
+        .orElse(Problem.noProblemo("no problem sent back from server", "", response.statusCode()));
+   // use problem status instead of http code, also a workaround for #nakadi/issues/645
+    return throwProblem(problem.status(), problem);
   }
 
   private <T> T throwProblem(int code, Problem problem) {

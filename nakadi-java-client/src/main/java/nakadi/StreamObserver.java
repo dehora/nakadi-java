@@ -36,8 +36,10 @@ public interface StreamObserver<T> {
 
   /**
    * Notifies the Observer that the {@link StreamProcessorManaged} has seen an error.
-   * <p>Once the {@link StreamProcessorManaged} calls this method, it will not call {@link #onNext}
-   * or {@link #onCompleted}.</p>
+   * <p>
+   *   Unhandled exceptions (those not extending  {@link NakadiException} or {@link Error})
+   *   from {@link #onNext(StreamBatchRecord)} may also be routed to this method.
+   * </p>
    *
    * @param t the exception sent by the {@link StreamProcessor}
    */
@@ -48,8 +50,19 @@ public interface StreamObserver<T> {
    *
    * <p>The {@link StreamProcessor} may call this method 0 to many times.</p>
    *
-   * <p>The {@link StreamProcessor} will not call this method once it calls either
-   * {@link #onCompleted} or {@link #onError}.</p>
+   * <p>
+   *  Exceptions extending {@link NakadiException} will be propagated through the stream
+   *  processor and can result in retries. Unhandled exceptions (not extending
+   *  {@link NakadiException}) may be routed to {@link #onError(Throwable)}, however all
+   *  {@link Error} exceptions are propagated and will force termination of the stream processor.
+   *  To force the stream processor to exit and not attempt a retry, an {@link ObserverCrash}
+   *  exception can be thrown from this method - this is useful when the application knows it
+   *  can't or must not continue processing the stream, or wishes to control stream processing
+   *  at a higher level (for example using a supervisor strategy).
+   * </p>
+   *
+   * <p>The {@link StreamProcessor} will not call this method again once it calls either
+   * {@link #onCompleted} or {@link #onError} before entering its retry loop.</p>
    *
    * @param record the emitted {@link StreamBatchRecord}
    */
