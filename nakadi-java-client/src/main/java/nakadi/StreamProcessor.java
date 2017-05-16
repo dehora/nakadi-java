@@ -360,28 +360,20 @@ public class StreamProcessor implements StreamProcessorManaged {
   Callable<Response> resourceFactory(StreamConfiguration sc) {
     return () -> {
 
-      String eventTypeName = "UNKNOWN";
-      try {
-        eventTypeName = resolveEventTypeName(sc);
-      } catch (NakadiException caughtForTesting) {
-        logger.error("failed to resolve subscription {} {}", caughtForTesting.getMessage(), sc);
-      }
-
-      String url = StreamResourceSupport.buildStreamUrl(client.baseURI(), sc);
+      final String url = StreamResourceSupport.buildStreamUrl(client.baseURI(), sc);
       ResourceOptions options = StreamResourceSupport.buildResourceOptions(client, sc, scope);
-      logger.info("stream_connection details mode={} resolved_event_name={} url={} scope={}",
+      logger.info("stream_connection details mode={} url={} scope={}",
           sc.isEventTypeStream() ? "eventStream" : "subscriptionStream",
-          eventTypeName,
           url,
           options.scope());
-      Resource resource = buildResource(sc);
+      final Resource resource = buildResource(sc);
       /*
        sometimes we can get a 409 from here (Conflict; No free slots) on the subscription; this
        can happen when we disconnect if we think there's a zombie connection and throw a timeout.
        the retry/restarts will handle it
       */
-      Response response = requestStreamConnection(url, options, resource);
-      logger.info("stream_connection opening {} {}", response.hashCode(), response);
+      final Response response = requestStreamConnection(url, options, resource);
+      logger.info("stream_connection_open opening {} {}", response.hashCode(), response);
       return response;
     };
   }
