@@ -17,15 +17,15 @@ public class StreamConfigurationTest {
     StreamConfiguration et = new StreamConfiguration();
     try {
       et.maxRetryDelay(
-          TimeUnit.SECONDS.toMillis(StreamConnectionRetry.DEFAULT_MIN_DELAY_SECONDS) - 1,
+          TimeUnit.SECONDS.toMillis(StreamConnectionRetryFlowable.DEFAULT_MIN_DELAY_SECONDS) - 1,
           TimeUnit.MILLISECONDS);
       fail("did not throw on very low max delay");
     } catch (IllegalArgumentException ignored) {
     }
 
-    et.maxRetryDelay(TimeUnit.SECONDS.toMillis(StreamConnectionRetry.DEFAULT_MIN_DELAY_SECONDS),
+    et.maxRetryDelay(TimeUnit.SECONDS.toMillis(StreamConnectionRetryFlowable.DEFAULT_MIN_DELAY_SECONDS),
         TimeUnit.MILLISECONDS);
-    et.maxRetryDelay(TimeUnit.SECONDS.toMillis(StreamConnectionRetry.DEFAULT_MIN_DELAY_SECONDS) + 1,
+    et.maxRetryDelay(TimeUnit.SECONDS.toMillis(StreamConnectionRetryFlowable.DEFAULT_MIN_DELAY_SECONDS) + 1,
         TimeUnit.MILLISECONDS);
   }
 

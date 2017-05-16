@@ -2,6 +2,7 @@ package nakadi;
 
 import io.reactivex.Flowable;
 import io.reactivex.functions.Function;
+import java.util.concurrent.TimeUnit;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,11 @@ public class StreamConnectionRetryFlowable implements
     Function<Flowable<? extends Throwable>, Publisher<Object>> {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
+  static int DEFAULT_INITIAL_DELAY_SECONDS = 1;
+  static int DEFAULT_MAX_DELAY_SECONDS = 8;
+  static int DEFAULT_MIN_DELAY_SECONDS = 1;
+  static int DEFAULT_MAX_ATTEMPTS = Integer.MAX_VALUE;
+  static TimeUnit DEFAULT_TIME_UNIT = TimeUnit.SECONDS;
 
   private final RetryPolicy backoff;
   private final Function<Throwable, Boolean> isRetryable;

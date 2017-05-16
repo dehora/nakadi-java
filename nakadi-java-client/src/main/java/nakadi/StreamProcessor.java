@@ -73,7 +73,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.streamOffsetObserver = null;
     this.streamProcessorExecutorService = null;
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
-    this.maxRetryDelay = StreamConnectionRetry.DEFAULT_MAX_DELAY_SECONDS;
+    this.maxRetryDelay = StreamConnectionRetryFlowable.DEFAULT_MAX_DELAY_SECONDS;
     this.scope = null;
     this.composite = new CompositeDisposable();
     startBlockingLatch = new CountDownLatch(1);
@@ -272,29 +272,11 @@ public class StreamProcessor implements StreamProcessorManaged {
       StreamConfiguration streamConfiguration
   ) {
     return new StreamConnectionRetryFlowable(ExponentialRetry.newBuilder()
-        .initialInterval(StreamConnectionRetry.DEFAULT_INITIAL_DELAY_SECONDS,
-            StreamConnectionRetry.DEFAULT_TIME_UNIT)
-        .maxInterval(maxRetryDelay, StreamConnectionRetry.DEFAULT_TIME_UNIT)
+        .initialInterval(StreamConnectionRetryFlowable.DEFAULT_INITIAL_DELAY_SECONDS,
+            StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
+        .maxInterval(maxRetryDelay, StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
         .build(),
         buildRetryFunction(streamConfiguration), client.metricCollector());
-  }
-
-  /*
-  todo: fix for rxjava2 or remove
-  Since rxjava2 StreamConnectionRetry is failing to release each event
-  */
-  @Deprecated
-  private <T> FlowableTransformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRetryHandler(
-      StreamConfiguration streamConfiguration) {
-    TimeUnit unit = StreamConnectionRetry.DEFAULT_TIME_UNIT;
-    RetryPolicy backoff = ExponentialRetry.newBuilder()
-        .initialInterval(StreamConnectionRetry.DEFAULT_INITIAL_DELAY_SECONDS, unit)
-        .maxInterval(maxRetryDelay, unit)
-        .build();
-
-    final Function<Throwable, Boolean> isRetryable = buildRetryFunction(streamConfiguration);
-    return new StreamConnectionRetry()
-        .retryWhenWithBackoffTransformer(backoff, monoIoScheduler, isRetryable);
   }
 
   private <T> FlowableTransformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRestartHandler() {
@@ -311,7 +293,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     if (sc.isSubscriptionStream()) {
       isRetryable = ExceptionSupport::isSubscriptionStreamRetryable;
     } else {
-      isRetryable = ExceptionSupport::isEventStreamRetryable;
+      isRetryable = ExceptionSupport::isRequestRetryable;
     }
     return isRetryable;
   }
@@ -441,16 +423,6 @@ public class StreamProcessor implements StreamProcessorManaged {
         .newResource()
         .readTimeout(sc.readTimeoutMillis(), TimeUnit.MILLISECONDS)
         .connectTimeout(sc.connectTimeoutMillis(), TimeUnit.MILLISECONDS);
-  }
-
-  private String resolveEventTypeName(StreamConfiguration sc) {
-    String eventTypeName;
-    if (!sc.isSubscriptionStream()) {
-      eventTypeName = sc.eventTypeName();
-    } else {
-      eventTypeName = findEventTypeNameForSubscription(sc);
-    }
-    return eventTypeName;
   }
 
   @VisibleForTesting

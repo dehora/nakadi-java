@@ -112,7 +112,7 @@ public class SubscriptionOffsetCheckpointer {
        * todo: we need to handle this, rethrow for now
        *
        * option most like is to go into a backoff and retry; we could wrap this up in an observable
-       * and use the {@link StreamConnectionRetry}. atm we're on the computation rx thread
+       * and use the {@link RequestRetry}. atm we're on the computation rx thread
        * so we won't hold up raw consumption on the io scheduler if we spin but we will block
        * onNext processing in the stream processor which is also on the computation scheduler.
        * remember we have either 60s or max_uncommitted_events to make progress on the limit before
