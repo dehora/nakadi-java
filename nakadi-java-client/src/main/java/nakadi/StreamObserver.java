@@ -1,6 +1,7 @@
 package nakadi;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Observer for batches of events.
@@ -36,8 +37,6 @@ public interface StreamObserver<T> {
 
   /**
    * Notifies the Observer that the {@link StreamProcessorManaged} has seen an error.
-   * <p>Once the {@link StreamProcessorManaged} calls this method, it will not call {@link #onNext}
-   * or {@link #onCompleted}.</p>
    *
    * @param t the exception sent by the {@link StreamProcessor}
    */
@@ -48,8 +47,14 @@ public interface StreamObserver<T> {
    *
    * <p>The {@link StreamProcessor} may call this method 0 to many times.</p>
    *
-   * <p>The {@link StreamProcessor} will not call this method once it calls either
-   * {@link #onCompleted} or {@link #onError}.</p>
+   * <p>
+   *  Exceptions thrown from this method will stop the {@link StreamProcessor}. Implementations
+   *  that want to suppress exceptions should catch and handle them, or throw
+   *  {@link RetryableException} which will be logged and consumed by the {@link StreamProcessor}.
+   * </p>
+   *
+   * <p>The {@link StreamProcessor} will not call this method again once it calls either
+   * {@link #onCompleted} or {@link #onError} before entering its retry loop.</p>
    *
    * @param record the emitted {@link StreamBatchRecord}
    */
