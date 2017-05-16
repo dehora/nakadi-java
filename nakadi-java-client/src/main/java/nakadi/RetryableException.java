@@ -6,21 +6,11 @@ package nakadi;
 public class RetryableException extends NakadiException {
 
   /**
-   * Create and throw a RetryableException with an underlying cause.
-   *
-   * @param cause the cause
-   */
-  public static void throwing(Throwable cause) {
-    throw new RetryableException(cause);
-  }
-
-  /**
    * @param cause the cause
    */
   public RetryableException(Throwable cause) {
     this(Problem.observerProblem("retryable_error", cause.getMessage()), cause);
   }
-
 
   /**
    * @param problem the Problem detail
@@ -37,4 +27,12 @@ public class RetryableException extends NakadiException {
     super(problem, cause);
   }
 
+  /**
+   * Create and throw a RetryableException with an underlying cause.
+   *
+   * @param cause the cause
+   */
+  public static void throwing(Throwable cause) {
+    throw new RetryableException(cause);
+  }
 }

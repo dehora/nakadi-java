@@ -32,6 +32,7 @@ public class EventTypeSchema {
 
   /**
    * The version of the schema used to validate this event.
+   *
    * @return the version.
    */
   @Experimental
@@ -47,6 +48,10 @@ public class EventTypeSchema {
     return createdAt;
   }
 
+  @Override public int hashCode() {
+    return Objects.hash(type, schema, version, createdAt);
+  }
+
   @Override public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
@@ -55,10 +60,6 @@ public class EventTypeSchema {
         Objects.equals(schema, that.schema) &&
         Objects.equals(version, that.version) &&
         Objects.equals(createdAt, that.createdAt);
-  }
-
-  @Override public int hashCode() {
-    return Objects.hash(type, schema, version, createdAt);
   }
 
   @Override public String toString() {

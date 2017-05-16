@@ -31,19 +31,9 @@ import org.slf4j.MDC;
 public class SecuritySupport {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
-
-  private static URL getResourceUrl(String resourceName) {
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    classLoader = classLoader == null ? SecuritySupport.class.getClassLoader() : classLoader;
-    URL url = classLoader.getResource(resourceName);
-    NakadiException.throwNonNull(url, "resource not found: "+ resourceName);
-    return url;
-  }
-
   private final String certificatePath;
   private SSLContext sslContext;
   private X509TrustManager trustManager;
-
   public SecuritySupport(String certificatePath) {
     try {
       MDC.put("security_context", "[security_support]");
@@ -52,6 +42,50 @@ public class SecuritySupport {
     } finally {
       MDC.remove("security_context");
     }
+  }
+
+  private static URL getResourceUrl(String resourceName) {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    classLoader = classLoader == null ? SecuritySupport.class.getClassLoader() : classLoader;
+    URL url = classLoader.getResource(resourceName);
+    NakadiException.throwNonNull(url, "resource not found: " + resourceName);
+    return url;
+  }
+
+  @VisibleForTesting
+  static Path resolvePath(String certificatePath) {
+    Path path;
+    if (certificatePath.startsWith("file:")) {
+      try {
+        logger.info("using file resolver for {}", certificatePath);
+        path = Paths.get(new URL(certificatePath).toURI());
+        if (!Files.exists(path)) {
+          throw new FileNotFoundException();
+        }
+        return path;
+      } catch (Exception e) {
+        throw new NakadiException(
+            Problem.localProblem("certificatePath resolver failed " + certificatePath,
+                e.getMessage()), e);
+      }
+    }
+
+    if (isClasspath(certificatePath)) {
+      logger.info("using classpath resolver for {}", certificatePath);
+      return Paths.get(getResourceUrl(classpathBareName(certificatePath)).getPath());
+    }
+
+    throw new NakadiException(
+        Problem.localProblem(
+            "certificatePath must start with file: or classpath: " + certificatePath, ""));
+  }
+
+  private static boolean isClasspath(String certificatePath) {
+    return certificatePath.startsWith("classpath:");
+  }
+
+  private static String classpathBareName(String certificatePath) {
+    return certificatePath.substring("classpath:".length(), certificatePath.length());
   }
 
   void applySslSocketFactory(OkHttpClient.Builder builder)
@@ -162,7 +196,8 @@ public class SecuritySupport {
               logger.info("ok, installed cert with alias {} from path {}", alias,
                   certPath.toRealPath());
             } catch (Exception e) {
-              logger.warn("error, skipping cert, path {} {}", certPath.toRealPath(), e.getMessage());
+              logger.warn("error, skipping cert, path {} {}", certPath.toRealPath(),
+                  e.getMessage());
             }
           } else {
             logger.info("skipping cert, not a regular file {}", certPath.toRealPath());
@@ -174,42 +209,6 @@ public class SecuritySupport {
     }
   }
 
-  @VisibleForTesting
-  static Path resolvePath(String certificatePath){
-    Path path;
-    if (certificatePath.startsWith("file:")) {
-      try {
-        logger.info("using file resolver for {}", certificatePath);
-        path = Paths.get(new URL(certificatePath).toURI());
-        if (!Files.exists(path)) {
-          throw new FileNotFoundException();
-        }
-        return path;
-      } catch (Exception e) {
-        throw new NakadiException(
-            Problem.localProblem("certificatePath resolver failed " + certificatePath,
-                e.getMessage()), e);
-      }
-    }
-
-    if (isClasspath(certificatePath)) {
-      logger.info("using classpath resolver for {}", certificatePath);
-      return Paths.get(getResourceUrl(classpathBareName(certificatePath)).getPath());
-    }
-
-    throw new NakadiException(
-        Problem.localProblem(
-            "certificatePath must start with file: or classpath: " + certificatePath, ""));
-  }
-
-  private static boolean isClasspath(String certificatePath) {
-    return certificatePath.startsWith("classpath:");
-  }
-
-  private static String classpathBareName(String certificatePath) {
-    return certificatePath.substring("classpath:".length(), certificatePath.length());
-  }
-
   public SSLContext sslContext() {
     return sslContext;
   }
@@ -217,6 +216,4 @@ public class SecuritySupport {
   public X509TrustManager trustManager() {
     return trustManager;
   }
-
-
 }

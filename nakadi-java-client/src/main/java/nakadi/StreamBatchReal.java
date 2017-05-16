@@ -27,9 +27,8 @@ class StreamBatchReal<T> implements StreamBatch<T> {
     return eventStreamBatch.isEmpty();
   }
 
-  @Override public String toString() {
-    return "StreamBatchReal{" + "eventStreamBatch=" + eventStreamBatch +
-        '}';
+  @Override public int hashCode() {
+    return Objects.hash(eventStreamBatch);
   }
 
   @Override public boolean equals(Object o) {
@@ -39,7 +38,8 @@ class StreamBatchReal<T> implements StreamBatch<T> {
     return Objects.equals(eventStreamBatch, that.eventStreamBatch);
   }
 
-  @Override public int hashCode() {
-    return Objects.hash(eventStreamBatch);
+  @Override public String toString() {
+    return "StreamBatchReal{" + "eventStreamBatch=" + eventStreamBatch +
+        '}';
   }
 }

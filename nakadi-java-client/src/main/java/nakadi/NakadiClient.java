@@ -7,9 +7,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import okhttp3.OkHttpClient;
-//import okhttp3.logging.HttpLoggingInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+//import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
  * A client which can be used to work with the server. Clients must be created via a builder.
@@ -18,8 +19,14 @@ import org.slf4j.LoggerFactory;
  */
 public class NakadiClient {
 
+  private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
+  private static final String VERSION = Version.VERSION;
+  static final String USER_AGENT = "nakadi-java/" + NakadiClient.VERSION;
   // capture some client side jvm data for diagnostics
   private static List<String> jvmData = new ArrayList<>();
+  static final String PLATFORM_DETAILS_JSON = GsonSupport.gsonCompressed()
+      .toJson(jvmData.stream().collect(Collectors.toMap(String::toString, System::getProperty)));
+
   static {
     jvmData.add("os.arch");
     jvmData.add("os.name");
@@ -30,11 +37,6 @@ public class NakadiClient {
     jvmData.add("java.vm.version");
   }
 
-  static final String PLATFORM_DETAILS_JSON = GsonSupport.gsonCompressed()
-      .toJson(jvmData.stream().collect(Collectors.toMap(String::toString, System::getProperty)));
-  private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
-  private static final String VERSION = Version.VERSION;
-  static final String USER_AGENT = "nakadi-java/" + NakadiClient.VERSION;
   private final URI baseURI;
   private final JsonSupport jsonSupport;
   private final ResourceProvider resourceProvider;
@@ -157,7 +159,7 @@ public class NakadiClient {
       metricCollector = new MetricCollectorSafely(metricCollector);
 
       if (resourceProvider == null) {
-        resourceProvider =  buildResourceProvider();
+        resourceProvider = buildResourceProvider();
       }
 
       return new NakadiClient(this);
@@ -168,7 +170,7 @@ public class NakadiClient {
           .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
           .readTimeout(readTimeout, TimeUnit.MILLISECONDS);
 
-      if(certificatePath != null) {
+      if (certificatePath != null) {
         new SecuritySupport(certificatePath).applySslSocketFactory(builder);
       }
 

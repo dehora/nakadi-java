@@ -163,11 +163,9 @@ public interface EventTypeResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException;
 
-
   /**
-   * @return the event type schemas for the event type.
-   *
    * @param eventTypeName the event type
+   * @return the event type schemas for the event type.
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
    * @throws ServerException for a 400 or generic client error
@@ -207,5 +205,4 @@ public interface EventTypeResource {
    * @return the result from the server.
    */
   PartitionCollection lag(String eventTypeName, List<Cursor> cursors);
-
 }

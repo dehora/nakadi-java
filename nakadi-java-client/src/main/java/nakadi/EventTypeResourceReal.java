@@ -131,7 +131,11 @@ class EventTypeResourceReal implements EventTypeResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
     final String url =
-        collectionUri().path(eventTypeName).path(PATH_PARTITIONS).path(partitionId).query(params).buildString();
+        collectionUri().path(eventTypeName)
+            .path(PATH_PARTITIONS)
+            .path(partitionId)
+            .query(params)
+            .buildString();
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
     return client.resourceProvider()
         .newResource()
@@ -195,7 +199,7 @@ class EventTypeResourceReal implements EventTypeResource {
   }
 
   String applyScope(String fallbackScope) {
-    return scope == null ? fallbackScope: scope;
+    return scope == null ? fallbackScope : scope;
   }
 
   EventTypeCollection loadPage(String url) {
@@ -277,6 +281,4 @@ class EventTypeResourceReal implements EventTypeResource {
       return items;
     }
   }
-
-
 }

@@ -39,7 +39,7 @@ public class EventType {
   /**
    * Set  the event type name.
    *
-   * @param name  the event type name
+   * @param name the event type name
    * @return this
    */
   public EventType name(String name) {
@@ -87,7 +87,7 @@ public class EventType {
   }
 
   /**
-   * @return  The enrichments for the event type
+   * @return The enrichments for the event type
    */
   public List<String> enrichmentStrategies() {
     return enrichmentStrategies;
@@ -103,7 +103,7 @@ public class EventType {
   /**
    * Set  the partition strategy for the event type.
    *
-   * @param partitionStrategy  the partition strategy for the event type
+   * @param partitionStrategy the partition strategy for the event type
    * @return this
    */
   public EventType partitionStrategy(String partitionStrategy) {
@@ -145,7 +145,8 @@ public class EventType {
    * @return this
    */
   public EventType partitionKeyFields(String... partitionKeyFields) {
-    NakadiException.throwNonNull(partitionKeyFields, "Please provide non-null partition key fields");
+    NakadiException.throwNonNull(partitionKeyFields,
+        "Please provide non-null partition key fields");
     this.partitionKeyFields = Arrays.asList(partitionKeyFields);
     return this;
   }
@@ -179,7 +180,7 @@ public class EventType {
   /**
    * Add to the enrichment strategies for the event type.
    *
-   * @param enrichmentStrategies   the enrichment strategies for the event type
+   * @param enrichmentStrategies the enrichment strategies for the event type
    * @return this.
    */
   public EventType enrichmentStrategies(String... enrichmentStrategies) {
@@ -192,11 +193,12 @@ public class EventType {
   /**
    * Add an enrichment strategy for the event type.
    *
-   * @param enrichmentStrategy  an enrichment strategy for the event type
+   * @param enrichmentStrategy an enrichment strategy for the event type
    * @return this.
    */
   public EventType enrichmentStrategy(String enrichmentStrategy) {
-    NakadiException.throwNonNull(enrichmentStrategy, "Please provide a non-null enrichment strategy");
+    NakadiException.throwNonNull(enrichmentStrategy,
+        "Please provide a non-null enrichment strategy");
     this.enrichmentStrategies.add(enrichmentStrategy);
     return this;
   }
@@ -211,7 +213,7 @@ public class EventType {
   /**
    * Add one or more read scopes.
    *
-    * @param readScopes the read scopes
+   * @param readScopes the read scopes
    * @return this
    */
   public EventType readScopes(String... readScopes) {
@@ -278,6 +280,12 @@ public class EventType {
     return updatedAt;
   }
 
+  @Override public int hashCode() {
+    return Objects.hash(enrichmentStrategies, name, owningApplication, category, partitionStrategy,
+        schema, partitionKeyFields, eventTypeStatistics, options, readScopes, writeScopes,
+        compatibilityMode);
+  }
+
   @Override public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
@@ -294,12 +302,6 @@ public class EventType {
         Objects.equals(readScopes, eventType.readScopes) &&
         Objects.equals(writeScopes, eventType.writeScopes) &&
         Objects.equals(compatibilityMode, eventType.compatibilityMode);
-  }
-
-  @Override public int hashCode() {
-    return Objects.hash(enrichmentStrategies, name, owningApplication, category, partitionStrategy,
-        schema, partitionKeyFields, eventTypeStatistics, options, readScopes, writeScopes,
-        compatibilityMode);
   }
 
   @Override public String toString() {

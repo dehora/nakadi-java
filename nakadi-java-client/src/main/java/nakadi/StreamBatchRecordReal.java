@@ -40,12 +40,9 @@ class StreamBatchRecordReal<T> implements StreamBatchRecord<T> {
     return streamOffsetObserver;
   }
 
-  @Override public String toString() {
-    return "StreamBatchRecordReal{" + "streamBatchRecord=" + streamBatchRecord +
-        ", streamCursorContext=" + streamCursorContext +
-        ", streamOffsetObserver=" + streamOffsetObserver +
-        ", streamIdHeader='" + streamIdHeader + '\'' +
-        '}';
+  @Override public int hashCode() {
+    return Objects.hash(streamBatchRecord, streamCursorContext, streamOffsetObserver,
+        streamIdHeader);
   }
 
   @Override public boolean equals(Object o) {
@@ -58,8 +55,11 @@ class StreamBatchRecordReal<T> implements StreamBatchRecord<T> {
         Objects.equals(streamIdHeader, that.streamIdHeader);
   }
 
-  @Override public int hashCode() {
-    return Objects.hash(streamBatchRecord, streamCursorContext, streamOffsetObserver,
-        streamIdHeader);
+  @Override public String toString() {
+    return "StreamBatchRecordReal{" + "streamBatchRecord=" + streamBatchRecord +
+        ", streamCursorContext=" + streamCursorContext +
+        ", streamOffsetObserver=" + streamOffsetObserver +
+        ", streamIdHeader='" + streamIdHeader + '\'' +
+        '}';
   }
 }

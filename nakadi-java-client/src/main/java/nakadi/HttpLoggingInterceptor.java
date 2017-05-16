@@ -39,25 +39,13 @@ import static okhttp3.internal.platform.Platform.INFO;
 
 /**
  * An OkHttp interceptor which logs request and response information but elides the Auth header.
- * A clone of okhttp's HttpLoggingInterceptor 
+ * A clone of okhttp's HttpLoggingInterceptor
  */
 final class HttpLoggingInterceptor implements Interceptor {
-  
+
   private static final Charset UTF8 = Charset.forName("UTF-8");
-
-  public enum Level {
-    NONE,
-    BASIC,
-    HEADERS,
-    BODY
-  }
-
-  public interface Logger {
-    void log(String message);
-
-    okhttp3.logging.HttpLoggingInterceptor.Logger
-        DEFAULT = message -> Platform.get().log(INFO, message, null);
-  }
+  private final okhttp3.logging.HttpLoggingInterceptor.Logger logger;
+  private volatile Level level = Level.NONE;
 
   public HttpLoggingInterceptor() {
     this(okhttp3.logging.HttpLoggingInterceptor.Logger.DEFAULT);
@@ -67,18 +55,34 @@ final class HttpLoggingInterceptor implements Interceptor {
     this.logger = logger;
   }
 
-  private final okhttp3.logging.HttpLoggingInterceptor.Logger logger;
+  static boolean isPlaintext(Buffer buffer) {
+    try {
+      Buffer prefix = new Buffer();
+      long byteCount = buffer.size() < 64 ? buffer.size() : 64;
+      buffer.copyTo(prefix, 0, byteCount);
+      for (int i = 0; i < 16; i++) {
+        if (prefix.exhausted()) {
+          break;
+        }
+        int codePoint = prefix.readUtf8CodePoint();
+        if (Character.isISOControl(codePoint) && !Character.isWhitespace(codePoint)) {
+          return false;
+        }
+      }
+      return true;
+    } catch (EOFException e) {
+      return false;
+    }
+  }
 
-  private volatile Level level = Level.NONE;
+  public Level getLevel() {
+    return level;
+  }
 
   public HttpLoggingInterceptor setLevel(Level level) {
     if (level == null) throw new NullPointerException("level == null. Use Level.NONE instead.");
     this.level = level;
     return this;
-  }
-
-  public Level getLevel() {
-    return level;
   }
 
   @Override public Response intercept(Chain chain) throws IOException {
@@ -118,7 +122,7 @@ final class HttpLoggingInterceptor implements Interceptor {
         String name = headers.name(i);
         // Skip headers from the request body as they are explicitly logged above.
         if (!"Content-Type".equalsIgnoreCase(name) && !"Content-Length".equalsIgnoreCase(name)) {
-          if("Authorization".equalsIgnoreCase(name)) {
+          if ("Authorization".equalsIgnoreCase(name)) {
             logger.log(name + ": ********");
           } else {
             logger.log(name + ": " + headers.value(i));
@@ -173,7 +177,7 @@ final class HttpLoggingInterceptor implements Interceptor {
       Headers headers = response.headers();
       for (int i = 0, count = headers.size(); i < count; i++) {
 
-        if("Authorization".equalsIgnoreCase(headers.name(i))) {
+        if ("Authorization".equalsIgnoreCase(headers.name(i))) {
           logger.log(headers.name(i) + ": ********");
         } else {
           logger.log(headers.name(i) + ": " + headers.value(i));
@@ -221,28 +225,22 @@ final class HttpLoggingInterceptor implements Interceptor {
     return response;
   }
 
-  static boolean isPlaintext(Buffer buffer) {
-    try {
-      Buffer prefix = new Buffer();
-      long byteCount = buffer.size() < 64 ? buffer.size() : 64;
-      buffer.copyTo(prefix, 0, byteCount);
-      for (int i = 0; i < 16; i++) {
-        if (prefix.exhausted()) {
-          break;
-        }
-        int codePoint = prefix.readUtf8CodePoint();
-        if (Character.isISOControl(codePoint) && !Character.isWhitespace(codePoint)) {
-          return false;
-        }
-      }
-      return true;
-    } catch (EOFException e) {
-      return false;
-    }
-  }
-
   private boolean bodyEncoded(Headers headers) {
     String contentEncoding = headers.get("Content-Encoding");
     return contentEncoding != null && !contentEncoding.equalsIgnoreCase("identity");
+  }
+
+  public enum Level {
+    NONE,
+    BASIC,
+    HEADERS,
+    BODY
+  }
+
+  public interface Logger {
+    okhttp3.logging.HttpLoggingInterceptor.Logger
+        DEFAULT = message -> Platform.get().log(INFO, message, null);
+
+    void log(String message);
   }
 }

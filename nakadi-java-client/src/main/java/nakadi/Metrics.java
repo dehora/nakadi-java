@@ -6,7 +6,7 @@ import java.util.Map;
  * Represents API server metrics.
  *
  * <p>
- *   The api definition is an empty object, the JSON data is placed into the {@link #items} field
+ * The api definition is an empty object, the JSON data is placed into the {@link #items} field
  * </p>
  */
 public class Metrics {

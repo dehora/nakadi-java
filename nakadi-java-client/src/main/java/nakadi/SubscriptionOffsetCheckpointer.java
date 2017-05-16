@@ -38,7 +38,8 @@ public class SubscriptionOffsetCheckpointer {
    * @param suppressInvalidSessions whether or not to throw invalid session responses
    * @return this
    */
-  public SubscriptionOffsetCheckpointer suppressInvalidSessionException(boolean suppressInvalidSessions) {
+  public SubscriptionOffsetCheckpointer suppressInvalidSessionException(
+      boolean suppressInvalidSessions) {
     this.suppressInvalidSessionException = suppressInvalidSessions;
     return this;
   }
@@ -69,9 +70,9 @@ public class SubscriptionOffsetCheckpointer {
    * Ask the server to commit the supplied {@link StreamCursorContext} moving the subscription
    * offset to that point.
    * <p>
-   *   This is deprecated and will be removed in 0.9.0. Prefer setting the
-   *   {@link #suppressInvalidSessionException} method instead and calling
-   *   {@link #checkpoint(StreamCursorContext)}.
+   * This is deprecated and will be removed in 0.9.0. Prefer setting the
+   * {@link #suppressInvalidSessionException} method instead and calling
+   * {@link #checkpoint(StreamCursorContext)}.
    * </p>
    *
    * @param context holds the cursor information.
@@ -86,8 +87,7 @@ public class SubscriptionOffsetCheckpointer {
   private void checkpointInner(
       StreamCursorContext context,
       boolean suppressInvalidSessionException,
-      boolean suppressNetworkException)
-  {
+      boolean suppressNetworkException) {
     SubscriptionResource resource = client.resources().subscriptions();
 
     try {
@@ -171,11 +171,8 @@ public class SubscriptionOffsetCheckpointer {
     return suppressNetworkException;
   }
 
-  @Override public String toString() {
-    return "SubscriptionOffsetCheckpointer{" + "client=" + client +
-        ", suppressInvalidSessionException=" + suppressInvalidSessionException +
-        ", suppressNetworkException=" + suppressNetworkException +
-        '}';
+  @Override public int hashCode() {
+    return Objects.hash(client, suppressInvalidSessionException, suppressNetworkException);
   }
 
   @Override public boolean equals(Object o) {
@@ -187,7 +184,10 @@ public class SubscriptionOffsetCheckpointer {
         Objects.equals(client, that.client);
   }
 
-  @Override public int hashCode() {
-    return Objects.hash(client, suppressInvalidSessionException, suppressNetworkException);
+  @Override public String toString() {
+    return "SubscriptionOffsetCheckpointer{" + "client=" + client +
+        ", suppressInvalidSessionException=" + suppressInvalidSessionException +
+        ", suppressNetworkException=" + suppressNetworkException +
+        '}';
   }
 }

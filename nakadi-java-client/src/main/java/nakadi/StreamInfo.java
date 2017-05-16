@@ -15,7 +15,8 @@ public class StreamInfo {
    */
   public Map<String, Object> data() {
     //todo: map this as per metrics, server defintion is an empty object
-    throw new UnsupportedOperationException("StreamInfo has no definition, needs a custom serializer");
+    throw new UnsupportedOperationException(
+        "StreamInfo has no definition, needs a custom serializer");
   }
 
   @Override public int hashCode() {

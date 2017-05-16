@@ -79,7 +79,8 @@ class EventMappedSupport {
     }
   }
 
-  static <T> BusinessEventMapped<T> marshalBusinessEventMapped(String raw, Type type, JsonSupport jsonSupport) {
+  static <T> BusinessEventMapped<T> marshalBusinessEventMapped(String raw, Type type,
+      JsonSupport jsonSupport) {
 
     if (!EventMappedSupport.isAssignableFrom(type, BusinessEventMapped.class)) {
       throw new IllegalArgumentException(
@@ -103,12 +104,10 @@ class EventMappedSupport {
       Type serdeType = actualTypeArguments[0];
       T data = gson.fromJson(jo, serdeType);
       return new BusinessEventMapped<>(data, metadata);
-
     } else {
       throw new IllegalArgumentException(
           "Supplied type must be a parameterized BusinessEventMapped"
               + type.getTypeName());
     }
-
   }
 }

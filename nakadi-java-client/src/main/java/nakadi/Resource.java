@@ -43,9 +43,9 @@ public interface Resource {
    * requests. Exceptions are thrown for HTTP level errors (4xx and 5xx).
    *
    * <p>
-   *   It is the responsibility of callers to call {@link Response} {@link ResponseBody#close()}
-   *   to dispose of the underlying HTTP resource if they do not use
-   *   {@link ResponseBody#asString(), which will automatically dispose of the connection.
+   * It is the responsibility of callers to call {@link Response} {@link ResponseBody#close()}
+   * to dispose of the underlying HTTP resource if they do not use
+   * {@link ResponseBody#asString(), which will automatically dispose of the connection.
    * </p>
    *
    * @param method the http method
@@ -70,9 +70,9 @@ public interface Resource {
    * The serialization assumes the output is JSON for now which is ok for the current API.
    *
    * <p>
-   *   It is the responsibility of callers to call {@link Response} {@link ResponseBody#close()}
-   *   to dispose of the underlying HTTP resource if they do not use
-   *   {@link ResponseBody#asString(), which will automatically dispose of the connection.
+   * It is the responsibility of callers to call {@link Response} {@link ResponseBody#close()}
+   * to dispose of the underlying HTTP resource if they do not use
+   * {@link ResponseBody#asString(), which will automatically dispose of the connection.
    * </p>
    *
    * @param method the http method
@@ -97,14 +97,14 @@ public interface Resource {
    * posting events.
    *
    * <p>
-   *   If the server returns 422 or 207 indicating partial failures, errors are not thrown.
-   *   Instead callers can inspect the response body for an array of batch item responses.
+   * If the server returns 422 or 207 indicating partial failures, errors are not thrown.
+   * Instead callers can inspect the response body for an array of batch item responses.
    * </p>
    *
    * <p>
-   *   It is the responsibility of callers to call {@link Response} {@link ResponseBody#close()}
-   *   to dispose of the underlying HTTP resource if they do not use
-   *   {@link ResponseBody#asString(), which will automatically dispose of the connection.
+   * It is the responsibility of callers to call {@link Response} {@link ResponseBody#close()}
+   * to dispose of the underlying HTTP resource if they do not use
+   * {@link ResponseBody#asString(), which will automatically dispose of the connection.
    * </p>
    *
    * @param url the resource url
@@ -144,7 +144,8 @@ public interface Resource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException;
 
-  <Req, Res> Res requestThrowing(String method, String url, ResourceOptions options, Req body, Class<Res> res)
+  <Req, Res> Res requestThrowing(String method, String url, ResourceOptions options, Req body,
+      Class<Res> res)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException;
 }

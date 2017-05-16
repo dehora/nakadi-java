@@ -127,6 +127,20 @@ class SubscriptionResourceReal implements SubscriptionResource {
     return checkpoint(retryPolicy, context, cursors);
   }
 
+  @Override public SubscriptionCursorCollection cursors(String id)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, NakadiException {
+    NakadiException.throwNonNull(id, "Please provide an id");
+    return loadCursorPage(collectionUri().path(id).path(PATH_CURSORS).buildString());
+  }
+
+  @Override public SubscriptionEventTypeStatsCollection stats(String id)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, NakadiException {
+    NakadiException.throwNonNull(id, "Please provide an id");
+    return loadStatsPage(collectionUri().path(id).path(PATH_STATS).buildString());
+  }
+
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
   CursorCommitResultCollection checkpoint(RetryPolicy backoff, Map<String, String> context,
       Cursor... cursors) {
@@ -173,7 +187,8 @@ class SubscriptionResourceReal implements SubscriptionResource {
       }
     }
 
-    logger.info("subscription_checkpoint request_time_millis={} response {}", TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS), response);
+    logger.info("subscription_checkpoint request_time_millis={} response {}",
+        TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS), response);
 
     if (response.statusCode() == 204) {
       return sentinelCursorCommitResultCollection;
@@ -188,20 +203,6 @@ class SubscriptionResourceReal implements SubscriptionResource {
     // success but not expected, throw this to signal
     throw new ContractException(Problem.contractProblem(
         "Success committing cursor with unexpected code", "response: " + response));
-  }
-
-  @Override public SubscriptionCursorCollection cursors(String id)
-      throws AuthorizationException, ClientException, ServerException, InvalidException,
-      RateLimitException, NakadiException {
-    NakadiException.throwNonNull(id, "Please provide an id");
-    return loadCursorPage(collectionUri().path(id).path(PATH_CURSORS).buildString());
-  }
-
-  @Override public SubscriptionEventTypeStatsCollection stats(String id)
-      throws AuthorizationException, ClientException, ServerException, InvalidException,
-      RateLimitException, NakadiException {
-    NakadiException.throwNonNull(id, "Please provide an id");
-    return loadStatsPage(collectionUri().path(id).path(PATH_STATS).buildString());
   }
 
   SubscriptionEventTypeStatsCollection loadStatsPage(String url) {

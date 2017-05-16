@@ -19,5 +19,4 @@ public interface Event<T> {
    * @return the custom data
    */
   T data();
-
 }

@@ -36,11 +36,6 @@ public class EventResourceReal implements EventResource {
     this.client = client;
   }
 
-  @Override public EventResource retryPolicy(RetryPolicy retryPolicy) {
-    this.retryPolicy = retryPolicy;
-    return this;
-  }
-
   private static Response timed(Supplier<Response> sender, NakadiClient client, int eventCount) {
     long start = System.nanoTime();
     Response response = null;
@@ -66,22 +61,13 @@ public class EventResourceReal implements EventResource {
     }
   }
 
-  @Override
-  public <T> Response send(String eventTypeName, T event) {
-    NakadiException.throwNonNull(eventTypeName, "Please provide an event type name");
-    NakadiException.throwNonNull(event, "Please provide an event");
-
-    if(event instanceof String) {
-      return sendUsingSupplier(eventTypeName, () -> ("[" + event + "]").getBytes(Charsets.UTF_8));
-    } else {
-      ArrayList<T> events = new ArrayList<>(1);
-      Collections.addAll(events, event);
-      return send(eventTypeName, events);
-    }
-  }
-
   @Override public EventResource scope(String scope) {
     this.scope = scope;
+    return this;
+  }
+
+  @Override public EventResource retryPolicy(RetryPolicy retryPolicy) {
+    this.retryPolicy = retryPolicy;
     return this;
   }
 
@@ -105,14 +91,28 @@ public class EventResourceReal implements EventResource {
     }
   }
 
+  @Override
+  public <T> Response send(String eventTypeName, T event) {
+    NakadiException.throwNonNull(eventTypeName, "Please provide an event type name");
+    NakadiException.throwNonNull(event, "Please provide an event");
+
+    if (event instanceof String) {
+      return sendUsingSupplier(eventTypeName, () -> ("[" + event + "]").getBytes(Charsets.UTF_8));
+    } else {
+      ArrayList<T> events = new ArrayList<>(1);
+      Collections.addAll(events, event);
+      return send(eventTypeName, events);
+    }
+  }
+
   @Override public <T> BatchItemResponseCollection sendBatch(String eventTypeName, List<T> events) {
     Response send = send(eventTypeName, events);
     List<BatchItemResponse> items = Lists.newArrayList();
 
     if (send.statusCode() == 207 || send.statusCode() == 422) {
-      try(ResponseBody responseBody = send.responseBody()) {
+      try (ResponseBody responseBody = send.responseBody()) {
         items.addAll(client.jsonSupport().fromJson(responseBody.asReader(), TYPE_BIR));
-      } catch(IOException e) {
+      } catch (IOException e) {
         logger.error("Error handling BatchItemResponse " + e.getMessage(), e);
       }
     }

@@ -30,8 +30,8 @@ public class HealthCheckResource {
     return resource
         .retryPolicy(retryPolicy)
         .request("GET",
-        UriBuilder.builder(client.baseURI()).path("health").buildString(),
-        ResourceSupport.options("*/*").tokenProvider(client.resourceTokenProvider()));
+            UriBuilder.builder(client.baseURI()).path("health").buildString(),
+            ResourceSupport.options("*/*").tokenProvider(client.resourceTokenProvider()));
   }
 
   /**
@@ -53,8 +53,8 @@ public class HealthCheckResource {
     return resource
         .retryPolicy(retryPolicy)
         .requestThrowing("GET",
-        UriBuilder.builder(client.baseURI()).path("health").buildString(),
-        ResourceSupport.options("*/*").tokenProvider(client.resourceTokenProvider()),
-        Response.class);
+            UriBuilder.builder(client.baseURI()).path("health").buildString(),
+            ResourceSupport.options("*/*").tokenProvider(client.resourceTokenProvider()),
+            Response.class);
   }
 }

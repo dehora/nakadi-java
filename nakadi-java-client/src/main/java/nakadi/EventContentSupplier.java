@@ -1,7 +1,6 @@
 package nakadi;
 
-@FunctionalInterface
-interface EventContentSupplier {
+@FunctionalInterface interface EventContentSupplier {
 
   byte[] content();
 }

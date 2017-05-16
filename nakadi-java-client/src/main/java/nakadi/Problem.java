@@ -11,10 +11,10 @@ import java.util.Optional;
  */
 public class Problem {
 
+  static final URI T1000_TYPE = URI.create("about:t1000");
   private static final URI DEFAULT_TYPE = URI.create("about:blank");
   private static final URI LOCAL_TYPE = URI.create("about:local");
   private static final URI AUTH_TYPE = URI.create("about:auth");
-  static final URI T1000_TYPE = URI.create("about:t1000");
   private static final URI CONTRACT_TYPE = URI.create("about:contract");
   private static final URI CONTRACT_RETRYABLE_TYPE = URI.create("about:contract_retryable");
   private static final URI OBSERVER_TYPE = URI.create("about:observer");

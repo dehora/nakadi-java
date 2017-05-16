@@ -67,7 +67,6 @@ public class EventMetadata {
   }
 
   /**
-   *
    * @return the time of the event according to the producer
    */
   public OffsetDateTime occurredAt() {
@@ -164,6 +163,7 @@ public class EventMetadata {
 
   /**
    * The version of the schema used to validate this event.
+   *
    * @return the version.
    */
   @Experimental

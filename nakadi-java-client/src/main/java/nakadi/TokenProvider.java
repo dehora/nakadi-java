@@ -21,5 +21,4 @@ public interface TokenProvider {
    * Authorization header being set
    */
   Optional<String> authHeaderValue(String scope);
-
 }

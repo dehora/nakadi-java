@@ -11,7 +11,8 @@ import org.slf4j.LoggerFactory;
 public class LoggingDataChangeEventObserver
     extends StreamObserverBackPressure<DataChangeEvent<Map<String, Object>>> {
 
-  private static final Logger logger = LoggerFactory.getLogger(LoggingDataChangeEventObserver.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(LoggingDataChangeEventObserver.class);
 
   @Override public void onStart() {
     logger.info("onStart");

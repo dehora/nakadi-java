@@ -51,7 +51,7 @@ public class DataChangeEvent<T> implements Event<T> {
   /**
    * Set  the data operation.
    *
-   * @param op  the data operation
+   * @param op the data operation
    * @return this
    */
   public DataChangeEvent<T> op(Op op) {
@@ -69,7 +69,7 @@ public class DataChangeEvent<T> implements Event<T> {
   /**
    * Set  the event data.
    *
-   * @param data  the event data
+   * @param data the event data
    * @return this
    */
   public DataChangeEvent<T> data(T data) {
