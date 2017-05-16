@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.8.4 
+
+- Removes event type API lookup used for logging subscription consumer details.
+- Close stream response bodies at the stream iterator layer to avoid lingering connections.
+- Tidies up stream consumer logging with easier to grep strings.
+
 ### 0.8.3 
 
 - Avoids nulls when logging checkpoint suppressions.
