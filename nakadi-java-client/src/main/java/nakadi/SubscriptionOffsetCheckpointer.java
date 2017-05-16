@@ -125,14 +125,14 @@ public class SubscriptionOffsetCheckpointer {
       // todo: waiting on https://github.com/zalando/nakadi/issues/651 to provide a specific error
       client.metricCollector().mark(MetricCollector.Meter.sessionCheckpointMismatch, 1);
       if (suppressInvalidSessionException) {
-        logger.info("suppressed_invalid_checkpoint_err {}", e.problem().title());
+        logger.info("suppressed_invalid_checkpoint_err {}", e.getMessage());
       } else {
         throw e;
       }
     } catch (NetworkException e) {
       client.metricCollector().mark(MetricCollector.Meter.sessionCheckpointNetworkException, 1);
       if (suppressNetworkException) {
-        logger.info("suppressed_network_checkpoint_err {}", e.problem().title());
+        logger.info("suppressed_network_checkpoint_err {}", e.getMessage());
       } else {
         throw e;
       }
