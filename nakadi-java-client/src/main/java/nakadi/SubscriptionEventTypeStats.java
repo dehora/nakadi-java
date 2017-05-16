@@ -32,6 +32,7 @@ public class SubscriptionEventTypeStats {
   }
 
   public static class Partition {
+
     private String partition;
     private String state;
     private String unconsumed_events;

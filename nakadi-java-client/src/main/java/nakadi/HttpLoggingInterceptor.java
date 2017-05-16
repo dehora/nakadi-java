@@ -238,6 +238,7 @@ final class HttpLoggingInterceptor implements Interceptor {
   }
 
   public interface Logger {
+
     okhttp3.logging.HttpLoggingInterceptor.Logger
         DEFAULT = message -> Platform.get().log(INFO, message, null);
 

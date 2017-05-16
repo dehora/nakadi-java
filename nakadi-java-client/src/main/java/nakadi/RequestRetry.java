@@ -65,6 +65,7 @@ class RequestRetry {
   }
 
   private static class Narp {
+
     Integer attempt;
     Throwable throwable;
 
