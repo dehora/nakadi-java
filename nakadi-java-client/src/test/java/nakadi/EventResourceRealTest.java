@@ -333,7 +333,7 @@ public class EventResourceRealTest {
     verify(r, times(1)).postEventsThrowing(
         Matchers.eq("http://localhost:9380/event-types/foo/events"),
         options.capture(),
-        Matchers.anyList());
+        Matchers.any(ContentSupplier.class));
 
     assertEquals(TokenProvider.NAKADI_EVENT_STREAM_WRITE, options.getValue().scope());
     assertTrue(askedForToken[0]);
@@ -369,7 +369,7 @@ public class EventResourceRealTest {
     verify(r, times(1)).postEventsThrowing(
         Matchers.eq("http://localhost:9380/event-types/foo/events"),
         options.capture(),
-        Matchers.anyList());
+        Matchers.any(ContentSupplier.class));
 
     assertEquals(customScope, options.getValue().scope());
     assertTrue(askedForCustomScope[0]);

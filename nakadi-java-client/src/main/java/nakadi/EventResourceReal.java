@@ -85,7 +85,7 @@ public class EventResourceReal implements EventResource {
 
     if (collect.get(0).event() instanceof String) {
       return sendUsingSupplier(eventTypeName,
-          () -> ("[" + Joiner.on(",").join(events) + "]").getBytes());
+          () -> ("[" + Joiner.on(",").join(events) + "]").getBytes(Charsets.UTF_8));
     } else {
       return send(collect);
     }
@@ -120,7 +120,7 @@ public class EventResourceReal implements EventResource {
     return new BatchItemResponseCollection(items, LINKS_SENTINEL);
   }
 
-  private Response sendUsingSupplier(String eventTypeName, EventContentSupplier supplier) {
+  private Response sendUsingSupplier(String eventTypeName, ContentSupplier supplier) {
     return timed(() -> {
           ResourceOptions options =
               options().scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));
@@ -150,7 +150,7 @@ public class EventResourceReal implements EventResource {
               .newResource()
               .retryPolicy(retryPolicy)
               .postEventsThrowing(
-                  collectionUri(topic).buildString(), options, eventList);
+                  collectionUri(topic).buildString(), options, () -> client.jsonSupport().toJsonBytes(eventList));
         },
         client,
         eventList.size());

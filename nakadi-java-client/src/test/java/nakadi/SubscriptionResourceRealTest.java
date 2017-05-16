@@ -7,6 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -506,7 +507,7 @@ public class SubscriptionResourceRealTest {
         Matchers.eq(Resource.POST),
         Matchers.eq("http://localhost:9081/subscriptions"),
         options.capture(),
-        Matchers.eq(subscription)
+        Matchers.any(ContentSupplier.class)
     );
 
     assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options.getValue().scope());
@@ -541,7 +542,7 @@ public class SubscriptionResourceRealTest {
         Matchers.eq(Resource.POST),
         Matchers.eq("http://localhost:9081/subscriptions"),
         options.capture(),
-        Matchers.eq(subscription)
+        Matchers.any(ContentSupplier.class)
     );
 
     assertEquals(customScope, options.getValue().scope());

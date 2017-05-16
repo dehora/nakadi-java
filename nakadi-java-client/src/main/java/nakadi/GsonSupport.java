@@ -1,5 +1,6 @@
 package nakadi;
 
+import com.google.common.base.Charsets;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -36,6 +37,10 @@ class GsonSupport implements JsonSupport {
 
   @Override public String toJson(Object o) {
     return gson.toJson(o);
+  }
+
+  @Override public byte[] toJsonBytes(Object o) {
+    return toJson(o).getBytes(Charsets.UTF_8);
   }
 
   @Override public <T> T fromJson(String raw, Class<T> c) {

@@ -98,8 +98,8 @@ class OkHttpResource implements Resource {
   }
 
   @Override
-  public <Req> Response requestThrowing(String method, String url, ResourceOptions options,
-      Req body)
+  public Response requestThrowing(String method, String url, ResourceOptions options,
+      ContentSupplier body)
       throws NakadiException {
 
     return maybeComposeRetryPolicy(
@@ -108,7 +108,7 @@ class OkHttpResource implements Resource {
   }
 
   @Override
-  public <Req> Response postEventsThrowing(String url, ResourceOptions options, Req body)
+  public Response postEventsThrowing(String url, ResourceOptions options, ContentSupplier body)
       throws NakadiException {
 
     return maybeComposeRetryPolicy(
@@ -127,8 +127,8 @@ class OkHttpResource implements Resource {
   }
 
   @Override
-  public <Req, Res> Res requestThrowing(String method, String url, ResourceOptions options,
-      Req body, Class<Res> res)
+  public <Res> Res requestThrowing(String method, String url, ResourceOptions options,
+      ContentSupplier body, Class<Res> res)
       throws NakadiException {
 
     Response response = maybeComposeRetryPolicy(
@@ -155,12 +155,12 @@ class OkHttpResource implements Resource {
   }
 
   private <Req> Response requestThrowingInner(String method, String url, ResourceOptions options,
-      Req body) {
+      ContentSupplier body) {
     return throwIfError(requestInner(method, url, options, body));
   }
 
   private <Req> Response requestInner(String method, String url, ResourceOptions options,
-      Req body) {
+      ContentSupplier body) {
     return okHttpRequest(prepareBuilder(method, url, options, body));
   }
 
@@ -185,19 +185,13 @@ class OkHttpResource implements Resource {
     return observable;
   }
 
-  private <Req> Request.Builder prepareBuilder(String method, String url, ResourceOptions options,
-      Req body) {
+  private Request.Builder prepareBuilder(String method, String url, ResourceOptions options,
+      ContentSupplier body) {
     Request.Builder builder;
     if (body != null) {
-      if (body instanceof EventContentSupplier) {
-        EventContentSupplier supplier = (EventContentSupplier) body;
+      {
         RequestBody requestBody =
-            RequestBody.create(MediaType.parse(APPLICATION_JSON_CHARSET_UTF8), supplier.content());
-        builder = new Request.Builder().url(url).method(method, requestBody);
-      } else {
-        String content = jsonSupport.toJson(body);
-        RequestBody requestBody =
-            RequestBody.create(MediaType.parse(APPLICATION_JSON_CHARSET_UTF8), content);
+            RequestBody.create(MediaType.parse(APPLICATION_JSON_CHARSET_UTF8), body.content());
         builder = new Request.Builder().url(url).method(method, requestBody);
       }
     } else {

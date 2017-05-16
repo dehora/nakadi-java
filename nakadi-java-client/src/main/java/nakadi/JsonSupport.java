@@ -24,6 +24,8 @@ public interface JsonSupport {
    */
   String toJson(Object o);
 
+  byte[] toJsonBytes(Object o);
+
   /**
    * Marshal the JSON data to an instance of T.
    *
