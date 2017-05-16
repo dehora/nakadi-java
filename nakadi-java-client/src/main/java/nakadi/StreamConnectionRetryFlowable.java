@@ -32,8 +32,9 @@ public class StreamConnectionRetryFlowable implements
     return flowable.flatMap(throwable -> {
 
       if (!isRetryable.apply(throwable)) {
-        logger.warn(String.format("stream_retry not retryable, propagating %s, %s",
-            throwable.getClass().getSimpleName(), throwable.getMessage()));
+        logger.warn(String.format("stream_retry_not_retryable thread=%s propagating %s, %s",
+            Thread.currentThread().getName(), throwable.getClass().getSimpleName(),
+            throwable.getMessage()));
 
         return Flowable.error(throwable);
       }
@@ -55,8 +56,9 @@ public class StreamConnectionRetryFlowable implements
         }
 
         logger.info(String.format(
-            "stream_retry: will sleep for a bit, sleep=%s attempt=%d/%d error=%s",
-            delay, backoff.workingAttempts(), backoff.maxAttempts(), throwable.getMessage()));
+            "stream_retry_will_sleep sleep=%s attempt=%d/%d thread=%s error=%s",
+            delay, backoff.workingAttempts(), backoff.maxAttempts(),
+            Thread.currentThread().getName(), throwable.getMessage()));
 
         metricCollector.mark(MetricCollector.Meter.consumerRetry);
 

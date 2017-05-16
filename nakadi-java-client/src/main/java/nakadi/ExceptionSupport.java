@@ -49,7 +49,7 @@ class ExceptionSupport {
 
     if (e instanceof UncheckedIOException || e instanceof EOFException) {
       if (e.getCause() instanceof java.net.SocketTimeoutException) {
-        logger.warn("Retryable socket timeout exception: " + e.getMessage(), e);
+        logger.warn("retryable_socket_timeout_exception err=" + e.getMessage(), e);
         return true;
       }
 
@@ -57,7 +57,7 @@ class ExceptionSupport {
        can indicate the server connection went away abruptly or it's not up currently. a normal
        stream end and close from the server won't cause this
         */
-      logger.warn("Retryable io/eof exception: " + e.getMessage(), e);
+      logger.warn("retryable_io_eof_exception err=" + e.getMessage(), e);
       return true;
     }
 
@@ -65,50 +65,48 @@ class ExceptionSupport {
       NakadiException n = (NakadiException) e;
 
       if (n instanceof NetworkException) {
-        logger.warn("Retryable network exception: " + n.getMessage());
+        logger.warn("retryable_network_exception {} ",  e.getCause());
         return true;
       }
 
       if (n instanceof ServerException) {
-        logger.warn("Retryable server exception: " + n.getMessage());
+        logger.warn("retryable_server_exception err=" + n.getMessage());
         return true;
       }
 
       if (n instanceof RateLimitException) {
-        logger.warn("Rate limit exception: " + n.getMessage());
+        logger.warn("rate_limit_exception err=" + n.getMessage());
         return true;
       }
 
       if (n instanceof AuthorizationException) {
-        logger.warn("retryable_auth_error exception: " + n.getMessage());
+        logger.warn("retryable_auth_exception err=" + n.getMessage());
         return true;
       }
 
       if (n instanceof ContractRetryableException) {
-        logger.warn("retryable_contract_error exception: " + n.getMessage());
+        logger.warn("retryable_contract_exception err=" + n.getMessage());
         return true;
       }
 
       if (n instanceof RetryableException) {
-        logger.warn("retryable_error exception: " + n.getMessage());
+        logger.warn("retryable_exception err=" + n.getMessage());
         return true;
       }
     }
 
     if (e instanceof IOException) {
-      logger.warn(String.format("Non-retryable io exception %s", e.getMessage()), e);
+      logger.warn(String.format("non_retryable_io_exception err=%s", e.getMessage()), e);
       return false; // todo: investigate if this can be retryable
     }
 
     if (e instanceof java.util.concurrent.TimeoutException) {
-      logger.warn(
-          "Retryable timeout exception, maybe due to the server not sending keepalives in time {}",
-          e.getMessage());
+      logger.warn("retryable_concurrent_timeout_exception err={}", e.getMessage());
       return true;
     }
 
     logger.warn(
-        String.format("Non-retryable exception: %s %s", e.getClass(), e.getMessage()), e);
+        String.format("non_retryable_exception %s %s", e.getClass(), e.getMessage()), e);
 
     return false; // likelihood is we'll be coming back here for a while qualifying errors.
   }
