@@ -16,6 +16,7 @@ public class Problem {
   private static final URI AUTH_TYPE = URI.create("about:auth");
   static final URI T1000_TYPE = URI.create("about:t1000");
   private static final URI CONTRACT_TYPE = URI.create("about:contract");
+  private static final URI CONTRACT_RETRYABLE_TYPE = URI.create("about:contract_retryable");
   private static final URI NETWORK_TYPE = URI.create("about:wire");
   private static final Map SENTINEL_MAP = new HashMap();
   private URI type = DEFAULT_TYPE;
@@ -108,6 +109,23 @@ public class Problem {
         .data(SENTINEL_MAP)
         .status(500)
         .type(CONTRACT_TYPE);
+  }
+
+  /**
+   * Quick way to create a problem that indicates a mismatch in client expectations about what
+   * the server is responding with, and is considered safe to continue.
+   *
+   * @param title the problem title
+   * @param detail the problem detail
+   * @return a Problem object with a status of 500 and a type of "about:contract"
+   */
+  public static Problem contractRetryableProblem(String title, String detail) {
+    return new Problem()
+        .title(title)
+        .detail(detail)
+        .data(SENTINEL_MAP)
+        .status(500)
+        .type(CONTRACT_RETRYABLE_TYPE);
   }
 
   public String toMessage() {

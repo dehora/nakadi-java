@@ -21,9 +21,9 @@ public interface ResponseBody extends Closeable {
    * {@link #asString} returns.
    *
    * @return the response body as a String.
-   * @throws ClientException if the response cannot be converted to a String.
+   * @throws ContractRetryableException if the response cannot be converted to a String.
    */
-  String asString() throws ClientException;
+  String asString() throws ContractRetryableException;
 
   /**
    * The response as a Reader.

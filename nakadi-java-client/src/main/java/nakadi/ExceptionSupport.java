@@ -83,6 +83,11 @@ class ExceptionSupport {
         logger.warn("retryable_auth_error exception: " + n.getMessage());
         return true;
       }
+
+      if (n instanceof ContractRetryableException) {
+        logger.warn("retryable_contract_error exception: " + n.getMessage());
+        return true;
+      }
     }
 
     if (e instanceof IOException) {
