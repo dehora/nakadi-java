@@ -37,8 +37,8 @@ public class ExceptionSupportTest {
   @Test
   public void isEventStreamRetryable() {
     for (Map.Entry<Throwable, Boolean> entry : CODES_TO_EXCEPTIONS.entrySet()) {
-      assertTrue(entry.getValue() == ExceptionSupport.isEventStreamRetryable(entry.getKey()));
-      assertFalse(ExceptionSupport.isEventStreamRetryable(
+      assertTrue(entry.getValue() == ExceptionSupport.isRequestRetryable(entry.getKey()));
+      assertFalse(ExceptionSupport.isRequestRetryable(
           new ConflictException(Problem.localProblem("", ""))));
     }
   }

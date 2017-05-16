@@ -260,10 +260,10 @@ class OkHttpResource implements Resource {
   }
 
   private ObservableTransformer<Response, Response> buildRetry(RetryPolicy backoff) {
-    return new StreamConnectionRetry()
+    return new RequestRetry()
         .retryWhenWithBackoffObserver(backoff,
             Schedulers.computation(),
-            ExceptionSupport::isEventStreamRetryable);
+            ExceptionSupport::isRequestRetryable);
   }
 
   private okhttp3.Response okHttpCall(Request.Builder builder) throws IOException {

@@ -40,12 +40,12 @@ class ExceptionSupport {
       return true;
     }
 
-    return ExceptionSupport.isEventStreamRetryable(e);
+    return ExceptionSupport.isRequestRetryable(e);
   }
 
   @SuppressWarnings("WeakerAccess")
   @VisibleForTesting
-  static boolean isEventStreamRetryable(Throwable e) {
+  static boolean isRequestRetryable(Throwable e) {
 
     if (e instanceof UncheckedIOException || e instanceof EOFException) {
       if (e.getCause() instanceof java.net.SocketTimeoutException) {
