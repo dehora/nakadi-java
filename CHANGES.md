@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.8.3 
+
+- Avoids nulls when logging checkpoint suppressions.
+
 ### 0.8.2
 
 - Handles and cleans up after observer exceptions.
