@@ -124,6 +124,7 @@ public class EventResourceReal implements EventResource {
     return timed(() -> {
           ResourceOptions options =
               options().scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));
+          // todo: close
           return client.resourceProvider()
               .newResource()
               .retryPolicy(retryPolicy)
@@ -141,6 +142,7 @@ public class EventResourceReal implements EventResource {
     List<Object> eventList =
         events.stream().map(this::mapEventRecordToSerdes).collect(Collectors.toList());
 
+    // todo: close
     return timed(() -> {
           ResourceOptions options =
               options().scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));

@@ -246,7 +246,7 @@ public class OkHttpResourceTest {
       @Override
       public boolean matches(final Object argument) {
         return ((LoggingEvent) argument).getFormattedMessage()
-            .contains("Cowardly, refusing to apply retry policy that is already finished");
+            .contains("no_retry_cowardly");
       }
     }));
   }
@@ -323,7 +323,7 @@ public class OkHttpResourceTest {
       @Override
       public boolean matches(final Object argument) {
         return ((LoggingEvent) argument).getFormattedMessage()
-            .contains("Cowardly, refusing to apply retry policy that is already finished");
+            .contains("no_retry_cowardly");
       }
     }));
   }
@@ -372,7 +372,7 @@ public class OkHttpResourceTest {
   }
 
   @Test
-  public void requestWithBody() throws Exception {
+  public void requestThrowingWithBody() throws Exception {
 
     server.enqueue(new MockResponse().setResponseCode(200));
 
@@ -381,7 +381,7 @@ public class OkHttpResourceTest {
 
     Subscription subscription = buildSubscription();
 
-    r.request("POST", "http://localhost:"+ MOCK_SERVER_PORT +"/subscriptions", options, subscription);
+    r.requestThrowing("POST", "http://localhost:"+ MOCK_SERVER_PORT +"/subscriptions", options, subscription);
     RecordedRequest request = server.takeRequest();
 
     assertEquals("POST /subscriptions HTTP/1.1", request.getRequestLine());
@@ -451,7 +451,7 @@ public class OkHttpResourceTest {
       final SubscriptionCollection list = new SubscriptionResourceReal(client)
           .retryPolicy(exponentialRetry)
           .list();
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
       ignored.printStackTrace();
     }
 
@@ -507,7 +507,7 @@ public class OkHttpResourceTest {
 
       new SubscriptionResourceReal(client)
           .checkpoint(backoff, context, c);
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -548,7 +548,7 @@ public class OkHttpResourceTest {
       // call the inner method to control the backoff, the interface method's just a wrapper
       ((SubscriptionResourceReal)resource).checkpoint(backoff, context, c);
 
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);

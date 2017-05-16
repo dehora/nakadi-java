@@ -39,7 +39,7 @@ public class SubscriptionResourceRealTest {
     try {
       new SubscriptionResourceReal(client)
           .list();
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     verify(r0, times(1)).executeRequest(Matchers.anyObject());
@@ -78,7 +78,7 @@ public class SubscriptionResourceRealTest {
     try {
       new SubscriptionResourceReal(client)
           .list();
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -110,7 +110,7 @@ public class SubscriptionResourceRealTest {
       new SubscriptionResourceReal(client)
           .scope(customScope)
           .list();
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -161,7 +161,7 @@ public class SubscriptionResourceRealTest {
     try {
       new SubscriptionResourceReal(client)
           .find("sid");
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -194,7 +194,7 @@ public class SubscriptionResourceRealTest {
       new SubscriptionResourceReal(client)
           .scope(customScope)
           .find("sid");
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -246,7 +246,7 @@ public class SubscriptionResourceRealTest {
     try {
       new SubscriptionResourceReal(client)
           .cursors("sid");
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -278,7 +278,7 @@ public class SubscriptionResourceRealTest {
       new SubscriptionResourceReal(client)
           .scope(customScope)
           .cursors("sid");
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -329,7 +329,7 @@ public class SubscriptionResourceRealTest {
     try {
       new SubscriptionResourceReal(client)
           .stats("sid");
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -361,7 +361,7 @@ public class SubscriptionResourceRealTest {
       new SubscriptionResourceReal(client)
           .scope(customScope)
           .stats("sid");
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -412,7 +412,7 @@ public class SubscriptionResourceRealTest {
     try {
       new SubscriptionResourceReal(client)
           .delete("id");
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -444,7 +444,7 @@ public class SubscriptionResourceRealTest {
       new SubscriptionResourceReal(client)
           .scope(customScope)
           .delete("id");
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -502,7 +502,7 @@ public class SubscriptionResourceRealTest {
 
       new SubscriptionResourceReal(client)
           .createReturningResponse(subscription);
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -537,7 +537,7 @@ public class SubscriptionResourceRealTest {
           .scope(customScope)
           .createReturningResponse(subscription);
 
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);
