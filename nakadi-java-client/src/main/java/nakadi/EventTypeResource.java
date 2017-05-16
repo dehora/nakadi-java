@@ -30,12 +30,12 @@ public interface EventTypeResource {
    *
    * @param eventType an event type
    * @return a http response
-   * @throws AuthorizationException
-   * @throws ClientException
-   * @throws ServerException
-   * @throws InvalidException
-   * @throws RateLimitException
-   * @throws NakadiException
+   * @throws AuthorizationException unauthorised
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws RateLimitException for a 429
+   * @throws ConflictException for a 409
+   * @throws NakadiException for a general exception
    */
   Response create(EventType eventType)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
@@ -44,12 +44,13 @@ public interface EventTypeResource {
   /**
    * Update an existing event type
    *
-   * @throws AuthorizationException
-   * @throws ClientException
-   * @throws ServerException
-   * @throws InvalidException
-   * @throws RateLimitException
-   * @throws NakadiException
+   * @throws AuthorizationException unauthorised
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws RateLimitException for a 429
+   * @throws ConflictException for a 409
+   * @throws NotFoundException for a 404
+   * @throws NakadiException for a general exception
    */
   Response update(EventType eventType)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
@@ -99,12 +100,13 @@ public interface EventTypeResource {
 
   /**
    * @return a collection of event types
-   * @throws AuthorizationException
-   * @throws ClientException
-   * @throws ServerException
-   * @throws InvalidException
-   * @throws RateLimitException
-   * @throws NakadiException
+   * @throws AuthorizationException unauthorised
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws RateLimitException for a 429
+   * @throws ConflictException for a 409
+   * @throws NotFoundException for a 404
+   * @throws NakadiException for a general exception
    */
   EventTypeCollection list()
       throws AuthorizationException, ClientException, ServerException, InvalidException,
@@ -114,12 +116,13 @@ public interface EventTypeResource {
    * Fetch the partitions for an event type.
    *
    * @param eventTypeName the event type
-   * @throws AuthorizationException
-   * @throws ClientException
-   * @throws ServerException
-   * @throws InvalidException
-   * @throws RateLimitException
-   * @throws NakadiException
+   * @throws AuthorizationException unauthorised
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws RateLimitException for a 429
+   * @throws ConflictException for a 409
+   * @throws NotFoundException for a 404
+   * @throws NakadiException for a general exception
    */
   PartitionCollection partitions(String eventTypeName)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
@@ -130,12 +133,13 @@ public interface EventTypeResource {
    *
    * @param eventTypeName the event type
    * @param partitionId the partition
-   * @throws AuthorizationException
-   * @throws ClientException
-   * @throws ServerException
-   * @throws InvalidException
-   * @throws RateLimitException
-   * @throws NakadiException
+   * @throws AuthorizationException unauthorised
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws RateLimitException for a 429
+   * @throws ConflictException for a 409
+   * @throws NotFoundException for a 404
+   * @throws NakadiException for a general exception
    */
   Partition partition(String eventTypeName, String partitionId)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
@@ -147,12 +151,13 @@ public interface EventTypeResource {
    * @param eventTypeName the event type
    * @param partitionId the partition
    * @param params the query parameters
-   * @throws AuthorizationException
-   * @throws ClientException
-   * @throws ServerException
-   * @throws InvalidException
-   * @throws RateLimitException
-   * @throws NakadiException
+   * @throws AuthorizationException unauthorised
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws RateLimitException for a 429
+   * @throws ConflictException for a 409
+   * @throws NotFoundException for a 404
+   * @throws NakadiException for a general exception
    */
   Partition partition(String eventTypeName, String partitionId, QueryParams params)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
@@ -163,11 +168,13 @@ public interface EventTypeResource {
    * @return the event type schemas for the event type.
    *
    * @param eventTypeName the event type
-   * @throws AuthorizationException
-   * @throws ClientException
-   * @throws ServerException
-   * @throws RateLimitException
-   * @throws NakadiException
+   * @throws AuthorizationException unauthorised
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws RateLimitException for a 429
+   * @throws ConflictException for a 409
+   * @throws NotFoundException for a 404
+   * @throws NakadiException for a general exception
    */
   @Experimental
   EventTypeSchemaCollection schemas(String eventTypeName)

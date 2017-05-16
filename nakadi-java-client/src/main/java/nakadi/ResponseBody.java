@@ -18,7 +18,7 @@ public interface ResponseBody extends Closeable {
   /**
    * The response as a string. This buffers the entire response entity which will then
    * result in a {@link #close}, ie, the client does not have to call {@link #close} after
-   * {@link #asString} returns.
+   * calling this.
    *
    * @return the response body as a String.
    * @throws ContractRetryableException if the response cannot be converted to a String.

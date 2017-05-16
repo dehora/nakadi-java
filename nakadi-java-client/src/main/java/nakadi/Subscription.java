@@ -119,8 +119,8 @@ public class Subscription {
    * <p>
    *   2016-11-10: the API only supports working with a single event.
    * </p>
-   * @param eventTypeNames
-   * @return
+   * @param eventTypeNames the names
+   * @return this
    */
   public Subscription eventTypes(String... eventTypeNames) {
     NakadiException.throwNonNull(eventTypeNames, "Please supply a non-null list of event type names");
@@ -133,8 +133,8 @@ public class Subscription {
    * <p>
    *   2016-11-10: the API only supports working with a single event.
    * </p>
-   * @param eventTypeName
-   * @return
+   * @param eventTypeName the names
+   * @return this
    */
   public Subscription eventType(String eventTypeName) {
     NakadiException.throwNonNull(eventTypeName, "Please supply a non-null event type name");

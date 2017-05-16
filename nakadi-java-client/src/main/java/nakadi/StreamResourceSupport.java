@@ -49,7 +49,7 @@ class StreamResourceSupport {
     ResourceOptions options = ResourceSupport
         // breaks with api definition https://github.com/zalando-incubator/nakadi-java/issues/98
         .options(APPLICATION_JSON)
-        .scope(Optional.ofNullable(scope).orElseGet(() -> TokenProvider.NAKADI_EVENT_STREAM_READ))
+        .scope(Optional.ofNullable(scope).orElse(TokenProvider.NAKADI_EVENT_STREAM_READ))
         .tokenProvider(client.resourceTokenProvider());
 
     applyConfiguredHeaders(sc, options);
@@ -59,14 +59,14 @@ class StreamResourceSupport {
     }
 
     Optional<List<Cursor>> cursors = sc.cursors(); // deref to keep stop idea complaining
-    if (cursors.isPresent()) {
-      options.header(HEADER_X_NAKADI_CURSORS, client.jsonSupport().toJsonCompressed(cursors.get()));
-    }
+    cursors.ifPresent(
+        list ->
+            options.header(HEADER_X_NAKADI_CURSORS,client.jsonSupport().toJsonCompressed(list)));
     return options;
   }
 
   private static void applyConfiguredHeaders(StreamConfiguration sc, ResourceOptions options) {
-    sc.requestHeaders().entrySet().forEach(e -> options.header(e.getKey(), e.getValue()));
+    sc.requestHeaders().forEach(options::header);
   }
 
   /**

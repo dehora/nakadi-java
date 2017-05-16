@@ -30,12 +30,12 @@ public class MetricsResource {
    * Fetch server metrics.
    *
    * @return server metrics.
-   * @throws AuthorizationException
-   * @throws ClientException
-   * @throws ServerException
-   * @throws InvalidException
-   * @throws RateLimitException
-   * @throws NakadiException
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws RateLimitException for a 429
+   * @throws ConflictException for a 409
+   * @throws NotFoundException for a 404
+   * @throws NakadiException for a general exception
    */
   public Metrics get()
       throws AuthorizationException, ClientException, ServerException, InvalidException,

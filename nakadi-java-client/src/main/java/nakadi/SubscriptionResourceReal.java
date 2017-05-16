@@ -261,20 +261,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   }
 
   private List<ResourceLink> toLinks(PaginationLinks _links) {
-    List<ResourceLink> links = new ArrayList<>();
-    if (_links != null) {
-      final PaginationLink prev = _links.prev();
-      final PaginationLink next = _links.next();
-
-      if (prev != null) {
-        links.add(new ResourceLink("prev", prev.href()));
-      }
-
-      if (next != null) {
-        links.add(new ResourceLink("next", next.href()));
-      }
-    }
-    return links;
+    return new LinkSupport().toLinks(_links);
   }
 
   private List<Subscription> toSubscriptions(List<Subscription> items) {
@@ -287,7 +274,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   private ResourceOptions prepareOptions(String fallbackScope) {
     return ResourceSupport.options(APPLICATION_JSON)
-        .scope(Optional.ofNullable(scope).orElseGet(() -> fallbackScope))
+        .scope(Optional.ofNullable(scope).orElse(fallbackScope))
         .tokenProvider(client.resourceTokenProvider());
   }
 
