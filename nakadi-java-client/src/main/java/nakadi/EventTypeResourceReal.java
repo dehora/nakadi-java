@@ -1,6 +1,5 @@
 package nakadi;
 
-import com.google.common.collect.ImmutableList;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -160,7 +159,7 @@ class EventTypeResourceReal implements EventTypeResource {
     final List<Cursor> collection =
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_C);
 
-    return new CursorCollection(collection, SENTINEL_LINKS, this);
+    return new CursorCollection(collection, SENTINEL_LINKS);
   }
 
   @Override
@@ -254,20 +253,7 @@ class EventTypeResourceReal implements EventTypeResource {
   }
 
   private List<ResourceLink> toLinks(PaginationLinks _links) {
-    List<ResourceLink> links = new ArrayList<>();
-    if (_links != null) {
-      final PaginationLink prev = _links.prev();
-      final PaginationLink next = _links.next();
-
-      if (prev != null) {
-        links.add(new ResourceLink("prev", prev.href()));
-      }
-
-      if (next != null) {
-        links.add(new ResourceLink("next", next.href()));
-      }
-    }
-    return links;
+    return new LinkSupport().toLinks(_links);
   }
 
   private List<EventTypeSchema> toEventTypeSchema(List<EventTypeSchema> items) {

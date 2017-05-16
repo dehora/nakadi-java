@@ -318,7 +318,7 @@ class OkHttpResource implements Resource {
   }
 
   private <T> T handleError(Response response) throws ContractRetryableException {
-    String raw = null;
+    String raw;
     raw = response.responseBody().asString();
 
     Problem problem = jsonSupport.fromJson(raw, Problem.class);

@@ -474,7 +474,8 @@ public class StreamProcessor implements StreamProcessorManaged {
 
       if (streamConfiguration.isSubscriptionStream() && streamOffsetObserver == null) {
         if(checkpointer == null) {
-          this.checkpointer = new SubscriptionOffsetCheckpointer(client, false);
+          this.checkpointer =
+              new SubscriptionOffsetCheckpointer(client).suppressInvalidSessionException(false);
         }
 
         this.streamOffsetObserver = new SubscriptionOffsetObserver(checkpointer);
@@ -489,7 +490,7 @@ public class StreamProcessor implements StreamProcessorManaged {
       }
 
       this.scope =
-          Optional.ofNullable(scope).orElseGet(() -> TokenProvider.NAKADI_EVENT_STREAM_READ);
+          Optional.ofNullable(scope).orElse(TokenProvider.NAKADI_EVENT_STREAM_READ);
 
       return new StreamProcessor(this);
     }

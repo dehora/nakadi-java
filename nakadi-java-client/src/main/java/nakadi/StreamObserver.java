@@ -1,7 +1,6 @@
 package nakadi;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Observer for batches of events.

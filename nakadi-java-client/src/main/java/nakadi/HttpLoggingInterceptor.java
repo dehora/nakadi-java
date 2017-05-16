@@ -16,7 +16,6 @@
 
 package nakadi;
 
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -26,7 +25,6 @@ import okhttp3.Connection;
 import okhttp3.Headers;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -36,8 +34,6 @@ import okhttp3.internal.http.HttpHeaders;
 import okhttp3.internal.platform.Platform;
 import okio.Buffer;
 import okio.BufferedSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static okhttp3.internal.platform.Platform.INFO;
 
@@ -60,11 +56,7 @@ final class HttpLoggingInterceptor implements Interceptor {
     void log(String message);
 
     okhttp3.logging.HttpLoggingInterceptor.Logger
-        DEFAULT = new okhttp3.logging.HttpLoggingInterceptor.Logger() {
-      @Override public void log(String message) {
-        Platform.get().log(INFO, message, null);
-      }
-    };
+        DEFAULT = message -> Platform.get().log(INFO, message, null);
   }
 
   public HttpLoggingInterceptor() {

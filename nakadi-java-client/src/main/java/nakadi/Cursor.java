@@ -154,7 +154,7 @@ public class Cursor {
   }
 
   /**
-   * Detect if this is a cursorfor a susbcription stream.
+   * Detect if this is a cursor for a subscription stream.
    *
    * @return true if a subscription, false if a named event stream
    */

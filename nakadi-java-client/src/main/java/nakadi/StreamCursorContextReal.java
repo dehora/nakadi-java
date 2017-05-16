@@ -7,8 +7,8 @@ import java.util.Objects;
 
 class StreamCursorContextReal implements StreamCursorContext {
 
-  private static final Map<String, String> SENTINEL = new HashMap<>();
-  private static final Map<String, String> U_SENTINEL = Collections.unmodifiableMap(SENTINEL);
+  private static final Map<String, String> U_SENTINEL =
+      Collections.unmodifiableMap(new HashMap<>());
 
   private final Cursor cursor;
   private Map<String, String> context;

@@ -64,40 +64,36 @@ class UriBuilder {
     return this;
   }
 
-  public UriBuilder query(String param, String value) {
+  UriBuilder query(String param, String value) {
     qp.param(urlEncode(param), urlEncode(value));
     return this;
   }
 
-  public UriBuilder queryReplacing(String param, String value) {
+  UriBuilder queryReplacing(String param, String value) {
     qp.paramReplacing(urlEncode(param), urlEncode(value));
     return this;
   }
 
-  public UriBuilder query(String param, String... values) {
+  UriBuilder query(String param, String... values) {
     final String[] encodedValues = Arrays.stream(values)
-        .map(this::urlEncode).collect(Collectors.toList())
-        .stream()
-        .toArray(String[]::new);
+        .map(this::urlEncode).collect(Collectors.toList()).toArray(new String[0]);
     qp.param(urlEncode(param), encodedValues);
     return this;
   }
 
-  public UriBuilder query(QueryParams params) {
-    params.params().entrySet().forEach(e -> {
+  UriBuilder query(QueryParams params) {
+    params.params().forEach((String key, Collection<String> value) -> {
 
       final String[] encoded =
-          e.getValue().stream()
+          value.stream()
               .map(this::urlEncode)
-              .collect(Collectors.toList())
-              .stream()
-              .toArray(String[]::new);
+              .collect(Collectors.toList()).toArray(new String[0]);
 
-      if (params.paramsToReplace().contains(e.getKey())) {
+      if (params.paramsToReplace().contains(key)) {
         // propagate replacements to underlying stringBuilder; useful for things like limits/offset
-        this.qp.paramReplacing(e.getKey(), encoded);
+        this.qp.paramReplacing(key, encoded);
       } else {
-        this.qp.param(e.getKey(), encoded);
+        this.qp.param(key, encoded);
       }
     });
     return this;
@@ -112,10 +108,8 @@ class UriBuilder {
     if (!params.isEmpty()) {
       stringBuilder.append("?");
       StringBuilder sb = new StringBuilder();
-      params.entrySet().forEach(q -> {
-        String key = q.getKey();
-        q.getValue().forEach(e -> sb.append(key).append("=").append(e).append("&"));
-      });
+      params.forEach(
+          (key, value) -> value.forEach(e -> sb.append(key).append("=").append(e).append("&")));
       if (sb.lastIndexOf("&") == sb.length() - 1) {
         sb.deleteCharAt(sb.length() - 1);
       }
