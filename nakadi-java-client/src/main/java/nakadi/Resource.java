@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Resource provides a purpose built abstraction over the HTTP implementation used by the API.
  */
-public interface Resource {
+interface Resource {
 
   String GET = "GET";
   String DELETE = "DELETE";
