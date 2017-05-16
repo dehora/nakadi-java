@@ -17,6 +17,7 @@ public class Problem {
   static final URI T1000_TYPE = URI.create("about:t1000");
   private static final URI CONTRACT_TYPE = URI.create("about:contract");
   private static final URI CONTRACT_RETRYABLE_TYPE = URI.create("about:contract_retryable");
+  private static final URI OBSERVER_TYPE = URI.create("about:observer");
   private static final URI NETWORK_TYPE = URI.create("about:wire");
   private static final Map SENTINEL_MAP = new HashMap();
   private URI type = DEFAULT_TYPE;
@@ -126,6 +127,22 @@ public class Problem {
         .data(SENTINEL_MAP)
         .status(500)
         .type(CONTRACT_RETRYABLE_TYPE);
+  }
+
+  /**
+   * Quick way to create a Problem object that indicates a stream observer throw an exception.
+   *
+   * @param title the problem title
+   * @param detail the problem detail
+   * @return a Problem object with a status of 500 and a type of "about:observer"
+   */
+  public static Problem observerProblem(String title, String detail) {
+    return new Problem()
+        .title(title)
+        .detail(detail)
+        .data(SENTINEL_MAP)
+        .status(400)
+        .type(OBSERVER_TYPE);
   }
 
   public String toMessage() {
