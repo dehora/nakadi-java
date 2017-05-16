@@ -6,6 +6,7 @@ import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -277,9 +278,15 @@ class OkHttpResource implements Resource {
       if (hasPerRequestConnectTimeout) {
         clientBuilder.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS);
       }
-      return clientBuilder.build().newCall(builder.build()).execute();
+      final Request request = builder.build();
+      final OkHttpClient client = clientBuilder.build();
+      final Call call = client.newCall(request);
+      return call.execute();
+
     } else {
-      return okHttpClient.newCall(builder.build()).execute();
+      final Request request = builder.build();
+      final Call call = okHttpClient.newCall(request);
+      return call.execute();
     }
   }
 

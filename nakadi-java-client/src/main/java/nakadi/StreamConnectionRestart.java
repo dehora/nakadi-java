@@ -49,12 +49,12 @@ class StreamConnectionRestart {
         flowable -> flowable.zipWith(
             Flowable.range(1, maxRestarts),
             (obj, count) ->  {
-              logger.info("stream repeater invoked {} restarts={}", obj == null ? "" : obj, count);
+              logger.info("stream_repeater_requested {} restarts={}", obj == null ? "" : obj, count);
               return count;
             }
         ).flatMap(
             attemptCount ->  {
-              logger.info("stream repeater will delay before restarting, delay={} {}, restarts={}",
+              logger.info("stream_repeater_delay  delay={} {}, restarts={}",
                   restartDelay, restartDelayUnit.toString().toLowerCase(), attemptCount);
               return Flowable.timer(restartDelay, restartDelayUnit);
             }
