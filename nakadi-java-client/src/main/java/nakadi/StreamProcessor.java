@@ -252,8 +252,11 @@ public class StreamProcessor implements StreamProcessorManaged {
         .doOnSubscribe(subscription -> streamObserver.onStart())
         .doOnComplete(streamObserver::onCompleted)
         .doOnCancel(streamObserver::onStop)
+        .doOnError(streamObserver::onError)
         .timeout(halfOpenKick, halfOpenUnit)
+        // retries handle issues like network failures and 409 conflicts
         .retryWhen(buildStreamConnectionRetryFlowable(streamConfiguration))
+        // restarts handle when the server closes the connection (eg checkpointing fell behind)
         .compose(buildRestartHandler())
         /*
          todo: investigate why Integer.max causes
