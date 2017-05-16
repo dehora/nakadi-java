@@ -22,7 +22,8 @@ class OkHttpResponseBody implements ResponseBody {
     try {
       return okResponse.body().string();
     } catch (IOException e) {
-      throw new ClientException(Problem.localProblem("could not string body", e.getMessage()), e);
+      throw new ContractRetryableException(
+          Problem.contractRetryableProblem("missing_response_body", e.getMessage()), e);
     }
   }
 
