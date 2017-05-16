@@ -455,7 +455,7 @@ public class OkHttpResourceTest {
       ignored.printStackTrace();
     }
 
-    verify(r0, times(3)).executeRequest(Matchers.anyObject());
+    verify(r0, times(3)).okHttpRequest(Matchers.anyObject());
   }
 
   @Test

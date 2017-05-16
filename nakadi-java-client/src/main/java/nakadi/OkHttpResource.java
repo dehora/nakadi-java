@@ -4,6 +4,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import okhttp3.Call;
@@ -67,8 +68,7 @@ class OkHttpResource implements Resource {
 
     if (retryPolicy != null) {
       if (retryPolicy.isFinished()) {
-        logger.warn("no_retry_cowardly refusing to apply retry policy that is already finished {}",
-            retryPolicy);
+        logger.warn("no_retry_cowardly refusing to apply finished retry policy {}", retryPolicy);
         metricCollector.mark(retrySkipFinished);
       } else {
         try {
@@ -79,24 +79,22 @@ class OkHttpResource implements Resource {
           releaseResponseQuietly();
           return first;
         } catch (HttpException e) {
-          logger.error("request with retry failed, {}", e.getMessage(), e);
+          logger.error("retryable_request_failed, {}", e.getMessage(), e);
           return response;
         }
       }
     }
 
-    Observable<Response> observable =
-        Observable.defer(() -> Observable.just(requestInner(method, url, options, null)));
-    return observable.blockingFirst();
+    return Observable.defer(
+        () -> Observable.just(requestInner(method, url, options, null))).blockingFirst();
   }
 
   @Override public Response requestThrowing(String method, String url, ResourceOptions options)
       throws NakadiException {
 
-    Observable<Response> observable =
-        Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options)));
-
-    return maybeComposeRetryPolicy(observable).blockingFirst();
+    return maybeComposeRetryPolicy(
+        Observable.defer(
+            () -> Observable.just(requestThrowingInner(method, url, options)))).blockingFirst();
   }
 
   @Override
@@ -104,43 +102,38 @@ class OkHttpResource implements Resource {
       Req body)
       throws NakadiException {
 
-    Observable<Response> observable =
-        Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options, body)));
-
-    return maybeComposeRetryPolicy(observable).blockingFirst();
+    return maybeComposeRetryPolicy(
+        Observable.defer(() -> Observable.just(
+            requestThrowingInner(method, url, options, body)))).blockingFirst();
   }
 
   @Override
   public <Req> Response postEventsThrowing(String url, ResourceOptions options, Req body)
-      throws AuthorizationException, ClientException, ServerException,
-      RateLimitException, NakadiException {
-    Observable<Response> observable =
-        Observable.defer(() -> Observable.just(
-            throwPostEventsIfError(requestInner(POST, url, options, body))));
+      throws NakadiException {
 
-    return maybeComposeRetryPolicy(observable).blockingFirst();
+    return maybeComposeRetryPolicy(
+        Observable.defer(() -> Observable.just(
+            throwPostEventsIfError(requestInner(POST, url, options, body))))).blockingFirst();
   }
 
   @Override
   public <Res> Res requestThrowing(String method, String url, ResourceOptions options,
       Class<Res> res) throws NakadiException {
 
-    Observable<Response> observable =
-        Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options)));
-
-    Response response = maybeComposeRetryPolicy(observable).blockingFirst();
+    Response response = maybeComposeRetryPolicy(
+        Observable.defer(() -> Observable.just(
+            requestThrowingInner(method, url, options)))).blockingFirst();
     return marshalResponse(response, res);
   }
 
   @Override
   public <Req, Res> Res requestThrowing(String method, String url, ResourceOptions options,
       Req body, Class<Res> res)
-      throws AuthorizationException, ClientException, ServerException, InvalidException,
-      RateLimitException, NakadiException {
-    Observable<Response> observable =
-        Observable.defer(() -> Observable.just(requestThrowingInner(method, url, options, body)));
+      throws NakadiException {
 
-    Response response = maybeComposeRetryPolicy(observable).blockingFirst();
+    Response response = maybeComposeRetryPolicy(
+        Observable.defer(() -> Observable.just(
+            requestThrowingInner(method, url, options, body)))).blockingFirst();
     return marshalResponse(response, res);
   }
 
@@ -168,7 +161,7 @@ class OkHttpResource implements Resource {
 
   private <Req> Response requestInner(String method, String url, ResourceOptions options,
       Req body) {
-    return executeRequest(prepareBuilder(method, url, options, body));
+    return okHttpRequest(prepareBuilder(method, url, options, body));
   }
 
   private Response requestThrowingInner(String method, String url, ResourceOptions options) {
@@ -176,7 +169,7 @@ class OkHttpResource implements Resource {
   }
 
   private Observable<Response> maybeComposeRetryPolicy(final Observable<Response> observable) {
-    if (retryPolicy != null) { // no policy set by caller
+    if (retryPolicy != null) {
       if (retryPolicy.isFinished()) {
         /*
         this can happen if
@@ -214,36 +207,28 @@ class OkHttpResource implements Resource {
         .entrySet()
         .stream()
         /*
-         okhttp deals with this automatically by setting Accept-Encoding: gzip as
-         a default and setting it requires manual decompression
+         okhttp automatically sets up and decompresses Accept-Encoding: gzip
+         setting it manually requires manual decompression, so a supplied option is best skipped
           */
-        .filter(e -> !"Accept-Encoding".equalsIgnoreCase(e.getKey()) || !"gzip".equalsIgnoreCase(
-            e.getValue().toString()))
+        .filter(this::filterAcceptEncodingGzip)
         .forEach(e -> builder.addHeader(e.getKey(), e.getValue().toString()));
 
     applyAuthHeaderIfPresent(options, builder);
     return builder;
   }
 
+  private boolean filterAcceptEncodingGzip(Map.Entry<String, Object> e) {
+    return !"Accept-Encoding".equalsIgnoreCase(e.getKey()) || !"gzip".equalsIgnoreCase(
+        e.getValue().toString());
+  }
+
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
-  Response executeRequest(Request.Builder builder) {
+  Response okHttpRequest(Request.Builder builder) {
     try {
       return new OkHttpResponse(okHttpCall(builder));
     } catch (IOException e) {
       throw new RetryableException(Problem.networkProblem(e.getMessage(), ""), e);
     }
-  }
-
-  private void applyAuthHeaderIfPresent(ResourceOptions options, Request.Builder builder) {
-    options.supplyToken().ifPresent(t -> builder.header(HEADER_AUTHORIZATION, t));
-  }
-
-  private ObservableTransformer<Response, Response> buildRetry(RetryPolicy backoff) {
-    return new RequestRetry()
-        .retryWhenWithBackoffObserver(
-            backoff,
-            Schedulers.computation(),
-            ExceptionSupport::isRequestRetryable);
   }
 
   private okhttp3.Response okHttpCall(Request.Builder builder) throws IOException {
@@ -267,6 +252,18 @@ class OkHttpResource implements Resource {
       final Call call = okHttpClient.newCall(request);
       return call.execute();
     }
+  }
+
+  private void applyAuthHeaderIfPresent(ResourceOptions options, Request.Builder builder) {
+    options.supplyToken().ifPresent(t -> builder.header(HEADER_AUTHORIZATION, t));
+  }
+
+  private ObservableTransformer<Response, Response> buildRetry(RetryPolicy backoff) {
+    return new RequestRetry()
+        .retryWhenWithBackoffObserver(
+            backoff,
+            Schedulers.computation(),
+            ExceptionSupport::isRequestRetryable);
   }
 
   private Request.Builder applyMethodForNoBody(String method, String url, Request.Builder builder) {
@@ -317,8 +314,7 @@ class OkHttpResource implements Resource {
   }
 
   private <T> T handleError(Response response) throws ContractRetryableException {
-    String raw;
-    raw = response.responseBody().asString();
+    String raw = response.responseBody().asString();
 
     Problem problem = jsonSupport.fromJson(raw, Problem.class);
 
@@ -342,46 +338,6 @@ class OkHttpResource implements Resource {
   }
 
   private <T> T throwProblem(int code, Problem problem) {
-    if (code == 401) {
-      metricCollector.mark(MetricCollector.Meter.http401);
-      throw new AuthorizationException(problem);
-    } else if (code == 403) {
-      metricCollector.mark(MetricCollector.Meter.http403);
-      throw new AuthorizationException(problem);
-    } else if (code == 404 || code == 410) {
-      metricCollector.mark(MetricCollector.Meter.http404);
-      throw new NotFoundException(problem);
-    } else if (code == 409) {
-      metricCollector.mark(MetricCollector.Meter.http409);
-      throw new ConflictException(problem);
-    } else if (code == 412) {
-      metricCollector.mark(MetricCollector.Meter.http412);
-      // eg bad cursors: Precondition Failed; offset 98 for partition 0 is unavailable (412)
-      throw new PreconditionFailedException(problem);
-    } else if (code == 422) {
-      metricCollector.mark(MetricCollector.Meter.http422);
-      throw new InvalidException(problem);
-    } else if (code == 429) {
-      metricCollector.mark(MetricCollector.Meter.http429);
-      throw new RateLimitException(problem);
-    } else if (code == 400) {
-      metricCollector.mark(MetricCollector.Meter.http400);
-      throw new ClientException(problem);
-    } else if (code >= 400 && code < 500) {
-      metricCollector.mark(MetricCollector.Meter.http4xx);
-      throw new ClientException(problem);
-    } else if (code == 500) {
-      metricCollector.mark(MetricCollector.Meter.http500);
-      throw new ServerException(problem);
-    } else if (code == 503) {
-      metricCollector.mark(MetricCollector.Meter.http503);
-      throw new ServerException(problem);
-    } else if (code > 500 && code < 600) {
-      metricCollector.mark(MetricCollector.Meter.http5xx);
-      throw new ServerException(problem);
-    } else {
-      metricCollector.mark(MetricCollector.Meter.httpUnknown);
-      throw new HttpException(problem);
-    }
+    return ProblemSupport.throwProblem(code, problem, metricCollector);
   }
 }

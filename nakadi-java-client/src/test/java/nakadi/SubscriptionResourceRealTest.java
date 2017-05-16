@@ -1,11 +1,6 @@
 package nakadi;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -42,7 +37,7 @@ public class SubscriptionResourceRealTest {
     } catch (RetryableException | NotFoundException ignored) {
     }
 
-    verify(r0, times(1)).executeRequest(Matchers.anyObject());
+    verify(r0, times(1)).okHttpRequest(Matchers.anyObject());
   }
 
   @Test
