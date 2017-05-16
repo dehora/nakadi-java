@@ -34,6 +34,7 @@ public class SecuritySupport {
   private final String certificatePath;
   private SSLContext sslContext;
   private X509TrustManager trustManager;
+
   public SecuritySupport(String certificatePath) {
     try {
       MDC.put("security_context", "[security_support]");

@@ -20,4 +20,5 @@ package nakadi;
  * @author Johannes Henkel
  */
 public @interface VisibleForTesting {
+
 }

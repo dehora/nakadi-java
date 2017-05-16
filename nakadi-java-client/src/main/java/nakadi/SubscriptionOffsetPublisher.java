@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 @Unstable
 public class SubscriptionOffsetPublisher implements StreamOffsetObserver {
+
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(

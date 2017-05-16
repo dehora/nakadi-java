@@ -79,6 +79,7 @@ class GsonSupport implements JsonSupport {
   }
 
   private static class GsonCompressedHolder {
+
     private static final Gson INSTANCE = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(OFFSET_DATE_TIME_TYPE, new OffsetDateTimeSerdes())
@@ -87,6 +88,7 @@ class GsonSupport implements JsonSupport {
   }
 
   private static class GsonHolder {
+
     private static final Gson INSTANCE = new GsonBuilder()
         .setPrettyPrinting()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)

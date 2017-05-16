@@ -10,6 +10,7 @@ import java.util.Map;
  * </p>
  */
 public class Metrics {
+
   private Map<String, Object> items;
 
   /**

@@ -5,4 +5,5 @@ package nakadi;
  * might be withdrawn.
  */
 public @interface Unstable {
+
 }

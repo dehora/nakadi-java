@@ -9,6 +9,7 @@ import java.util.List;
  */
 public class SubscriptionEventTypeStatsCollection
     extends ResourceCollection<SubscriptionEventTypeStats> {
+
   private final SubscriptionResourceReal subscriptionResource;
 
   SubscriptionEventTypeStatsCollection(List<SubscriptionEventTypeStats> items,
