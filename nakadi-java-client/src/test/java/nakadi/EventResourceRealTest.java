@@ -325,7 +325,7 @@ public class EventResourceRealTest {
           return new Happened("a");
         }
       }));
-    } catch(NetworkException | NotFoundException ignored) {
+    } catch(RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -361,7 +361,7 @@ public class EventResourceRealTest {
           return new Happened("a");
         }
       }));
-    } catch(NetworkException | NotFoundException ignored) {
+    } catch(RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);

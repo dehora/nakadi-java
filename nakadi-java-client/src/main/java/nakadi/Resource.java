@@ -39,25 +39,14 @@ public interface Resource {
   Response request(String method, String url, ResourceOptions options) throws NakadiException;
 
   /**
-   * Make a request against the server with a request entity. Useful for post
-   * requests. Exceptions are not thrown for HTTP level errors (4xx and 5xx) so callers will
-   * need to inspect the Response to see how things went.
-   *
-   * The serialization assumes the output is JSON for now which is ok for the current API.
-   *
-   * @param method the http method
-   * @param url the resource url
-   * @param options requestThrowing options such as headers, and tokens.
-   * @param body the object to create a JSON requestThrowing body from
-   * @return a http response
-   * @throws NakadiException a non HTTP based exception
-   */
-  <Req> Response request(String method, String url, ResourceOptions options, Req body)
-      throws NakadiException;
-
-  /**
    * Make a request against the server without a request entity. Useful for get/delete/head
    * requests. Exceptions are thrown for HTTP level errors (4xx and 5xx).
+   *
+   * <p>
+   *   It is the responsibility of callers to call {@link Response} {@link ResponseBody#close()}
+   *   to dispose of the underlying HTTP resource if they do not use
+   *   {@link ResponseBody#asString(), which will automatically dispose of the connection.
+   * </p>
    *
    * @param method the http method
    * @param url the resource url
@@ -79,6 +68,12 @@ public interface Resource {
    * requests. Exceptions are thrown for HTTP level errors (4xx and 5xx).
    *
    * The serialization assumes the output is JSON for now which is ok for the current API.
+   *
+   * <p>
+   *   It is the responsibility of callers to call {@link Response} {@link ResponseBody#close()}
+   *   to dispose of the underlying HTTP resource if they do not use
+   *   {@link ResponseBody#asString(), which will automatically dispose of the connection.
+   * </p>
    *
    * @param method the http method
    * @param url the resource url
@@ -104,6 +99,12 @@ public interface Resource {
    * <p>
    *   If the server returns 422 or 207 indicating partial failures, errors are not thrown.
    *   Instead callers can inspect the response body for an array of batch item responses.
+   * </p>
+   *
+   * <p>
+   *   It is the responsibility of callers to call {@link Response} {@link ResponseBody#close()}
+   *   to dispose of the underlying HTTP resource if they do not use
+   *   {@link ResponseBody#asString(), which will automatically dispose of the connection.
    * </p>
    *
    * @param url the resource url

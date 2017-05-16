@@ -222,7 +222,7 @@ public class EventTypeResourceRealTest {
     try {
       new EventTypeResourceReal(client)
           .update(et2);
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -250,7 +250,7 @@ public class EventTypeResourceRealTest {
       new EventTypeResourceReal(client)
           .scope(customScope)
           .update(et2);
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -301,7 +301,7 @@ public class EventTypeResourceRealTest {
     try {
       new EventTypeResourceReal(client)
           .create(et2);
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -329,7 +329,7 @@ public class EventTypeResourceRealTest {
       new EventTypeResourceReal(client)
           .scope(customScope)
           .create(et2);
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -389,7 +389,7 @@ public class EventTypeResourceRealTest {
 
     try {
       new EventTypeResourceReal(client).list();
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -414,7 +414,7 @@ public class EventTypeResourceRealTest {
 
     try {
       new EventTypeResourceReal(client).scope(customScope).list();
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -464,7 +464,7 @@ public class EventTypeResourceRealTest {
 
       new EventTypeResourceReal(client)
           .findByName("foo");
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -496,7 +496,7 @@ public class EventTypeResourceRealTest {
       new EventTypeResourceReal(client)
           .scope(customScope)
           .findByName("foo");
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -546,7 +546,7 @@ public class EventTypeResourceRealTest {
       assertFalse(askedForNAKADI_CONFIG_WRITE[0]);
 
       new EventTypeResourceReal(client).delete("foo");
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     ArgumentCaptor<ResourceOptions> options = ArgumentCaptor.forClass(ResourceOptions.class);
@@ -577,7 +577,7 @@ public class EventTypeResourceRealTest {
       new EventTypeResourceReal(client)
           .scope(customScope)
           .delete("foo");
-    } catch (NetworkException | NotFoundException ignored) {
+    } catch (RetryableException | NotFoundException ignored) {
     }
 
     options = ArgumentCaptor.forClass(ResourceOptions.class);

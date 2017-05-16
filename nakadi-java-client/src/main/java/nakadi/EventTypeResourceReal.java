@@ -50,6 +50,7 @@ class EventTypeResourceReal implements EventTypeResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
 
+    // todo: close
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_TYPE_WRITE);
     return client.resourceProvider()
         .newResource()
@@ -62,6 +63,7 @@ class EventTypeResourceReal implements EventTypeResource {
       RateLimitException, NakadiException {
     String url = collectionUri().path(eventType.name()).buildString();
     ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_TYPE_WRITE);
+    // todo: close
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)

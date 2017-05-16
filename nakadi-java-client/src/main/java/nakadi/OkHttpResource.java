@@ -56,42 +56,6 @@ class OkHttpResource implements Resource {
     return this;
   }
 
-  @Override
-  public <Req> Response request(String method, String url, ResourceOptions options, Req body)
-      throws NakadiException {
-
-    // nb: defer delays the just() until we call toBlocking(); lets us set things up.
-
-    /*
-    if we have a retry in place use a throwing call and return the last response captured.
-     the rx retry mechanism is driven by exceptions but the caller is asking for a response here
-     so we don't propagate the exception
-     */
-
-    if (retryPolicy != null) {
-      if (retryPolicy.isFinished()) {
-        logger.warn("Cowardly, refusing to apply retry policy that is already finished {}",
-            retryPolicy);
-        metricCollector.mark(retrySkipFinished);
-      } else {
-        try {
-          Observable<Response> observable =
-              Observable.defer(
-                  () -> Observable.just(requestThrowingInner(method, url, options, body)));
-          Response first = observable.compose(buildRetry(retryPolicy)).blockingFirst();
-          response = null; // zero out any previous responses
-          return first;
-        } catch (HttpException e) {
-          logger.error("request with retry failed, {}", e.getMessage(), e);
-          return response;
-        }
-      }
-    }
-
-    Observable<Response> observable =
-        Observable.defer(() -> Observable.just(requestInner(method, url, options, body)));
-    return observable.blockingFirst();
-  }
 
   @Override
   public Response request(String method, String url, ResourceOptions options)
@@ -104,7 +68,7 @@ class OkHttpResource implements Resource {
 
     if (retryPolicy != null) {
       if (retryPolicy.isFinished()) {
-        logger.warn("Cowardly, refusing to apply retry policy that is already finished {}",
+        logger.warn("no_retry_cowardly refusing to apply retry policy that is already finished {}",
             retryPolicy);
         metricCollector.mark(retrySkipFinished);
       } else {
@@ -113,7 +77,7 @@ class OkHttpResource implements Resource {
               Observable.defer(
                   () -> Observable.just(requestThrowingInner(method, url, options, null)));
           Response first = observable.compose(buildRetry(retryPolicy)).blockingFirst();
-          response = null; // zero out any previous responses
+          releaseResponseQuietly();
           return first;
         } catch (HttpException e) {
           logger.error("request with retry failed, {}", e.getMessage(), e);
@@ -181,6 +145,21 @@ class OkHttpResource implements Resource {
     return marshalResponse(response, res);
   }
 
+  private void releaseResponseQuietly() {
+    if(response != null) {
+      try {
+        logger.info("request_retry_close_ask thread {} {} {}", Thread.currentThread().getName(), response.hashCode(), response);
+        response.responseBody().close();
+        logger.info("request_retry_close_ok thread {} {} {}", Thread.currentThread().getName(), response.hashCode(), response);
+      } catch (IOException e) {
+        logger.error(String.format("request_retry_close_fail thread %s %s %s",
+            Thread.currentThread().getName(), response.hashCode(), response), e);
+      } finally {
+        response = null; // zero out any previous responses
+      }
+    }
+  }
+
   private <Req> Response requestThrowingInner(String method, String url, ResourceOptions options,
       Req body) {
     return throwIfError(requestInner(method, url, options, body));
@@ -203,7 +182,7 @@ class OkHttpResource implements Resource {
         a) the policy is a no-op policy always returning finished
         b) it's being reused across requests, likely a client bug
          */
-        logger.warn("Cowardly, refusing to apply retry policy that is already finished {}", retryPolicy);
+        logger.warn("no_retry_cowardly refusing to used finished retry policy {}", retryPolicy);
         metricCollector.mark(retrySkipFinished);
       } else {
         return observable.compose(buildRetry(retryPolicy));
@@ -251,7 +230,7 @@ class OkHttpResource implements Resource {
     try {
       return new OkHttpResponse(okHttpCall(builder));
     } catch (IOException e) {
-      throw new NetworkException(Problem.networkProblem(e.getMessage(), ""), e);
+      throw new RetryableException(Problem.networkProblem(e.getMessage(), ""), e);
     }
   }
 
@@ -261,7 +240,8 @@ class OkHttpResource implements Resource {
 
   private ObservableTransformer<Response, Response> buildRetry(RetryPolicy backoff) {
     return new RequestRetry()
-        .retryWhenWithBackoffObserver(backoff,
+        .retryWhenWithBackoffObserver(
+            backoff,
             Schedulers.computation(),
             ExceptionSupport::isRequestRetryable);
   }
@@ -309,6 +289,7 @@ class OkHttpResource implements Resource {
       //noinspection unchecked  // safe cast
       return (Res) response;
     } else {
+      // asString will drive a underlying close of the http connection
       return jsonSupport.fromJson(response.responseBody().asString(), res);
     }
   }
