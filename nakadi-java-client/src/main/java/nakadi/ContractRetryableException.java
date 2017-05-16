@@ -4,7 +4,7 @@ package nakadi;
  * An exception representing a API mismatch with the server and where it's deemed safe to
  * continue.
  */
-public class ContractRetryableException extends NakadiException {
+public class ContractRetryableException extends RetryableException {
 
   /**
    * @param problem the Problem detail
