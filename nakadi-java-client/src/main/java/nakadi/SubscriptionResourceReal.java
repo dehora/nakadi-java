@@ -56,7 +56,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
         .newResource()
         .retryPolicy(retryPolicy)
         .requestThrowing(Resource.POST, collectionUri().buildString(),
-            options, subscription);
+            options, () -> client.jsonSupport().toJsonBytes(subscription));
   }
 
   @Override public Subscription create(Subscription subscription)
@@ -68,7 +68,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
         .newResource()
         .retryPolicy(retryPolicy)
         .requestThrowing(Resource.POST, collectionUri().buildString(),
-            options, subscription, Subscription.class);
+            options, () -> client.jsonSupport().toJsonBytes(subscription), Subscription.class);
   }
 
   @Override public Subscription find(String id)
@@ -176,7 +176,8 @@ class SubscriptionResourceReal implements SubscriptionResource {
     long duration = 0L;
     Response response;
     try {
-      response = resource.requestThrowing(Resource.POST, url, options, requestMap);
+      response = resource.requestThrowing(Resource.POST, url, options,
+          () -> client.jsonSupport().toJsonBytes(requestMap));
     } finally {
       try {
         duration = System.nanoTime() - start;

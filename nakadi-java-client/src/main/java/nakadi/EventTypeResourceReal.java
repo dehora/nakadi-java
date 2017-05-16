@@ -54,7 +54,8 @@ class EventTypeResourceReal implements EventTypeResource {
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
-        .requestThrowing(Resource.POST, collectionUri().buildString(), options, eventType);
+        .requestThrowing(Resource.POST, collectionUri().buildString(), options,
+            () -> client.jsonSupport().toJsonBytes(eventType));
   }
 
   @Override public Response update(EventType eventType)
@@ -66,7 +67,8 @@ class EventTypeResourceReal implements EventTypeResource {
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
-        .requestThrowing(Resource.PUT, url, options, eventType);
+        .requestThrowing(Resource.PUT, url, options,
+            () -> client.jsonSupport().toJsonBytes(eventType));
   }
 
   @Override public EventType findByName(String eventTypeName)
@@ -158,7 +160,8 @@ class EventTypeResourceReal implements EventTypeResource {
     final Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
-        .requestThrowing(Resource.POST, url, options, cursorList);
+        .requestThrowing(Resource.POST, url, options,
+            () -> client.jsonSupport().toJsonBytes(cursorList));
 
     final List<Cursor> collection =
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_C);
@@ -175,7 +178,8 @@ class EventTypeResourceReal implements EventTypeResource {
     final Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
-        .requestThrowing(Resource.POST, url, options, cursorDistanceList);
+        .requestThrowing(Resource.POST, url, options,
+            () -> client.jsonSupport().toJsonBytes(cursorDistanceList));
 
     final List<CursorDistance> collection =
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_CD);
@@ -190,7 +194,8 @@ class EventTypeResourceReal implements EventTypeResource {
     final Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
-        .requestThrowing(Resource.POST, url, options, cursors);
+        .requestThrowing(Resource.POST, url, options,
+            () -> client.jsonSupport().toJsonBytes(cursors));
 
     final List<Partition> collection =
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_P);

@@ -88,7 +88,7 @@ public interface Resource {
    * @throws RateLimitException for 429
    * @throws NakadiException a non HTTP based exception
    */
-  <Req> Response requestThrowing(String method, String url, ResourceOptions options, Req body)
+  Response requestThrowing(String method, String url, ResourceOptions options, ContentSupplier body)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException;
 
@@ -118,7 +118,7 @@ public interface Resource {
    * @throws RateLimitException for 429
    * @throws NakadiException a non HTTP based exception
    */
-  <Req> Response postEventsThrowing(String url, ResourceOptions options, Req body)
+  Response postEventsThrowing(String url, ResourceOptions options, ContentSupplier body)
       throws AuthorizationException, ClientException, ServerException, RateLimitException,
       NakadiException;
 
@@ -144,7 +144,7 @@ public interface Resource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException;
 
-  <Req, Res> Res requestThrowing(String method, String url, ResourceOptions options, Req body,
+  <Res> Res requestThrowing(String method, String url, ResourceOptions options, ContentSupplier body,
       Class<Res> res)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException;

@@ -26,6 +26,7 @@ import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -111,7 +112,7 @@ public class OkHttpResourceTest {
       try {
         server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
 
-        buildResource().requestThrowing("POST", baseUrl(), buildOptions(), "{}");
+        buildResource().requestThrowing("POST", baseUrl(), buildOptions(), () -> json.toJsonBytes("{}"));
         fail("expected exception for " + entry.getValue());
 
       } catch (NakadiException e) {
@@ -144,7 +145,7 @@ public class OkHttpResourceTest {
       try {
         server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
 
-        buildResource().requestThrowing("POST", baseUrl(), buildOptions(), "{}", String.class);
+        buildResource().requestThrowing("POST", baseUrl(), buildOptions(), () -> json.toJsonBytes("{}"), String.class);
         fail("expected exception for " + entry.getValue());
       } catch (NakadiException e) {
         assertEquals(entry.getValue(), e.getClass());
@@ -164,7 +165,7 @@ public class OkHttpResourceTest {
         "POST",
         baseUrl(),
         buildOptions(),
-        request,
+        () -> json.toJsonBytes(request),
         Subscription.class);
 
     assertEquals("fake-uuid", response.id());
@@ -381,7 +382,7 @@ public class OkHttpResourceTest {
 
     Subscription subscription = buildSubscription();
 
-    r.requestThrowing("POST", "http://localhost:"+ MOCK_SERVER_PORT +"/subscriptions", options, subscription);
+    r.requestThrowing("POST", "http://localhost:"+ MOCK_SERVER_PORT +"/subscriptions", options, () -> json.toJsonBytes(subscription));
     RecordedRequest request = server.takeRequest();
 
     assertEquals("POST /subscriptions HTTP/1.1", request.getRequestLine());
@@ -516,7 +517,7 @@ public class OkHttpResourceTest {
         Matchers.eq(Resource.POST),
         Matchers.eq("http://localhost:9081/subscriptions/woo/cursors"),
         options.capture(),
-        Matchers.eq(requestMap)
+        Matchers.any(ContentSupplier.class)
     );
 
     assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options.getValue().scope());
@@ -557,7 +558,7 @@ public class OkHttpResourceTest {
         Matchers.eq(Resource.POST),
         Matchers.eq("http://localhost:9081/subscriptions/woo/cursors"),
         options.capture(),
-        Matchers.eq(requestMap)
+        Matchers.any(ContentSupplier.class)
     );
 
     assertEquals(customScope, options.getValue().scope());
@@ -574,7 +575,8 @@ public class OkHttpResourceTest {
 
     Subscription subscription = buildSubscription();
 
-    r.requestThrowing("POST", "http://localhost:"+ MOCK_SERVER_PORT +"/subscriptions", options, subscription);
+    r.requestThrowing("POST", "http://localhost:" + MOCK_SERVER_PORT + "/subscriptions", options,
+        () -> json.toJsonBytes(subscription));
     RecordedRequest request = server.takeRequest();
 
     assertEquals("POST /subscriptions HTTP/1.1", request.getRequestLine());

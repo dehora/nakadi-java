@@ -231,7 +231,7 @@ public class EventTypeResourceRealTest {
         Matchers.eq(Resource.PUT),
         Matchers.eq("http://localhost:9081/event-types/" + et2.name()),
         options.capture(),
-        Matchers.eq(et2)
+        Matchers.any(ContentSupplier.class)
     );
 
     assertEquals(TokenProvider.NAKADI_EVENT_TYPE_WRITE, options.getValue().scope());
@@ -259,7 +259,7 @@ public class EventTypeResourceRealTest {
         Matchers.eq(Resource.PUT),
         Matchers.eq("http://localhost:9081/event-types/" + et2.name()),
         options.capture(),
-        Matchers.eq(et2)
+        Matchers.any(ContentSupplier.class)
     );
 
     assertEquals(customScope, options.getValue().scope());
@@ -310,7 +310,7 @@ public class EventTypeResourceRealTest {
         Matchers.eq(Resource.POST),
         Matchers.eq("http://localhost:9081/event-types"),
         options.capture(),
-        Matchers.eq(et2)
+        Matchers.any(ContentSupplier.class)
     );
 
     assertEquals(TokenProvider.NAKADI_EVENT_TYPE_WRITE, options.getValue().scope());
@@ -338,7 +338,7 @@ public class EventTypeResourceRealTest {
         Matchers.eq(Resource.POST),
         Matchers.eq("http://localhost:9081/event-types"),
         options.capture(),
-        Matchers.eq(et2)
+        Matchers.any(ContentSupplier.class)
     );
 
     assertEquals(customScope, options.getValue().scope());
