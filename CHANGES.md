@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.8.2
+
+- Handles and cleans up after observer exceptions.
+- Handles missing response entities from server.
+- Works around auth structure problems in https://github.com/zalando/nakadi/issues/645.
+
 ### 0.8.1
 
 - Allows network errors on checkpoint requests to be suppressed. 
