@@ -2,7 +2,7 @@ package nakadi;
 
 import java.util.List;
 
-public class CursorCollection extends ResourceCollection<Cursor>  {
+public class CursorCollection extends ResourceCollection<Cursor> {
 
   /**
    * @param items the results
@@ -16,5 +16,4 @@ public class CursorCollection extends ResourceCollection<Cursor>  {
   @SuppressWarnings("unchecked") public ResourceCollection fetchPage(String url) {
     return null;
   }
-
 }

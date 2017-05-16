@@ -166,9 +166,7 @@ public interface MetricCollector {
     /**
      * Each time a {@link RetryPolicy} is skipped because it's already finished
      */
-    retrySkipFinished("nakadi.java.client.retry.skip_finished"),
-
-    ;
+    retrySkipFinished("nakadi.java.client.retry.skip_finished"),;
 
     private final String path;
 
@@ -198,9 +196,7 @@ public interface MetricCollector {
     /**
      * How long it took to post a checkpoint.
      */
-    checkpointSend("nakadi.java.client.checkpoint.sendtime"),
-
-    ;
+    checkpointSend("nakadi.java.client.checkpoint.sendtime"),;
 
     private final String path;
 

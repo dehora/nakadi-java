@@ -31,12 +31,12 @@ public class SubscriptionOffsetPublisher implements StreamOffsetObserver {
         .observeOn(Schedulers.from(EXECUTOR));
   }
 
-  @Override public void onNext(StreamCursorContext streamCursorContext) throws NakadiException {
-    processor.onNext(streamCursorContext);
-  }
-
   static SubscriptionOffsetPublisher create() {
     return new SubscriptionOffsetPublisher();
+  }
+
+  @Override public void onNext(StreamCursorContext streamCursorContext) throws NakadiException {
+    processor.onNext(streamCursorContext);
   }
 
   SubscriptionOffsetPublisher subscribe(StreamOffsetObserver streamOffsetObserver) {
@@ -65,12 +65,11 @@ public class SubscriptionOffsetPublisher implements StreamOffsetObserver {
     }
 
     @Override public void onError(Throwable t) {
-      logger.error("SubscriptionOffsetPublisher.subscriber onError "+t.getMessage(), t);
+      logger.error("SubscriptionOffsetPublisher.subscriber onError " + t.getMessage(), t);
     }
 
     @Override public void onComplete() {
       logger.info("SubscriptionOffsetPublisher.subscriber onComplete ");
     }
   }
-
 }

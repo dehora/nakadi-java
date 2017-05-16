@@ -93,9 +93,9 @@ public class Subscription {
    * <p>2017-04-26: Known values are:</p>
    *
    * <ul>
-   *   <li><code>begin</code>: read from the oldest available event.</li>
-   *   <li><code>end</code>: read from the most recent offset. </li>
-   *   <li><code>cursors</code>: read from the supplied cursors. See {@link #consumerGroup()} </li>
+   * <li><code>begin</code>: read from the oldest available event.</li>
+   * <li><code>end</code>: read from the most recent offset. </li>
+   * <li><code>cursors</code>: read from the supplied cursors. See {@link #consumerGroup()} </li>
    * </ul>
    *
    * @param readFrom where to read from.
@@ -117,13 +117,15 @@ public class Subscription {
   /**
    * Add the event types the subscription wants.
    * <p>
-   *   2016-11-10: the API only supports working with a single event.
+   * 2016-11-10: the API only supports working with a single event.
    * </p>
+   *
    * @param eventTypeNames the names
    * @return this
    */
   public Subscription eventTypes(String... eventTypeNames) {
-    NakadiException.throwNonNull(eventTypeNames, "Please supply a non-null list of event type names");
+    NakadiException.throwNonNull(eventTypeNames,
+        "Please supply a non-null list of event type names");
     this.eventTypes.addAll(Arrays.asList(eventTypeNames));
     return this;
   }
@@ -131,8 +133,9 @@ public class Subscription {
   /**
    * Add an event types the subscription wants.
    * <p>
-   *   2016-11-10: the API only supports working with a single event.
+   * 2016-11-10: the API only supports working with a single event.
    * </p>
+   *
    * @param eventTypeName the names
    * @return this
    */
@@ -150,20 +153,21 @@ public class Subscription {
   }
 
   /**
-   *  List of cursors to start reading from.
+   * List of cursors to start reading from.
    *
-   * @return  the cursor offsets to read from, or null.
+   * @return the cursor offsets to read from, or null.
    */
   public List<Cursor> initialCursors() {
     return initialCursors;
   }
 
   /**
-   *  List of cursors to start reading from.
-   *  <p>
-   *    This is applied only if the {@link #readFrom(String)} method is configured to use cursors.
-   *    If the cursors contain cursor token values, those will removed.
-   *  </p>
+   * List of cursors to start reading from.
+   * <p>
+   * This is applied only if the {@link #readFrom(String)} method is configured to use cursors.
+   * If the cursors contain cursor token values, those will removed.
+   * </p>
+   *
    * @param initialCursors the cursor offsets to read from
    * @return this
    */

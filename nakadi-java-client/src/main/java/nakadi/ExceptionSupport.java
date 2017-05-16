@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 class ExceptionSupport {
 
   private static final Map<Integer, Class> CODES_TO_EXCEPTIONS = new HashMap<>();
+  private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
+
   static {
     CODES_TO_EXCEPTIONS.put(400, ClientException.class);
     CODES_TO_EXCEPTIONS.put(401, AuthorizationException.class);
@@ -27,8 +29,6 @@ class ExceptionSupport {
   static Map<Integer, Class> responseCodesToExceptionsMap() {
     return CODES_TO_EXCEPTIONS;
   }
-
-  private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   static boolean isSubscriptionStreamRetryable(Throwable e) {
     if (e instanceof ConflictException) {
@@ -65,7 +65,7 @@ class ExceptionSupport {
       NakadiException n = (NakadiException) e;
 
       if (n instanceof NetworkException) {
-        logger.warn("retryable_network_exception {} ",  e.getCause());
+        logger.warn("retryable_network_exception {} ", e.getCause());
         return true;
       }
 

@@ -35,7 +35,8 @@ public class LoggingUndefinedEventObserver
     }
   }
 
-  @Override public void onNext(StreamBatchRecord<UndefinedEventMapped<Map<String, Object>>> record) {
+  @Override
+  public void onNext(StreamBatchRecord<UndefinedEventMapped<Map<String, Object>>> record) {
 
     final StreamOffsetObserver offsetObserver = record.streamOffsetObserver();
 

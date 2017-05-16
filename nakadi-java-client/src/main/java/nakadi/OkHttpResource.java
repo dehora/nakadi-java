@@ -56,7 +56,6 @@ class OkHttpResource implements Resource {
     return this;
   }
 
-
   @Override
   public Response request(String method, String url, ResourceOptions options)
       throws NakadiException {
@@ -146,11 +145,13 @@ class OkHttpResource implements Resource {
   }
 
   private void releaseResponseQuietly() {
-    if(response != null) {
+    if (response != null) {
       try {
-        logger.info("request_retry_close_ask thread {} {} {}", Thread.currentThread().getName(), response.hashCode(), response);
+        logger.info("request_retry_close_ask thread {} {} {}", Thread.currentThread().getName(),
+            response.hashCode(), response);
         response.responseBody().close();
-        logger.info("request_retry_close_ok thread {} {} {}", Thread.currentThread().getName(), response.hashCode(), response);
+        logger.info("request_retry_close_ok thread {} {} {}", Thread.currentThread().getName(),
+            response.hashCode(), response);
       } catch (IOException e) {
         logger.error(String.format("request_retry_close_fail thread %s %s %s",
             Thread.currentThread().getName(), response.hashCode(), response), e);
@@ -176,7 +177,7 @@ class OkHttpResource implements Resource {
 
   private Observable<Response> maybeComposeRetryPolicy(final Observable<Response> observable) {
     if (retryPolicy != null) { // no policy set by caller
-      if(retryPolicy.isFinished()) {
+      if (retryPolicy.isFinished()) {
         /*
         this can happen if
         a) the policy is a no-op policy always returning finished
@@ -195,12 +196,11 @@ class OkHttpResource implements Resource {
       Req body) {
     Request.Builder builder;
     if (body != null) {
-      if(body instanceof EventContentSupplier) {
-        EventContentSupplier supplier = (EventContentSupplier)body;
+      if (body instanceof EventContentSupplier) {
+        EventContentSupplier supplier = (EventContentSupplier) body;
         RequestBody requestBody =
             RequestBody.create(MediaType.parse(APPLICATION_JSON_CHARSET_UTF8), supplier.content());
         builder = new Request.Builder().url(url).method(method, requestBody);
-
       } else {
         String content = jsonSupport.toJson(body);
         RequestBody requestBody =
@@ -262,7 +262,6 @@ class OkHttpResource implements Resource {
       final OkHttpClient client = clientBuilder.build();
       final Call call = client.newCall(request);
       return call.execute();
-
     } else {
       final Request request = builder.build();
       final Call call = okHttpClient.newCall(request);
@@ -323,16 +322,16 @@ class OkHttpResource implements Resource {
 
     Problem problem = jsonSupport.fromJson(raw, Problem.class);
 
-    if(problem == null) {
+    if (problem == null) {
       problem = Problem.noProblemo("no problem sent back from server", "", response.statusCode());
     }
 
-    if(problem.status() == 0 && response.statusCode() == 400) {
+    if (problem.status() == 0 && response.statusCode() == 400) {
       // workaround for https://github.com/zalando/nakadi/issues/645
-      if(raw.contains("'accessToken' failed")) {
+      if (raw.contains("'accessToken' failed")) {
         problem = Problem.authProblem("token_assumed_rejected",
             "Inferred from invalid response there was a token issue, "
-                + "see https://github.com/zalando/nakadi/issues/645 raw_response="+raw);
+                + "see https://github.com/zalando/nakadi/issues/645 raw_response=" + raw);
       }
     }
 

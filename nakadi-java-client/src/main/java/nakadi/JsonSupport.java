@@ -5,7 +5,6 @@ import java.lang.reflect.Type;
 
 /**
  * Provides JSON support for the client.
- *
  */
 public interface JsonSupport {
 

@@ -154,7 +154,7 @@ public interface SubscriptionResource {
    * @throws RateLimitException for a 429
    * @throws NotFoundException for a 404
    * @throws ContractException for a "successful" request but which does not follow the api
-   * @throws NakadiException  for a general exception
+   * @throws NakadiException for a general exception
    */
   CursorCommitResultCollection checkpoint(Map<String, String> context, Cursor... cursors)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
@@ -171,7 +171,7 @@ public interface SubscriptionResource {
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws NotFoundException for a 404
-   * @throws NakadiException  for a general exception
+   * @throws NakadiException for a general exception
    */
   SubscriptionCursorCollection cursors(String id)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
@@ -188,7 +188,7 @@ public interface SubscriptionResource {
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws NotFoundException for a 404
-   * @throws NakadiException  for a general exception
+   * @throws NakadiException for a general exception
    */
   SubscriptionEventTypeStatsCollection stats(String id)
       throws AuthorizationException, ClientException, ServerException, InvalidException,

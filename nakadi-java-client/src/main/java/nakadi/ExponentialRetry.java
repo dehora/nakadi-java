@@ -5,28 +5,23 @@ import java.util.concurrent.TimeUnit;
 
 public class ExponentialRetry implements RetryPolicy {
 
+  public static final int MAX_INTERVAL_MIN_AS_MILLIS = 20;
+  public static final int INITIAL_INTERVAL_MIN_AS_MILLIS = 10;
+  public static final float PERCENT_OF_MAX_INTERVAL_AS_JITTER = 10.0f;
   static final int DEFAULT_INITIAL_INTERVAL_MILLIS = 1000;
   static final int DEFAULT_MAX_INTERVAL_MILLIS = 32000;
   static final int DEFAULT_MAX_ATTEMPTS = Integer.MAX_VALUE;
   static final long DEFAULT_MAX_TIME = Long.MAX_VALUE;
-  public static final int MAX_INTERVAL_MIN_AS_MILLIS = 20;
-  public static final int INITIAL_INTERVAL_MIN_AS_MILLIS = 10;
-  public static final float PERCENT_OF_MAX_INTERVAL_AS_JITTER = 10.0f;
-
-  private long workingInterval;
   private final long initialInterval;
   private final long maxInterval;
   int maxAttempts;
   long workingAttempts = 1;
   long maxTime;
   long workingTime = 0L;
-  private volatile long startTime = 0L;
   TimeUnit unit;
+  private long workingInterval;
+  private volatile long startTime = 0L;
   private float percentOfMaxIntervalForJitter;
-
-  public static Builder newBuilder() {
-    return new Builder();
-  }
 
   ExponentialRetry(Builder builder) {
     this.initialInterval = Math.min(builder.maxInterval, builder.initialInterval);
@@ -38,6 +33,10 @@ public class ExponentialRetry implements RetryPolicy {
     this.percentOfMaxIntervalForJitter = builder.percentOfMaxIntervalForJitter;
   }
 
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
   public long initialInterval() {
     return initialInterval;
   }
@@ -46,36 +45,32 @@ public class ExponentialRetry implements RetryPolicy {
     return maxInterval;
   }
 
-  public int maxAttempts() {
-    return maxAttempts;
-  }
-
   public boolean isFinished() {
     return workingAttempts >= maxAttempts || workingTime >= maxTime;
   }
 
   public long nextBackoffMillis() {
 
-    if(startTime == 0L) {
+    if (startTime == 0L) {
       startTime = System.currentTimeMillis();
     } else {
       workingTime += (System.currentTimeMillis() - startTime);
     }
 
-    if(isFinished()) {
+    if (isFinished()) {
       return STOP;
     }
 
     workingInterval = unit.toMillis(workingInterval) * (workingAttempts * workingAttempts);
     workingAttempts++;
 
-    if(workingInterval <= 0) {
+    if (workingInterval <= 0) {
       workingInterval = unit.toMillis(maxInterval);
     }
 
-
     if (initialInterval != workingInterval) {
-      workingInterval = Math.min(maxInterval, ThreadLocalRandom.current().nextLong(initialInterval, workingInterval));
+      workingInterval = Math.min(maxInterval,
+          ThreadLocalRandom.current().nextLong(initialInterval, workingInterval));
       if (workingInterval == maxInterval) {
         /*
          avoid fixating on the max by picking a wait between it and a percentage less than it
@@ -89,6 +84,10 @@ public class ExponentialRetry implements RetryPolicy {
     }
 
     return workingInterval;
+  }
+
+  public int maxAttempts() {
+    return maxAttempts;
   }
 
   @Override public long workingAttempts() {
@@ -107,12 +106,12 @@ public class ExponentialRetry implements RetryPolicy {
 
   public static class Builder {
 
+    private final TimeUnit unit = TimeUnit.MILLISECONDS;
+    public float percentOfMaxIntervalForJitter = PERCENT_OF_MAX_INTERVAL_AS_JITTER;
     private long initialInterval = DEFAULT_INITIAL_INTERVAL_MILLIS;
     private long maxInterval = DEFAULT_MAX_INTERVAL_MILLIS;
     private int maxAttempts = DEFAULT_MAX_ATTEMPTS;
     private long maxTime = DEFAULT_MAX_TIME;
-    private final TimeUnit unit = TimeUnit.MILLISECONDS;
-    public float percentOfMaxIntervalForJitter = PERCENT_OF_MAX_INTERVAL_AS_JITTER;
 
     private Builder() {
     }

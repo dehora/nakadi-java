@@ -21,7 +21,7 @@ public class StreamConfiguration {
   static final int DEFAULT_STREAM_TIMEOUT = 0;
   static final int DEFAULT_STREAM_KEEPALIVE_COUNT = 0;
   static final int DEFAULT_MAX_UNCOMMITTED_EVENTS = 10;
-
+  private final Map<String, String> requestHeaders = new HashMap<>();
   // api declared
   private int batchLimit = DEFAULT_BATCH_LIMIT;
   private int streamLimit = DEFAULT_STREAM_LIMIT;
@@ -30,7 +30,6 @@ public class StreamConfiguration {
   private int streamKeepAliveLimit = DEFAULT_STREAM_KEEPALIVE_COUNT;
   private List<Cursor> cursors;
   private String topic;
-  private final Map<String, String> requestHeaders = new HashMap<>();
   // sub api
   private String subscriptionId;
   private long maxUncommittedEvents = DEFAULT_MAX_UNCOMMITTED_EVENTS;
@@ -110,15 +109,14 @@ public class StreamConfiguration {
    * and allow the server to define it.
    *
    * <p>
-   *  Note 2017/04/20: the API definition says if the value is  0 or unspecified the server will
-   *  buffer events indefinitely and flush on reaching of {@link #batchFlushTimeoutSeconds()}.
-   *  This is incorrect - if the server receives a value of '0' it will not send events at
-   *  all (effectively it's a silent bug). To compensate, if the value is set to 0 here (or
-   *  less than 1), the client will ignore the setting and not add the batch limit query parameter.
-   *  Ignoring instead of throwing makes the method compatible with previous client versions, but
-   *  this behaviour will be changed to raise an exception before 1.0.0.
+   * Note 2017/04/20: the API definition says if the value is  0 or unspecified the server will
+   * buffer events indefinitely and flush on reaching of {@link #batchFlushTimeoutSeconds()}.
+   * This is incorrect - if the server receives a value of '0' it will not send events at
+   * all (effectively it's a silent bug). To compensate, if the value is set to 0 here (or
+   * less than 1), the client will ignore the setting and not add the batch limit query parameter.
+   * Ignoring instead of throwing makes the method compatible with previous client versions, but
+   * this behaviour will be changed to raise an exception before 1.0.0.
    * </p>
-   *
    */
   public StreamConfiguration batchLimit(int batchLimit) {
     this.batchLimit = batchLimit;
@@ -226,13 +224,15 @@ public class StreamConfiguration {
    * @param maxRetryDelay the maximum time to wait
    * @param unit the time unit
    * @return this
-   * @throws IllegalArgumentException if the supplied unit is null or the time is less than
-   * the minimum allowed delay time of 1s
+   * @throws IllegalArgumentException if the supplied unit is null or the time is less than the
+   * minimum allowed delay time of 1s
    */
-  public StreamConfiguration maxRetryDelay(long maxRetryDelay, TimeUnit unit) throws IllegalArgumentException {
+  public StreamConfiguration maxRetryDelay(long maxRetryDelay, TimeUnit unit)
+      throws IllegalArgumentException {
     NakadiException.throwNonNull(unit, "Please provide a time unit for max retry delay");
-    if(TimeUnit.SECONDS.toMillis(minRetryDelay) > unit.toMillis(maxRetryDelay)) {
-      throw new IllegalArgumentException("supplied max delay cannot be less than "+minRetryDelay+"s");
+    if (TimeUnit.SECONDS.toMillis(minRetryDelay) > unit.toMillis(maxRetryDelay)) {
+      throw new IllegalArgumentException(
+          "supplied max delay cannot be less than " + minRetryDelay + "s");
     }
 
     this.maxRetryDelay = unit.toSeconds(maxRetryDelay);
@@ -252,7 +252,7 @@ public class StreamConfiguration {
    * Returns the headers set on this configuration.
    *
    * <p>
-   *   The Map returned is immutable.
+   * The Map returned is immutable.
    * </p>
    *
    * @return an immutable copy of the headers, which may be empty
@@ -264,9 +264,9 @@ public class StreamConfiguration {
   /**
    * Configure HTTP headers to be set on the stream processor request.
    * <p>
-   *   These headers are static, in the sense they are set exactly as supplied for
-   *   every request made by the stream processor to the server (i.e., the headers set will
-   *   be identical for the initial request and subsequent reconnects).
+   * These headers are static, in the sense they are set exactly as supplied for
+   * every request made by the stream processor to the server (i.e., the headers set will
+   * be identical for the initial request and subsequent reconnects).
    * </p>
    *
    * @param headers one or more HTTP headers
@@ -282,9 +282,9 @@ public class StreamConfiguration {
   /**
    * Configure a HTTP header to be set on the stream processor request.
    * <p>
-   *   This header is static, in the sense it is set exactly as supplied for
-   *   every request made by the stream processor to the server (i.e., the header set will
-   *   be identical for the initial request and subsequent reconnects).
+   * This header is static, in the sense it is set exactly as supplied for
+   * every request made by the stream processor to the server (i.e., the header set will
+   * be identical for the initial request and subsequent reconnects).
    * </p>
    *
    * @param name the name of the HTTP header

@@ -6,7 +6,6 @@ import java.util.Optional;
 
 class ResourceOptions {
 
-
   //multimap would be correct, but a client for this api doesn't setting multiple same headers
   private final Map<String, Object> headers = new HashMap<>();
   private TokenProvider provider;

@@ -8,7 +8,8 @@ import java.util.Map;
 public class LoggingUndefinedEventObserverProvider
     implements StreamObserverProvider<UndefinedEventMapped<Map<String, Object>>> {
 
-  @Override public StreamObserver<UndefinedEventMapped<Map<String, Object>>> createStreamObserver() {
+  @Override
+  public StreamObserver<UndefinedEventMapped<Map<String, Object>>> createStreamObserver() {
     return new LoggingUndefinedEventObserver();
   }
 

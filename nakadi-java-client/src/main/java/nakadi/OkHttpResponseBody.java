@@ -55,11 +55,12 @@ class OkHttpResponseBody implements ResponseBody {
       logger.info("response_close_ok thread={}", Thread.currentThread().getName());
       closed = true;
     } catch (Exception e) {
-      logger.warn("response_close_error problem closing on {} {}", e.getClass().getName(), e.getMessage());
+      logger.warn("response_close_error problem closing on {} {}", e.getClass().getName(),
+          e.getMessage());
     } finally {
       // try again, but it looks like you get one shot with okhttp, esp. for a cross thread problem
       int attempt = 0;
-      while(!closed && attempt++ < CLOSE_ATTEMPTS) {
+      while (!closed && attempt++ < CLOSE_ATTEMPTS) {
         try {
           okResponse.close();
           closed = true;
@@ -69,7 +70,7 @@ class OkHttpResponseBody implements ResponseBody {
         }
       }
 
-      if(!closed) {
+      if (!closed) {
         logger.error("response_close_error could not close http response attempts {}/{}", attempt,
             CLOSE_ATTEMPTS);
       }

@@ -21,14 +21,6 @@ class StreamBatchRecordBufferingSubscriber<T> extends
     observer.onStart();
   }
 
-  @Override public void onComplete() {
-    observer.onCompleted();
-  }
-
-  @Override public void onError(Throwable e) {
-    observer.onError(e);
-  }
-
   @Override public void onNext(List<StreamBatchRecord<T>> records) {
     records.forEach(record -> {
       if (!record.streamBatch().isEmpty()) {
@@ -41,5 +33,13 @@ class StreamBatchRecordBufferingSubscriber<T> extends
     });
     // allow the observer to set back pressure by requesting a number of items
     observer.requestBackPressure().ifPresent(this::request);
+  }
+
+  @Override public void onError(Throwable e) {
+    observer.onError(e);
+  }
+
+  @Override public void onComplete() {
+    observer.onCompleted();
   }
 }

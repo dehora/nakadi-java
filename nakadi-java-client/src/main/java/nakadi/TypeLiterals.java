@@ -40,5 +40,4 @@ public class TypeLiterals {
   public static final TypeLiteral<UndefinedEventMapped<Map<String, Object>>> OF_UNDEFINED_MAP =
       new TypeLiteral<UndefinedEventMapped<Map<String, Object>>>() {
       };
-
 }

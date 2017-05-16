@@ -21,12 +21,12 @@ public class CursorDistanceCollection extends ResourceCollection<CursorDistance>
     return sentinel;
   }
 
+  @Override public ResourceCollection<CursorDistance> nextPage() {
+    return sentinel;
+  }
+
   @Override public boolean hasNextLink() {
     // there's no pagination on this collection type
     return false;
-  }
-
-  @Override public ResourceCollection<CursorDistance> nextPage() {
-    return sentinel;
   }
 }

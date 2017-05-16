@@ -45,7 +45,7 @@ class StreamResourceSupport {
    * is a basic event stream.
    */
   static ResourceOptions buildResourceOptions(NakadiClient client, StreamConfiguration sc,
-     String scope) {
+      String scope) {
     ResourceOptions options = ResourceSupport
         // breaks with api definition https://github.com/zalando-incubator/nakadi-java/issues/98
         .options(APPLICATION_JSON)
@@ -61,7 +61,7 @@ class StreamResourceSupport {
     Optional<List<Cursor>> cursors = sc.cursors(); // deref to keep stop idea complaining
     cursors.ifPresent(
         list ->
-            options.header(HEADER_X_NAKADI_CURSORS,client.jsonSupport().toJsonCompressed(list)));
+            options.header(HEADER_X_NAKADI_CURSORS, client.jsonSupport().toJsonCompressed(list)));
     return options;
   }
 
@@ -86,7 +86,7 @@ class StreamResourceSupport {
 
     // ignores 0 or lower values: see https://github.com/zalando-incubator/nakadi-java/issues/125
     if (sc.batchLimit() > StreamConfiguration.DEFAULT_BATCH_LIMIT) {
-        uriBuilder.query(PARAM_BATCH_LIMIT, "" + sc.batchLimit());
+      uriBuilder.query(PARAM_BATCH_LIMIT, "" + sc.batchLimit());
     }
 
     if (sc.streamLimit() != StreamConfiguration.DEFAULT_STREAM_LIMIT) {

@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 
 class UriBuilder {
 
-  private static Charset UTF_8 = StandardCharsets.UTF_8;
   private static final String AND = "&";
   private static final String EQ = "=";
+  private static Charset UTF_8 = StandardCharsets.UTF_8;
   private final QueryParams qp = new QueryParams();
   private StringBuilder stringBuilder;
 

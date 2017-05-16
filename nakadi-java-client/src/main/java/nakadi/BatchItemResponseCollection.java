@@ -10,7 +10,7 @@ public class BatchItemResponseCollection extends ResourceCollection<BatchItemRes
   BatchItemResponseCollection(List<BatchItemResponse> items, List<ResourceLink> links) {
     super(items, links);
   }
-  
+
   public ResourceCollection<BatchItemResponse> fetchPage(String url) {
     throw new UnsupportedOperationException("Paging batch item responses is not supported");
   }

@@ -19,7 +19,6 @@ public interface StreamOffsetObserver {
    * {@link StreamProcessor.Builder#streamOffsetObserver}.
    *
    * @param streamCursorContext the batch's {@link StreamCursorContext}.
-   *
    */
   void onNext(StreamCursorContext streamCursorContext) throws NakadiException;
 }

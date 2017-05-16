@@ -35,8 +35,8 @@ class StreamConnectionRestart {
    * @param restartDelay how long to wait between repeats
    * @param restartDelayUnit the time unit for repeats
    * @param maxRestarts the maximum number of repeats
-   * @param <T> the type we're composing with ({@link FlowableTransformer}'s upstream and
-   * downstream are the same type)
+   * @param <T> the type we're composing with ({@link FlowableTransformer}'s upstream and downstream
+   * are the same type)
    * @return an {@link FlowableTransformer} that can be given to  {@link Flowable#compose}
    */
   <T> FlowableTransformer<T, T> repeatWhenWithDelayAndUntil(
@@ -48,12 +48,13 @@ class StreamConnectionRestart {
     return upstream -> upstream.repeatWhen(
         flowable -> flowable.zipWith(
             Flowable.range(1, maxRestarts),
-            (obj, count) ->  {
-              logger.info("stream_repeater_requested {} restarts={}", obj == null ? "" : obj, count);
+            (obj, count) -> {
+              logger.info("stream_repeater_requested {} restarts={}", obj == null ? "" : obj,
+                  count);
               return count;
             }
         ).flatMap(
-            attemptCount ->  {
+            attemptCount -> {
               logger.info("stream_repeater_delay  delay={} {}, restarts={}",
                   restartDelay, restartDelayUnit.toString().toLowerCase(), attemptCount);
               return Flowable.timer(restartDelay, restartDelayUnit);

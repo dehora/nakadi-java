@@ -8,15 +8,16 @@ import java.util.Objects;
  * Represents a batch of events emitted from a Stream. Assumes all batches are of a common single
  * type.
  * <p>
- *   Currently the three category types supported by the API are disjoint. The client marks them
- *   with the {@link Event} interface but the are all handled differently when it comes to internal
- *   serdes operations. Even so, this class can carry all three kinds and also to allow users to
- *   define their own data models for events in the stream if they wish.
+ * Currently the three category types supported by the API are disjoint. The client marks them
+ * with the {@link Event} interface but the are all handled differently when it comes to internal
+ * serdes operations. Even so, this class can carry all three kinds and also to allow users to
+ * define their own data models for events in the stream if they wish.
  * </p>
+ *
+ * @param <T> the type of the event data contained in the batch.
  * @see nakadi.DataChangeEvent
  * @see nakadi.BusinessEventMapped
  * @see nakadi.UndefinedEventMapped
- * @param <T> the type of the event data contained in the batch.
  */
 public class EventStreamBatch<T> {
 
@@ -52,7 +53,6 @@ public class EventStreamBatch<T> {
   }
 
   /**
-   *
    * @return true if the batch is empty (signals a keep-alive batch).
    */
   public boolean isEmpty() {

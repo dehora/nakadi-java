@@ -20,5 +20,4 @@ public class ContractRetryableException extends RetryableException {
   public ContractRetryableException(Problem problem, Throwable cause) {
     super(problem, cause);
   }
-
 }

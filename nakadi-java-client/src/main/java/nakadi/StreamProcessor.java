@@ -25,12 +25,13 @@ import org.slf4j.LoggerFactory;
 /**
  * API support for streaming events to a consumer.
  * <p>
- *   Supports both the name event type streams and the more recent subscription based streams.
- *   The API's connection streaming models are fundamentally the same, but have some differences
- *   in  detail, such as request parameters and the structure of the batch cursor. Users
- *   should consult the Nakadi API documentation and {@link StreamConfiguration} for details
- *   on the streaming options.
+ * Supports both the name event type streams and the more recent subscription based streams.
+ * The API's connection streaming models are fundamentally the same, but have some differences
+ * in  detail, such as request parameters and the structure of the batch cursor. Users
+ * should consult the Nakadi API documentation and {@link StreamConfiguration} for details
+ * on the streaming options.
  * </p>
+ *
  * @see nakadi.StreamConfiguration
  */
 public class StreamProcessor implements StreamProcessorManaged {
@@ -61,7 +62,7 @@ public class StreamProcessor implements StreamProcessorManaged {
               (t, e) -> logger.error("stream_processor_err_compute {}, {}", t, e.getMessage(), e))
           .setNameFormat("nakadi-java-compute-%d").build());
   private final Scheduler monoIoScheduler = Schedulers.from(monoIoExecutor);
-  private final Scheduler monoComputeScheduler=  Schedulers.from(monoComputeExecutor);
+  private final Scheduler monoComputeScheduler = Schedulers.from(monoComputeExecutor);
   private final CountDownLatch startBlockingLatch;
   private CompositeDisposable composite;
 
@@ -102,6 +103,15 @@ public class StreamProcessor implements StreamProcessorManaged {
     return new StreamProcessor.Builder().client(client);
   }
 
+  private static ExecutorService newStreamProcessorExecutorService() {
+    final ThreadFactory tf =
+        new ThreadFactoryBuilder()
+            .setUncaughtExceptionHandler(
+                (t, e) -> logger.error("stream_processor_err {}, {}", t, e.getMessage(), e))
+            .setNameFormat("nakadi-java").build();
+    return Executors.newFixedThreadPool(1, tf);
+  }
+
   /**
    * Start consuming the stream. This runs in a background executor and will not block the
    * calling thread. Callers must hold onto a reference in order to be able to shut it down.
@@ -111,11 +121,30 @@ public class StreamProcessor implements StreamProcessorManaged {
    * Calling start multiple times is the same as calling it once, when stop is not also called
    * or interleaved with.
    * </p>
+   *
    * @see #stop()
    */
   public void start() {
     if (!started.getAndSet(true)) {
       executorService().submit(this::startStreaming);
+    }
+  }
+
+  /**
+   * Perform a controlled shutdown of the stream. The {@link StreamObserver} will have
+   * its onCompleted or onError called under normal circumstances. The {@link StreamObserver}
+   * in turn can call its {@link StreamOffsetObserver} to perform cleanup.
+   *
+   * <p>
+   * Calling stop multiple times is the same as calling it once, when start is not also called
+   * or interleaved with.
+   * </p>
+   *
+   * @see #start()
+   */
+  public void stop() {
+    if (started.getAndSet(false)) {
+      stopStreaming();
     }
   }
 
@@ -138,23 +167,6 @@ public class StreamProcessor implements StreamProcessorManaged {
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
-    }
-  }
-
-  /**
-   * Perform a controlled shutdown of the stream. The {@link StreamObserver} will have
-   * its onCompleted or onError called under normal circumstances. The {@link StreamObserver}
-   * in turn can call its {@link StreamOffsetObserver} to perform cleanup.
-   *
-   * <p>
-   * Calling stop multiple times is the same as calling it once, when start is not also called
-   * or interleaved with.
-   *</p>
-   * @see #start()
-   */
-  public void stop() {
-    if (started.getAndSet(false)) {
-      stopStreaming();
     }
   }
 
@@ -206,15 +218,15 @@ public class StreamProcessor implements StreamProcessorManaged {
       buffered up lists
      */
       composite.add(observable.observeOn(monoComputeScheduler)
-              .buffer(maybeBuffering.get())
-              .subscribeWith(
-                  new StreamBatchRecordBufferingSubscriber<>(observer, client.metricCollector())));
+          .buffer(maybeBuffering.get())
+          .subscribeWith(
+              new StreamBatchRecordBufferingSubscriber<>(observer, client.metricCollector())));
     } else {
       logger.info("Creating regular subscriber {}", sc);
 
       composite.add(observable.observeOn(monoComputeScheduler)
-              .subscribeWith(
-                  new StreamBatchRecordSubscriber<>(observer, client.metricCollector())));
+          .subscribeWith(
+              new StreamBatchRecordSubscriber<>(observer, client.metricCollector())));
     }
   }
 
@@ -317,10 +329,12 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private Consumer<? super Response> observableDispose() {
     return (response) -> {
-      logger.info("stream_connection_dispose thread {} {} {}", Thread.currentThread().getName(), response.hashCode(), response);
+      logger.info("stream_connection_dispose thread {} {} {}", Thread.currentThread().getName(),
+          response.hashCode(), response);
       try {
         response.responseBody().close();
-        logger.info("stream_connection_dispose_ok thread {} {} {}", Thread.currentThread().getName(), response.hashCode(), response);
+        logger.info("stream_connection_dispose_ok thread {} {} {}",
+            Thread.currentThread().getName(), response.hashCode(), response);
       } catch (IOException e) {
         throw new NakadiException(
             Problem.networkProblem("failed to close stream response", e.getMessage()), e);
@@ -337,7 +351,7 @@ public class StreamProcessor implements StreamProcessorManaged {
 
             boolean closed = false;
             final String tName = Thread.currentThread().getName();
-            
+
             try {
               logger.info("stream_iterator_response_close_ask thread={} error={} {} {}",
                   tName, throwable.getMessage(), response.hashCode(), response);
@@ -346,7 +360,8 @@ public class StreamProcessor implements StreamProcessorManaged {
               logger.info("stream_iterator_response_close_ok thread={} error={} {} {}",
                   tName, throwable.getMessage(), response.hashCode(), response);
             } catch (Exception e) {
-              logger.warn("stream_iterator_response_close_error problem closing thread={} {} {} {} {}",
+              logger.warn(
+                  "stream_iterator_response_close_error problem closing thread={} {} {} {} {}",
                   tName, e.getClass().getName(), e.getMessage(), response.hashCode(), response);
             } finally {
               if (!closed) {
@@ -360,7 +375,7 @@ public class StreamProcessor implements StreamProcessorManaged {
                 }
               }
 
-              if(!closed) {
+              if (!closed) {
                 logger.warn(
                     String.format(
                         "stream_iterator_response_close_failed did not close response thread=%s err=%s %s %s",
@@ -431,15 +446,6 @@ public class StreamProcessor implements StreamProcessorManaged {
     return sub.eventTypes().get(0);
   }
 
-  private static ExecutorService newStreamProcessorExecutorService() {
-    final ThreadFactory tf =
-        new ThreadFactoryBuilder()
-            .setUncaughtExceptionHandler(
-                (t, e) -> logger.error("stream_processor_err {}, {}", t, e.getMessage(), e))
-            .setNameFormat("nakadi-java").build();
-    return Executors.newFixedThreadPool(1, tf);
-  }
-
   @SuppressWarnings("WeakerAccess")
   public static class Builder {
 
@@ -470,10 +476,11 @@ public class StreamProcessor implements StreamProcessorManaged {
       }
 
       NakadiException.throwNonNull(client, "Please provide a client");
-      NakadiException.throwNonNull(streamObserverProvider, "Please provide a StreamObserverProvider");
+      NakadiException.throwNonNull(streamObserverProvider,
+          "Please provide a StreamObserverProvider");
 
       if (streamConfiguration.isSubscriptionStream() && streamOffsetObserver == null) {
-        if(checkpointer == null) {
+        if (checkpointer == null) {
           this.checkpointer =
               new SubscriptionOffsetCheckpointer(client).suppressInvalidSessionException(false);
         }

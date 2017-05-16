@@ -26,30 +26,6 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
     observer.onStart();
   }
 
-  @Override public void onComplete() {
-    logger.info("StreamBatchRecordSubscriber.onCompleted");
-    observer.onCompleted();
-  }
-
-  @Override public void onError(Throwable e) {
-    logger.info("StreamBatchRecordSubscriber.onError " + e.getMessage());
-
-    if (done) {
-      RxJavaPlugins.onError(e);
-      return;
-    }
-
-    done = true;
-
-    try {
-      observer.onError(e);
-    } catch (Exception e1) {
-      throwOnFatal(e1);
-      logger.error(e1.getMessage(), e1);
-      RxJavaPlugins.onError(new CompositeException(e, e1));
-    }
-  }
-
   @Override public void onNext(StreamBatchRecord<T> record) {
 
     if (done) {
@@ -103,6 +79,30 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
 
       onError(t);
     }
+  }
+
+  @Override public void onError(Throwable e) {
+    logger.info("StreamBatchRecordSubscriber.onError " + e.getMessage());
+
+    if (done) {
+      RxJavaPlugins.onError(e);
+      return;
+    }
+
+    done = true;
+
+    try {
+      observer.onError(e);
+    } catch (Exception e1) {
+      throwOnFatal(e1);
+      logger.error(e1.getMessage(), e1);
+      RxJavaPlugins.onError(new CompositeException(e, e1));
+    }
+  }
+
+  @Override public void onComplete() {
+    logger.info("StreamBatchRecordSubscriber.onCompleted");
+    observer.onCompleted();
   }
 
   private void throwOnFatal(Throwable t) {

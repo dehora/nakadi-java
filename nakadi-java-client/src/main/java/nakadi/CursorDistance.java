@@ -4,7 +4,6 @@ import java.util.Objects;
 
 /**
  * Represents the distance between two cursors as calculated by the server.
- *
  */
 public class CursorDistance {
 
@@ -75,11 +74,8 @@ public class CursorDistance {
     return this;
   }
 
-  @Override public String toString() {
-    return "CursorDistance{" + "initialCursor=" + initialCursor +
-        ", finalCursor=" + finalCursor +
-        ", distance=" + distance +
-        '}';
+  @Override public int hashCode() {
+    return Objects.hash(initialCursor, finalCursor, distance);
   }
 
   @Override public boolean equals(Object o) {
@@ -91,7 +87,10 @@ public class CursorDistance {
         Objects.equals(distance, that.distance);
   }
 
-  @Override public int hashCode() {
-    return Objects.hash(initialCursor, finalCursor, distance);
+  @Override public String toString() {
+    return "CursorDistance{" + "initialCursor=" + initialCursor +
+        ", finalCursor=" + finalCursor +
+        ", distance=" + distance +
+        '}';
   }
 }

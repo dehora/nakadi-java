@@ -30,7 +30,6 @@ public interface StreamObserver<T> {
    *
    * <p>Once the {@link StreamProcessorManaged} calls this method, it will not call
    * {@link #onNext}.</p>
-
    */
   void onCompleted();
 
@@ -47,9 +46,9 @@ public interface StreamObserver<T> {
    * <p>The {@link StreamProcessor} may call this method 0 to many times.</p>
    *
    * <p>
-   *  Exceptions thrown from this method will stop the {@link StreamProcessor}. Implementations
-   *  that want to suppress exceptions should catch and handle them, or throw
-   *  {@link RetryableException} which will be logged and consumed by the {@link StreamProcessor}.
+   * Exceptions thrown from this method will stop the {@link StreamProcessor}. Implementations
+   * that want to suppress exceptions should catch and handle them, or throw
+   * {@link RetryableException} which will be logged and consumed by the {@link StreamProcessor}.
    * </p>
    *
    * <p>The {@link StreamProcessor} will not call this method again once it calls either
