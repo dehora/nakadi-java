@@ -181,18 +181,11 @@ public class Subscription {
 
   private List<Cursor> prepareCursors(List<Cursor> cursors) {
     // copy and strip out any session ids
-    return cursors.stream()
-        .map(this::newSubscriptionCursor)
-        .collect(collectingAndThen(toList(), Collections::unmodifiableList));
+    return Cursor.prepareRequiringEventType(cursors);
   }
 
   private Cursor newSubscriptionCursor(Cursor cursor) {
-    return new Cursor(
-        cursor.partition(),
-        cursor.offset(),
-        cursor.eventType().orElseThrow(
-            () -> new IllegalArgumentException("Please supply a cursor with an event type"))
-    );
+    return Cursor.prepareRequiringEventType(cursor);
   }
 
   @Override public int hashCode() {
