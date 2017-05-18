@@ -196,7 +196,13 @@ public interface MetricCollector {
     /**
      * How long it took to post a checkpoint.
      */
-    checkpointSend("nakadi.java.client.checkpoint.sendtime"),;
+    checkpointSend("nakadi.java.client.checkpoint.sendtime"),
+
+    /**
+     * How long it took to reset cursor offsets.
+     */
+    cursorReset("nakadi.java.client.cursor.reset.sendtime"),
+    ;
 
     private final String path;
 
