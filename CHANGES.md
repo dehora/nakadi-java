@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.8.5
+
+- Adds support for cursor reset API.
+- Reduces visibility of Resource interface.
+- Internal refactorings and cleanups.
+
 ### 0.8.4 
 
 - Removes event type API lookup used for logging subscription consumer details.
