@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,20 @@ class SubscriptionResourceReal implements SubscriptionResource {
     this.client = client;
     this.sentinelCursorCommitResultCollection =
         new CursorCommitResultCollection(new ArrayList<>(), new ArrayList<>(), this);
+  }
+
+  private static Response timed(Supplier<Response> sender, NakadiClient client,
+      MetricCollector.Timer timer) {
+    final long start = System.nanoTime();
+    try {
+      return sender.get();
+    } finally {
+      try {
+        client.metricCollector().duration(timer, (System.nanoTime() - start), TimeUnit.NANOSECONDS);
+      } catch (Exception e) {
+        logger.error(e.getMessage(), e);
+      }
+    }
   }
 
   @Override public SubscriptionResource scope(String scope) {
@@ -125,6 +140,14 @@ class SubscriptionResourceReal implements SubscriptionResource {
       RateLimitException, ContractException, NakadiException {
 
     return checkpoint(retryPolicy, context, cursors);
+  }
+
+  @Override public Response reset(String id, List<Cursor> cursors)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, ConflictException, NakadiException {
+    NakadiException.throwNonNull(id, "Please provide an id");
+    NakadiException.throwNonNull(cursors, "Please provide a cursors list");
+    return reset(retryPolicy, id, cursors);
   }
 
   @Override public SubscriptionCursorCollection cursors(String id)
@@ -262,6 +285,24 @@ class SubscriptionResourceReal implements SubscriptionResource {
     return new SubscriptionCollection(toSubscriptions(list.items()), toLinks(list._links()), this);
   }
 
+  private Response reset(RetryPolicy retryPolicy, String id, List<Cursor> cursors) {
+    final Resource resource = client.resourceProvider().newResource().retryPolicy(retryPolicy);
+    final String url = collectionUri().path(id).path(PATH_CURSORS).buildString();
+    // read scope: see https://github.com/zalando/nakadi/issues/648
+    final ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    final List<Cursor> cleaned = Cursor.prepareRequiringEventType(cursors);
+
+    return timed(() ->
+            resource.requestThrowing(
+                Resource.PATCH,
+                url,
+                options,
+                () -> client.jsonSupport().toJsonBytes(new CursorResetCollection(cleaned))
+            ),
+        client,
+        MetricCollector.Timer.cursorReset);
+  }
+
   private List<ResourceLink> toLinks(PaginationLinks _links) {
     return new LinkSupport().toLinks(_links);
   }
@@ -306,6 +347,16 @@ class SubscriptionResourceReal implements SubscriptionResource {
         .maxAttempts(3)
         .maxInterval(2000, TimeUnit.MILLISECONDS)
         .build();
+  }
+
+  @VisibleForTesting
+  static class CursorResetCollection {
+
+    final List<Cursor> items;
+
+    CursorResetCollection(List<Cursor> items) {
+      this.items = items;
+    }
   }
 
   private static class SubscriptionList {

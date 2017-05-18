@@ -1,13 +1,25 @@
 package nakadi;
 
+import com.google.common.collect.Lists;
+import com.google.gson.reflect.TypeToken;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.net.InetAddress;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import junit.framework.TestCase;
 import okhttp3.OkHttpClient;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -15,6 +27,74 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class SubscriptionResourceRealTest {
+
+  public static final int MOCK_SERVER_PORT = 8317;
+
+
+  MockWebServer server = new MockWebServer();
+  private GsonSupport json = new GsonSupport();
+
+  // these two are not annotated as we don't want to open a server for every test
+
+  public void before() {
+    try {
+      server.start(InetAddress.getByName("localhost"), MOCK_SERVER_PORT);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public void after() {
+    try {
+      server.shutdown();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Test
+  public void cursorResetApi() throws Exception {
+
+    try {
+      before();
+
+      final NakadiClient client = NakadiClient.newBuilder()
+          .baseURI("http://localhost:" + MOCK_SERVER_PORT)
+          .build();
+
+      server.enqueue(new MockResponse().setResponseCode(204));
+
+      final SubscriptionResource subscriptions = client.resources().subscriptions();
+
+      final String eventTypeName = "blackhole.sun";
+      final String subscriptionId = "5-19";
+      final String partition = "7";
+      final String cursorToken = "octave4";
+      final String offset = "000000000019642017";
+      final Cursor cursor = new Cursor(partition, offset, eventTypeName).cursorToken(cursorToken);
+
+      subscriptions.reset(subscriptionId, Lists.newArrayList(cursor));
+      final RecordedRequest request = server.takeRequest();
+
+      assertEquals("PATCH /subscriptions/5-19/cursors HTTP/1.1", request.getRequestLine());
+      assertEquals("application/json; charset=utf8", request.getHeaders().get("Content-Type"));
+      assertEquals(NakadiClient.USER_AGENT, request.getHeaders().get("User-Agent"));
+
+      final String body = request.getBody().readUtf8();
+      final SubscriptionResourceReal.CursorResetCollection sent =
+          json.fromJson(body, SubscriptionResourceReal.CursorResetCollection.class);
+      assertEquals(1, sent.items.size());
+      final Cursor sentCursor = sent.items.get(0);
+      assertEquals("expect cursor token to be filtered out before sending",
+          Optional.empty(), sentCursor.cursorToken());
+      assertEquals(partition, sentCursor.partition());
+      assertEquals(offset, sentCursor.offset());
+      assertEquals(eventTypeName, sentCursor.eventType().get());
+
+    } finally {
+      after();
+    }
+  }
 
   @Test
   public void listSansRetry() {
