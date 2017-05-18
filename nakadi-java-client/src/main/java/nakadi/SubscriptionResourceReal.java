@@ -195,24 +195,11 @@ class SubscriptionResourceReal implements SubscriptionResource {
         .newResource()
         .retryPolicy(retryPolicy);
 
-    long start = System.nanoTime();
-    long duration = 0L;
     Response response;
-    try {
-      response = resource.requestThrowing(Resource.POST, url, options,
-          () -> client.jsonSupport().toJsonBytes(requestMap));
-    } finally {
-      try {
-        duration = System.nanoTime() - start;
-        client.metricCollector()
-            .duration(MetricCollector.Timer.checkpointSend, duration, TimeUnit.NANOSECONDS);
-      } catch (Exception e) {
-        logger.error(e.getMessage(), e);
-      }
-    }
+    final MetricCollector.Timer timer = MetricCollector.Timer.checkpointSend;
 
-    logger.info("subscription_checkpoint request_time_millis={} response {}",
-        TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS), response);
+    response = timed(() -> resource.requestThrowing(Resource.POST, url, options,
+        () -> client.jsonSupport().toJsonBytes(requestMap)), client, timer);
 
     if (response.statusCode() == 204) {
       return sentinelCursorCommitResultCollection;
