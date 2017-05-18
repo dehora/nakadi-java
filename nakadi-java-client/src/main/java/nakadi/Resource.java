@@ -11,6 +11,7 @@ interface Resource {
   String DELETE = "DELETE";
   String HEAD = "HEAD";
   String POST = "POST";
+  String PATCH = "PATCH";
   String PUT = "PUT";
 
   /**
