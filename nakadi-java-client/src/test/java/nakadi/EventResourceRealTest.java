@@ -35,6 +35,8 @@ import static org.mockito.Mockito.when;
 
 public class EventResourceRealTest {
 
+  public static final int MOCK_SERVER_PORT = 8317;
+
   static class Happened {
     String id;
 
@@ -61,7 +63,7 @@ public class EventResourceRealTest {
 
   public void before() {
     try {
-      server.start(InetAddress.getByName("localhost"), 8312);
+      server.start(InetAddress.getByName("localhost"), MOCK_SERVER_PORT);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -78,7 +80,7 @@ public class EventResourceRealTest {
   @Test
   public void returnedWithABatchItemResponseFor422And207() throws Exception {
     NakadiClient client = spy(NakadiClient.newBuilder()
-        .baseURI("http://localhost:8312")
+        .baseURI("http://localhost:" + MOCK_SERVER_PORT)
         .build());
 
     String errJson = TestSupport.load("err_batch_item_response_array.json");
@@ -168,7 +170,7 @@ public class EventResourceRealTest {
   public void undefinedIsSentToServerMapped() throws Exception {
 
     NakadiClient client = spy(NakadiClient.newBuilder()
-        .baseURI("http://localhost:8312")
+        .baseURI("http://localhost:" + MOCK_SERVER_PORT)
         .build());
     EventResource resource = client.resources().events();
 
@@ -230,7 +232,7 @@ public class EventResourceRealTest {
   public void businessIsSentToServerMapped() throws Exception {
 
     NakadiClient client = spy(NakadiClient.newBuilder()
-        .baseURI("http://localhost:8312")
+        .baseURI("http://localhost:" + MOCK_SERVER_PORT)
         .build());
 
     EventResource resource = client.resources().events();

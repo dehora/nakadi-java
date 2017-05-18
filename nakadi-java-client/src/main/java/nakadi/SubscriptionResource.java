@@ -1,5 +1,6 @@
 package nakadi;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -159,6 +160,24 @@ public interface SubscriptionResource {
   CursorCommitResultCollection checkpoint(Map<String, String> context, Cursor... cursors)
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NotFoundException, NakadiException;
+
+  /**
+   * Reset the offsets for a subscription.
+   *
+   * @param id the subscription id
+   * @param cursors the cursors to reset
+   * @return this
+   * @throws AuthorizationException unauthorised
+   * @throws ClientException for a 400 or generic client error
+   * @throws ServerException for a 400 or generic client error
+   * @throws InvalidException for a 422
+   * @throws RateLimitException for a 429
+   * @throws ConflictException for a 409
+   * @throws NakadiException for a general exception
+   */
+  Response reset(String id, List<Cursor> cursors)
+      throws AuthorizationException, ClientException, ServerException, InvalidException,
+      RateLimitException, ConflictException, NakadiException;
 
   /**
    * Find the cursors for a subscription.
