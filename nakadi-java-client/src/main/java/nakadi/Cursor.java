@@ -1,7 +1,12 @@
 package nakadi;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Represent a Nakadi cursor.
@@ -11,6 +16,20 @@ import java.util.Optional;
  * cursorToken.  The {@link #isSubscriptionCursor} method can be used to check.
  */
 public class Cursor {
+
+  static Cursor prepareRequiringEventType(Cursor cursor) {
+    return new Cursor(
+        cursor.partition(),
+        cursor.offset(),
+        cursor.eventType().orElseThrow(
+            () -> new IllegalArgumentException("Please supply a cursor with an event type")));
+  }
+
+  static List<Cursor> prepareRequiringEventType(List<Cursor> cursors) {
+    return cursors.stream()
+        .map(Cursor::prepareRequiringEventType)
+        .collect(collectingAndThen(toList(), Collections::unmodifiableList));
+  }
 
   private String partition;
   private String offset;
