@@ -25,7 +25,7 @@ public class ProblemSupportTest {
 
     response = buildReponse(TestSupport.load("nakadi-645-invalid-problem-400.json"), 400);
     problem = ProblemSupport.toProblem(response, jsonSupport);
-    assertEquals("token_assumed_rejected", problem.title());
+    assertEquals("token_assumed_unauthorized", problem.title());
     // check we map the 400 onto 401
     assertEquals(401, problem.status());
   }
