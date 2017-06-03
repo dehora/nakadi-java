@@ -16,13 +16,7 @@ class ProblemSupport {
 
     if (problem.status() == 0 && (response.statusCode() == 400 || response.statusCode() == 401)) {
 
-      if (raw.contains("'accessToken' failed")) {
-        problem = Problem.authProblem("token_assumed_rejected",
-            "Inferred from invalid response there was a token issue, "
-                + "see https://github.com/zalando/nakadi/issues/645 raw_response=" + raw);
-      }
-
-      if (raw.contains("authentication") || raw.contains("unauthorized")) {
+      if (raw.contains("\"error_description\"")) {
         problem = Problem.authProblem("token_assumed_unauthorized",
             "Inferred from invalid response there was an auth issue, "
                 + "see https://github.com/zalando/nakadi/issues/645 raw_response=" + raw);
