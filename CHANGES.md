@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.8.6
+
+- More workarounds for [zalando/nakadi#645](https://github.com/zalando/nakadi/issues/645). [#188](https://github.com/zalando-incubator/nakadi-java/issues/188)
+
 ### 0.8.5
 
 - Adds support for cursor reset API.
@@ -13,6 +17,7 @@
 - Tidies up stream consumer logging with easier to grep strings.
 
 ### 0.8.3 
+
 
 - Avoids nulls when logging checkpoint suppressions.
 
