@@ -1,6 +1,39 @@
 package nakadi;
 
+import java.util.Optional;
+
 class ProblemSupport {
+
+  static Problem toProblem(Response response, JsonSupport jsonSupport) {
+    final String raw = response.responseBody().asString();
+    Problem problem = jsonSupport.fromJson(raw, Problem.class);
+
+    if (problem == null) {
+      problem = Problem.noProblemo("no problem sent back from server", "", response.statusCode());
+    }
+
+    // workaround for https://github.com/zalando/nakadi/issues/645
+
+    if (problem.status() == 0 && (response.statusCode() == 400 || response.statusCode() == 401)) {
+
+      if (raw.contains("'accessToken' failed")) {
+        problem = Problem.authProblem("token_assumed_rejected",
+            "Inferred from invalid response there was a token issue, "
+                + "see https://github.com/zalando/nakadi/issues/645 raw_response=" + raw);
+      }
+
+      if (raw.contains("authentication") || raw.contains("unauthorized")) {
+        problem = Problem.authProblem("token_assumed_unauthorized",
+            "Inferred from invalid response there was an auth issue, "
+                + "see https://github.com/zalando/nakadi/issues/645 raw_response=" + raw);
+      }
+    }
+
+    problem = Optional.ofNullable(problem)
+        .orElse(Problem.noProblemo("no problem sent back from server", "", response.statusCode()));
+
+    return problem;
+  }
 
   static <T> T throwProblem(int code, Problem problem, MetricCollector metricCollector) {
     if (code == 401) {

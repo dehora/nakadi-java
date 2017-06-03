@@ -308,25 +308,7 @@ class OkHttpResource implements Resource {
   }
 
   private <T> T handleError(Response response) throws ContractRetryableException {
-    String raw = response.responseBody().asString();
-
-    Problem problem = jsonSupport.fromJson(raw, Problem.class);
-
-    if (problem == null) {
-      problem = Problem.noProblemo("no problem sent back from server", "", response.statusCode());
-    }
-
-    if (problem.status() == 0 && response.statusCode() == 400) {
-      // workaround for https://github.com/zalando/nakadi/issues/645
-      if (raw.contains("'accessToken' failed")) {
-        problem = Problem.authProblem("token_assumed_rejected",
-            "Inferred from invalid response there was a token issue, "
-                + "see https://github.com/zalando/nakadi/issues/645 raw_response=" + raw);
-      }
-    }
-
-    problem = Optional.ofNullable(problem)
-        .orElse(Problem.noProblemo("no problem sent back from server", "", response.statusCode()));
+    final Problem problem = ProblemSupport.toProblem(response, jsonSupport);
     // use problem status instead of http code, also a workaround for #nakadi/issues/645
     return throwProblem(problem.status(), problem);
   }
