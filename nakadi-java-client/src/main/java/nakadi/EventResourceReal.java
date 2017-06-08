@@ -30,8 +30,9 @@ public class EventResourceReal implements EventResource {
 
   private final NakadiClient client;
   private final JsonSupport jsonSupport;
-  private String scope;
+  private volatile String scope;
   private volatile RetryPolicy retryPolicy;
+  private volatile String flowId;
 
   public EventResourceReal(NakadiClient client) {
     this(client, client.jsonSupport());
@@ -75,6 +76,11 @@ public class EventResourceReal implements EventResource {
 
   @Override public EventResource retryPolicy(RetryPolicy retryPolicy) {
     this.retryPolicy = retryPolicy;
+    return this;
+  }
+
+  @Override public EventResource flowId(final String flowId) {
+    this.flowId = flowId;
     return this;
   }
 
@@ -128,18 +134,14 @@ public class EventResourceReal implements EventResource {
   }
 
   private Response sendUsingSupplier(String eventTypeName, ContentSupplier supplier) {
-    return timed(() -> {
-          ResourceOptions options =
-              options().scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));
-          // todo: close
-          return client.resourceProvider()
-              .newResource()
-              .retryPolicy(retryPolicy)
-              .postEventsThrowing(
-                  collectionUri(eventTypeName).buildString(), options, supplier);
-        },
-        client,
-        1);
+    // todo: close
+    return timed(() -> client.resourceProvider()
+                     .newResource()
+                     .retryPolicy(retryPolicy)
+                     .postEventsThrowing(
+                         collectionUri(eventTypeName).buildString(), options(), supplier),
+                 client,
+                 1);
   }
 
   private <T> Response send(List<EventRecord<T>> events) {
@@ -150,16 +152,12 @@ public class EventResourceReal implements EventResource {
         events.stream().map(this::mapEventRecordToSerdes).collect(Collectors.toList());
 
     // todo: close
-    return timed(() -> {
-          ResourceOptions options =
-              options().scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));
-          return client.resourceProvider()
-              .newResource()
-              .retryPolicy(retryPolicy)
-              .postEventsThrowing(
-                  collectionUri(topic).buildString(), options, () -> jsonSupport.toJsonBytes(eventList));
-        },
-        client,
+    return timed(() -> client.resourceProvider()
+                     .newResource()
+                     .retryPolicy(retryPolicy)
+                     .postEventsThrowing(
+                         collectionUri(topic).buildString(), options(), () -> jsonSupport.toJsonBytes(eventList)),
+              client,
         eventList.size());
   }
 
@@ -168,7 +166,13 @@ public class EventResourceReal implements EventResource {
   }
 
   private ResourceOptions options() {
-    return ResourceSupport.options(APPLICATION_JSON).tokenProvider(client.resourceTokenProvider());
+      final ResourceOptions options = ResourceSupport.options(APPLICATION_JSON);
+      options.tokenProvider(client.resourceTokenProvider());
+      options.scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));
+      if (flowId != null) {
+          options.flowId(flowId);
+      }
+      return options;
   }
 
   private UriBuilder collectionUri(String topic) {

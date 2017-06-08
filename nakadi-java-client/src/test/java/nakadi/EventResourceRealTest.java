@@ -288,6 +288,35 @@ public class EventResourceRealTest {
   }
 
   @Test
+  public void sendWithFlowId() throws Exception {
+    final NakadiClient client = spy(NakadiClient.newBuilder()
+        .baseURI("http://localhost:" + MOCK_SERVER_PORT)
+        .build());
+
+    final EventResource resource = client.resources().events();
+
+    final BusinessPayload bp = new BusinessPayload("22", "A", "B");
+
+    final BusinessEventMapped<BusinessPayload> event =
+        new BusinessEventMapped<BusinessPayload>()
+            .metadata(new EventMetadata())
+            .data(bp);
+
+    try {
+      before();
+
+      server.enqueue(new MockResponse().setResponseCode(200));
+      final String flowId = "new flow id";
+      resource.flowId(flowId).send("be-1-1479125860", event);
+      final RecordedRequest request = server.takeRequest();
+
+      assertEquals(flowId, request.getHeader("x-flow-id"));
+    } finally {
+      after();
+    }
+  }
+
+  @Test
   public void sendWithScope() {
 
     final boolean[] askedForToken = {false};
