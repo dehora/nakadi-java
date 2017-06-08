@@ -20,6 +20,6 @@ class ResourceSupport {
         .header("Accept-Charset", "UTF-8")
         .header("User-Agent", NakadiClient.USER_AGENT)
         .header("X-Client-Platform-Details", NakadiClient.PLATFORM_DETAILS_JSON)
-        .header("X-Flow-Id", ResourceSupport.nextFlowId());
+        .flowId(ResourceSupport.nextFlowId());
   }
 }

@@ -36,6 +36,11 @@ class ResourceOptions {
     return this;
   }
 
+  public ResourceOptions flowId(final String flowId) {
+    NakadiException.throwNonNull(flowId, "Please provide a flow ID");
+    return header("X-Flow-Id", flowId);
+  }
+
   public Map<String, Object> headers() {
     return headers;
   }
