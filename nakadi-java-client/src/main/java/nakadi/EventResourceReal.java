@@ -29,11 +29,18 @@ public class EventResourceReal implements EventResource {
   }.getType();
 
   private final NakadiClient client;
+  private final JsonSupport jsonSupport;
   private String scope;
   private volatile RetryPolicy retryPolicy;
 
   public EventResourceReal(NakadiClient client) {
+    this(client, client.jsonSupport());
+  }
+
+  @VisibleForTesting
+  EventResourceReal(NakadiClient client, JsonSupport jsonSupport) {
     this.client = client;
+    this.jsonSupport = jsonSupport;
   }
 
   private static Response timed(Supplier<Response> sender, NakadiClient client, int eventCount) {
@@ -111,7 +118,7 @@ public class EventResourceReal implements EventResource {
 
     if (send.statusCode() == 207 || send.statusCode() == 422) {
       try (ResponseBody responseBody = send.responseBody()) {
-        items.addAll(client.jsonSupport().fromJson(responseBody.asReader(), TYPE_BIR));
+        items.addAll(jsonSupport.fromJson(responseBody.asReader(), TYPE_BIR));
       } catch (IOException e) {
         logger.error("Error handling BatchItemResponse " + e.getMessage(), e);
       }
@@ -150,14 +157,14 @@ public class EventResourceReal implements EventResource {
               .newResource()
               .retryPolicy(retryPolicy)
               .postEventsThrowing(
-                  collectionUri(topic).buildString(), options, () -> client.jsonSupport().toJsonBytes(eventList));
+                  collectionUri(topic).buildString(), options, () -> jsonSupport.toJsonBytes(eventList));
         },
         client,
         eventList.size());
   }
 
   @VisibleForTesting <T> Object mapEventRecordToSerdes(EventRecord<T> er) {
-    return EventMappedSupport.mapEventRecordToSerdes(er);
+    return jsonSupport.mapEventRecordToSerdes(er);
   }
 
   private ResourceOptions options() {

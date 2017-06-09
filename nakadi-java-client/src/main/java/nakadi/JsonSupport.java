@@ -65,4 +65,12 @@ public interface JsonSupport {
    * @return an instance of T
    */
   <T> T fromJson(Reader r, Type tType);
+
+  <T> Object mapEventRecordToSerdes(EventRecord<T> er);
+
+  <T> UndefinedEventMapped<T> marshalUndefinedEventMapped(String raw, Type type);
+
+  <T> BusinessEventMapped<T> marshalBusinessEventMapped(String raw, Type type);
+
+  <T> T marshalEvent(String raw, Type type);
 }
