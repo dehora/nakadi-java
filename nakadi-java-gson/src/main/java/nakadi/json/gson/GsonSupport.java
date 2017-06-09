@@ -22,7 +22,7 @@ import nakadi.JsonSupport;
 import nakadi.UndefinedEventMapped;
 import nakadi.VisibleForTesting;
 
-class GsonSupport implements JsonSupport {
+public class GsonSupport implements JsonSupport {
 
   private static final Type EVENT_STREAM_BATCH_FIRSTPASS_TYPE =
       new TypeToken<EventStreamBatch<JsonObject>>() {
