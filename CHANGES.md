@@ -1,5 +1,10 @@
 ### Changes
 
+### 0.8.7
+
+- Allows JSON support to be supplied via the `JsonSupport` interface. [#182](https://github.com/zalando-incubator/nakadi-java/issues/182)
+- Adds an extension jar, "nakadi-java-gson", for `JsonSupport` via Gson. [#182](https://github.com/zalando-incubator/nakadi-java/issues/182) 
+
 ### 0.8.6
 
 - More workarounds for [zalando/nakadi#645](https://github.com/zalando/nakadi/issues/645). [#188](https://github.com/zalando-incubator/nakadi-java/issues/188)
