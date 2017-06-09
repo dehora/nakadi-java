@@ -11,10 +11,15 @@ import java.io.Reader;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 class GsonSupport implements JsonSupport {
 
+  private static final Type EVENT_STREAM_BATCH_FIRSTPASS_TYPE =
+      new TypeToken<EventStreamBatch<JsonObject>>() {
+      }.getType();
 
   static <T> boolean isAssignableFrom(Type type, Class<? super T> c) {
     TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(type);
@@ -79,7 +84,7 @@ class GsonSupport implements JsonSupport {
     return gson.fromJson(r, tType);
   }
 
-  @Override public <T> Object mapEventRecordToSerdes(EventRecord<T> eventRecord) {
+  @Override public <T> Object transformEventRecord(EventRecord<T> eventRecord) {
 
     if (eventRecord.event().getClass().isAssignableFrom(BusinessEventMapped.class)) {
 
@@ -108,7 +113,7 @@ class GsonSupport implements JsonSupport {
     return eventRecord.event();
   }
 
-  @Override public <T> UndefinedEventMapped<T> marshalUndefinedEventMapped(String raw, Type type) {
+  private <T> UndefinedEventMapped<T> marshalUndefinedEventMapped(String raw, Type type) {
 
     if (!isAssignableFrom(type, UndefinedEventMapped.class)) {
       throw new IllegalArgumentException(
@@ -134,7 +139,8 @@ class GsonSupport implements JsonSupport {
     }
   }
 
-  @Override public <T> BusinessEventMapped<T> marshalBusinessEventMapped(String raw, Type type) {
+  @VisibleForTesting
+  <T> BusinessEventMapped<T> marshalBusinessEventMapped(String raw, Type type) {
 
 
     if (!isAssignableFrom(type, BusinessEventMapped.class)) {
@@ -166,7 +172,7 @@ class GsonSupport implements JsonSupport {
     }
   }
 
-  @Override public <T> T marshalEvent(String raw, Type type) {
+  private <T> T marshalEvent(String raw, Type type) {
     /*
      * Herein some workarounds to handle business and undefined event types. Those two are
      * defined in the API to be extended/subclassed by custom schema, but have no extension
@@ -202,6 +208,24 @@ class GsonSupport implements JsonSupport {
     }
 
     return t;
+  }
+
+  @Override public <T> EventStreamBatch<T> marshalEventStreamBatch(String raw, Type type) {
+    // inefficient, marshal to map, then stringify JsonObject, then marshal to object :(
+    EventStreamBatch<JsonObject> esb = marshalBatch(raw, EVENT_STREAM_BATCH_FIRSTPASS_TYPE);
+    List<T> ts = marshallEvents(type, esb.events());
+    return new EventStreamBatch<>(esb.cursor(), esb.info(), ts);
+  }
+
+  private EventStreamBatch<JsonObject> marshalBatch(String line, Type type) {
+    return fromJson(line, type);
+  }
+
+  private <T> List<T> marshallEvents(Type type, List<JsonObject> events) {
+    //noinspection unchecked
+    return events.stream()
+        // assumes the supplied type literal is of type T; if not this will throw a CCE
+        .map(e -> this.<T>marshalEvent(e.toString(), type)).collect(Collectors.toList());
   }
 
   /**

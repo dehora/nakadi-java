@@ -66,11 +66,8 @@ public interface JsonSupport {
    */
   <T> T fromJson(Reader r, Type tType);
 
-  <T> Object mapEventRecordToSerdes(EventRecord<T> er);
+  <T> Object transformEventRecord(EventRecord<T> er);
 
-  <T> UndefinedEventMapped<T> marshalUndefinedEventMapped(String raw, Type type);
+  <T> EventStreamBatch<T> marshalEventStreamBatch(String raw, Type type);
 
-  <T> BusinessEventMapped<T> marshalBusinessEventMapped(String raw, Type type);
-
-  <T> T marshalEvent(String raw, Type type);
 }

@@ -164,7 +164,7 @@ public class EventResourceReal implements EventResource {
   }
 
   @VisibleForTesting <T> Object mapEventRecordToSerdes(EventRecord<T> er) {
-    return jsonSupport.mapEventRecordToSerdes(er);
+    return jsonSupport.transformEventRecord(er);
   }
 
   private ResourceOptions options() {
