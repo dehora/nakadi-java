@@ -5,10 +5,30 @@ import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class NakadiClientTest {
+
+  @Test
+  public void testBuilderJsonSupportCanBeSet() {
+
+    final JsonSupportNoop jsonSupport = new JsonSupportNoop("test");
+    final NakadiClient client = NakadiClient.newBuilder()
+        .baseURI("http://example.org")
+        .jsonSupport(jsonSupport)
+        .build();
+
+    assertEquals("expected supplied json support", jsonSupport, client.jsonSupport());
+
+    final NakadiClient client1 = NakadiClient.newBuilder()
+        .baseURI("http://example.org")
+        .build();
+
+    assertNotNull("expected default json support", client1.jsonSupport());
+  }
 
   @Test
   public void testBuilderJson() {

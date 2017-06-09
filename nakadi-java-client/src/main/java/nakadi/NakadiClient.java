@@ -270,5 +270,15 @@ public class NakadiClient {
       this.certificatePath = path;
       return this;
     }
+
+    /**
+     * Optionally set the {@link JsonSupport}.
+     *
+     * @return this
+     */
+    public Builder jsonSupport(JsonSupport jsonSupport) {
+      this.jsonSupport = jsonSupport;
+      return this;
+    }
   }
 }
