@@ -42,7 +42,7 @@ public class GsonSupportTest {
     BusinessEventMapped<Model> change = new BusinessEventMapped<Model>()
         .metadata(new EventMetadata())
         .data(m);
-    final Object mapped = gsonSupport.mapEventRecordToSerdes(new EventRecord<>("et1", change));
+    final Object mapped = gsonSupport.transformEventRecord(new EventRecord<>("et1", change));
     final Gson gson = GsonSupport.gson();
     final String json = gson.toJson(mapped);
 
