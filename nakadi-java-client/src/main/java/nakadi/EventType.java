@@ -21,7 +21,7 @@ public class EventType {
   private String partitionStrategy = PARTITION_RANDOM;
   private EventTypeSchema schema;
   private List<String> partitionKeyFields = new ArrayList<>();
-  private EventTypeStatistics eventTypeStatistics;
+  private EventTypeStatistics defaultStatistic;
   private EventTypeOptions options;
   private List<String> readScopes = new ArrayList<>();
   private List<String> writeScopes = new ArrayList<>();
@@ -155,7 +155,7 @@ public class EventType {
    * @return the EventTypeStatistics
    */
   public EventTypeStatistics eventTypeStatistics() {
-    return eventTypeStatistics;
+    return defaultStatistic;
   }
 
   /**
@@ -282,7 +282,7 @@ public class EventType {
 
   @Override public int hashCode() {
     return Objects.hash(enrichmentStrategies, name, owningApplication, category, partitionStrategy,
-        schema, partitionKeyFields, eventTypeStatistics, options, readScopes, writeScopes,
+        schema, partitionKeyFields, defaultStatistic, options, readScopes, writeScopes,
         compatibilityMode);
   }
 
@@ -297,7 +297,7 @@ public class EventType {
         Objects.equals(partitionStrategy, eventType.partitionStrategy) &&
         Objects.equals(schema, eventType.schema) &&
         Objects.equals(partitionKeyFields, eventType.partitionKeyFields) &&
-        Objects.equals(eventTypeStatistics, eventType.eventTypeStatistics) &&
+        Objects.equals(defaultStatistic, eventType.defaultStatistic) &&
         Objects.equals(options, eventType.options) &&
         Objects.equals(readScopes, eventType.readScopes) &&
         Objects.equals(writeScopes, eventType.writeScopes) &&
@@ -312,7 +312,7 @@ public class EventType {
         ", partitionStrategy='" + partitionStrategy + '\'' +
         ", schema=" + schema +
         ", partitionKeyFields=" + partitionKeyFields +
-        ", eventTypeStatistics=" + eventTypeStatistics +
+        ", defaultStatistic=" + defaultStatistic +
         ", options=" + options +
         ", readScopes=" + readScopes +
         ", writeScopes=" + writeScopes +
