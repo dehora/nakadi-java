@@ -65,7 +65,7 @@ public class ResourceCollectionTest {
     List<ResourceLink> linksOne = Lists.newArrayList(new ResourceLink("next", pageTwo));
     final ArrayList<String> strings = Lists.newArrayList();
     // the first page is empty but there is a next link ¯\_(ツ)_/¯
-    final StringCollection jankCollection = new StringCollection(Lists.newArrayList(), linksOne);
+    final StringCollection jankCollection = new StringCollection(Lists.newArrayList(), linksOne, null);
     jankCollection.iterable().forEach(strings::add);
     final ArrayList<String> expected = Lists.newArrayList();
     expected.addAll(itemsTwo);
@@ -114,17 +114,17 @@ public class ResourceCollectionTest {
   }
 
   private StringCollection buildEmptyPage() {
-    return new StringCollection(Lists.newArrayList(), Lists.newArrayList());
+    return new StringCollection(Lists.newArrayList(), Lists.newArrayList(), null);
   }
 
   private StringCollection buildFirstPageOnly() {
-    return new StringCollection(itemsOne, Lists.newArrayList());
+    return new StringCollection(itemsOne, Lists.newArrayList(), null);
   }
 
   private StringCollection buildFirstPage() {
     URI pageTwo = URI.create("http://localhost/strings/2");
     List<ResourceLink> linksOne = Lists.newArrayList(new ResourceLink("next", pageTwo));
-    return new StringCollection(itemsOne, linksOne);
+    return new StringCollection(itemsOne, linksOne, null);
   }
 
   private static class StringCollection extends ResourceCollection<String> {
@@ -134,8 +134,8 @@ public class ResourceCollectionTest {
     static volatile boolean fetchPageCalled = false;
 
     StringCollection(List<String> items,
-        List<ResourceLink> links) {
-      super(items, links);
+        List<ResourceLink> links, NakadiClient client) {
+      super(items, links, client);
     }
 
     static void reset() {
@@ -150,13 +150,13 @@ public class ResourceCollectionTest {
         twoCalled = true;
         URI pageThree = URI.create("http://localhost/strings/3");
         List<ResourceLink> linksOnPageTwo = Lists.newArrayList(new ResourceLink("next", pageThree));
-        return new StringCollection(itemsTwo, linksOnPageTwo);
+        return new StringCollection(itemsTwo, linksOnPageTwo, null);
       }
 
       if (url.endsWith("3")) {
         threeCalled = true;
         List<ResourceLink> linksOnPageThree = Lists.newArrayList(); // no next page from here
-        return new StringCollection(itemsThree, linksOnPageThree);
+        return new StringCollection(itemsThree, linksOnPageThree, null);
       }
 
       // if we get here, iteration's broken

@@ -124,7 +124,7 @@ public class EventResourceReal implements EventResource {
       }
     }
 
-    return new BatchItemResponseCollection(items, LINKS_SENTINEL);
+    return new BatchItemResponseCollection(items, LINKS_SENTINEL, client);
   }
 
   private Response sendUsingSupplier(String eventTypeName, ContentSupplier supplier) {

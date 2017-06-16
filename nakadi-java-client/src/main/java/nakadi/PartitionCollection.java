@@ -10,8 +10,8 @@ public class PartitionCollection extends ResourceCollection<Partition> {
   private final EventTypeResourceReal eventTypeResource;
 
   PartitionCollection(List<Partition> items, List<ResourceLink> links,
-      EventTypeResourceReal eventTypeResource) {
-    super(items, links);
+      EventTypeResourceReal eventTypeResource, NakadiClient client) {
+    super(items, links, client);
     this.eventTypeResource = eventTypeResource;
   }
 

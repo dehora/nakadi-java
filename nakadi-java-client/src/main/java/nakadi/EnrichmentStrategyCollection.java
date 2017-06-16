@@ -10,8 +10,8 @@ public class EnrichmentStrategyCollection extends ResourceCollection<String> {
   private final RegistryResource registryResource;
 
   public EnrichmentStrategyCollection(List<String> items, List<ResourceLink> links,
-      RegistryResource registryResource) {
-    super(items, links);
+      RegistryResource registryResource, NakadiClient client) {
+    super(items, links, client);
     this.registryResource = registryResource;
   }
 

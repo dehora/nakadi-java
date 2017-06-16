@@ -44,11 +44,11 @@ public class RegistryResource {
   }
 
   ValidationStrategyCollection loadValidationPage(String url) {
-    return new ValidationStrategyCollection(loadCollection(url), new ArrayList<>(), this);
+    return new ValidationStrategyCollection(loadCollection(url), new ArrayList<>(), this, client);
   }
 
   EnrichmentStrategyCollection loadEnrichmentPage(String url) {
-    return new EnrichmentStrategyCollection(loadCollection(url), new ArrayList<>(), this);
+    return new EnrichmentStrategyCollection(loadCollection(url), new ArrayList<>(), this, client);
   }
 
   private List<String> loadCollection(String url) {

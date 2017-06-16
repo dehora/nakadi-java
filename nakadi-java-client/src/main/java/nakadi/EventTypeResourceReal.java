@@ -166,7 +166,7 @@ class EventTypeResourceReal implements EventTypeResource {
     final List<Cursor> collection =
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_C);
 
-    return new CursorCollection(collection, SENTINEL_LINKS);
+    return new CursorCollection(collection, SENTINEL_LINKS, client);
   }
 
   @Override
@@ -184,7 +184,7 @@ class EventTypeResourceReal implements EventTypeResource {
     final List<CursorDistance> collection =
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_CD);
 
-    return new CursorDistanceCollection(collection, SENTINEL_LINKS);
+    return new CursorDistanceCollection(collection, SENTINEL_LINKS, client);
   }
 
   @Override public PartitionCollection lag(String eventTypeName, List<Cursor> cursors) {
@@ -200,7 +200,7 @@ class EventTypeResourceReal implements EventTypeResource {
     final List<Partition> collection =
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_P);
 
-    return new PartitionCollection(collection, SENTINEL_LINKS, this);
+    return new PartitionCollection(collection, SENTINEL_LINKS, this, client);
   }
 
   String applyScope(String fallbackScope) {
@@ -218,7 +218,7 @@ class EventTypeResourceReal implements EventTypeResource {
     List<EventType> collection =
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE);
 
-    return new EventTypeCollection(collection, new ArrayList<>(), this);
+    return new EventTypeCollection(collection, new ArrayList<>(), this, client);
   }
 
   PartitionCollection loadPartitionPage(String url) {
@@ -231,7 +231,7 @@ class EventTypeResourceReal implements EventTypeResource {
     List<Partition> collection =
         client.jsonSupport().fromJson(response.responseBody().asString(), TYPE_P);
 
-    return new PartitionCollection(collection, new ArrayList<>(), this);
+    return new PartitionCollection(collection, new ArrayList<>(), this, client);
   }
 
   EventTypeSchemaCollection loadSchemaPage(String url) {
@@ -248,7 +248,8 @@ class EventTypeResourceReal implements EventTypeResource {
     return new EventTypeSchemaCollection(
         toEventTypeSchema(list.items()),
         toLinks(list._links()),
-        this);
+        this,
+        client);
   }
 
   private ResourceOptions prepareOptions(String fallbackScope) {

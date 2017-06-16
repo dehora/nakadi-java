@@ -10,8 +10,8 @@ public class EventTypeCollection extends ResourceCollection<EventType> {
   private final EventTypeResourceReal eventTypeResource;
 
   public EventTypeCollection(List<EventType> items, List<ResourceLink> links,
-      EventTypeResourceReal eventTypeResource) {
-    super(items, links);
+      EventTypeResourceReal eventTypeResource, NakadiClient client) {
+    super(items, links, client);
     this.eventTypeResource = eventTypeResource;
   }
 
