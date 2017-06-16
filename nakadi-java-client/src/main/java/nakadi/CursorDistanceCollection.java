@@ -6,15 +6,15 @@ import java.util.List;
 public class CursorDistanceCollection extends ResourceCollection<CursorDistance> {
 
   private static final CursorDistanceCollection sentinel = new
-      CursorDistanceCollection(Lists.newArrayList(), Lists.newArrayList());
+      CursorDistanceCollection(Lists.newArrayList(), Lists.newArrayList(), null);
 
   /**
    * @param items the results
    * @param links links for pagination
    */
   CursorDistanceCollection(
-      List<CursorDistance> items, List<ResourceLink> links) {
-    super(items, links);
+      List<CursorDistance> items, List<ResourceLink> links, NakadiClient client) {
+    super(items, links, client);
   }
 
   @Override public ResourceCollection<CursorDistance> fetchPage(String url) {

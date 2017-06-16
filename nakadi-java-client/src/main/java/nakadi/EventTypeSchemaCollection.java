@@ -11,8 +11,8 @@ public class EventTypeSchemaCollection extends ResourceCollection<EventTypeSchem
   private final EventTypeResourceReal eventTypeResource;
 
   public EventTypeSchemaCollection(List<EventTypeSchema> items, List<ResourceLink> links,
-      EventTypeResourceReal eventTypeResource) {
-    super(items, links);
+      EventTypeResourceReal eventTypeResource, NakadiClient client) {
+    super(items, links, client);
     this.eventTypeResource = eventTypeResource;
   }
 

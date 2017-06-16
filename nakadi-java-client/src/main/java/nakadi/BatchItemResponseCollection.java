@@ -7,8 +7,8 @@ import java.util.List;
  */
 public class BatchItemResponseCollection extends ResourceCollection<BatchItemResponse> {
 
-  BatchItemResponseCollection(List<BatchItemResponse> items, List<ResourceLink> links) {
-    super(items, links);
+  BatchItemResponseCollection(List<BatchItemResponse> items, List<ResourceLink> links, NakadiClient client) {
+    super(items, links, client);
   }
 
   public ResourceCollection<BatchItemResponse> fetchPage(String url) {

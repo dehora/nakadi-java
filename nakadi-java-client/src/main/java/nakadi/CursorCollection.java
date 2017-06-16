@@ -9,8 +9,8 @@ public class CursorCollection extends ResourceCollection<Cursor> {
    * @param links links for pagination
    */
   CursorCollection(
-      List<Cursor> items, List<ResourceLink> links) {
-    super(items, links);
+      List<Cursor> items, List<ResourceLink> links, NakadiClient client) {
+    super(items, links, client);
   }
 
   @SuppressWarnings("unchecked") public ResourceCollection fetchPage(String url) {

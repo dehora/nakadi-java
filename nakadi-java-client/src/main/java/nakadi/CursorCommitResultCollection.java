@@ -15,8 +15,8 @@ public class CursorCommitResultCollection extends ResourceCollection<CursorCommi
    * @param resource a subscription resource
    */
   CursorCommitResultCollection(List<CursorCommitResult> items, List<ResourceLink> links,
-      SubscriptionResourceReal resource) {
-    super(items, links);
+      SubscriptionResourceReal resource, NakadiClient client) {
+    super(items, links, client);
     this.resource = resource;
   }
 

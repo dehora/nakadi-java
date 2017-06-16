@@ -1,6 +1,7 @@
 package nakadi;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -24,12 +25,14 @@ abstract public class ResourceCollection<T> {
 
   private final List<T> items;
   private final List<ResourceLink> links;
-  private final boolean hasNextLink;
+  protected final NakadiClient client;
+  protected boolean hasNextLink;
   private volatile ResourceCollectionEmpty<T> empty;
 
-  public ResourceCollection(List<T> items, List<ResourceLink> links) {
+  public ResourceCollection(List<T> items, List<ResourceLink> links, NakadiClient client) {
     this.items = items;
     this.links = links;
+    this.client = client;
     this.hasNextLink = determineHasNextLink(this.links);
   }
 
@@ -68,10 +71,12 @@ abstract public class ResourceCollection<T> {
     if (this.hasNextLink()) {
       Optional<URI> link = this.findLink(ResourceCollection.REL_NEXT);
       if (link.isPresent()) {
-        String url = link.get().toASCIIString();
+        String url = resolveNextPageLink(link);
         final ResourceCollection<T> collection = fetchPage(url);
         NakadiException.throwNonNull(collection,
             String.format("Concrete collection %s must provide a non-null page", this.getClass()));
+
+        hasNextLink = collection.hasNextLink();
         return collection;
       }
     }
@@ -81,6 +86,36 @@ abstract public class ResourceCollection<T> {
         String.format("Concrete collection %s must provide a non-null empty page",
             this.getClass()));
     return empty;
+  }
+
+  private String resolveNextPageLink(Optional<URI> link) {
+    final URI uri = link.get();
+
+    String url;
+
+    final String host = uri.getHost();
+    if(host == null) {
+      final URI baseURI = client.baseURI();
+
+      final URI pageUri;
+      try {
+        pageUri = new URI(
+            baseURI.getScheme(),
+            baseURI.getUserInfo(),
+            baseURI.getHost(),
+            baseURI.getPort(),
+            uri.getPath(),
+            uri.getQuery(),
+            uri.getFragment()
+        );
+      } catch (URISyntaxException e) {
+        throw new NakadiException(Problem.localProblem("pagination_err", e.getMessage()), e);
+      }
+      url = pageUri.toASCIIString();
+    } else {
+      url = uri.toASCIIString();
+    }
+    return url;
   }
 
   /**

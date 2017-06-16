@@ -13,8 +13,8 @@ public class SubscriptionCursorCollection extends ResourceCollection<Cursor> {
 
   SubscriptionCursorCollection(List<Cursor> items,
       List<ResourceLink> links,
-      SubscriptionResourceReal subscriptionResource) {
-    super(items, links);
+      SubscriptionResourceReal subscriptionResource, NakadiClient client) {
+    super(items, links, client);
     this.subscriptionResource = subscriptionResource;
   }
 

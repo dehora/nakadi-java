@@ -12,8 +12,8 @@ public class SubscriptionCollection extends ResourceCollection<Subscription> {
   private final SubscriptionResourceReal subscriptionResource;
 
   SubscriptionCollection(List<Subscription> items, List<ResourceLink> links,
-      SubscriptionResourceReal subscriptionResource) {
-    super(items, links);
+      SubscriptionResourceReal subscriptionResource, NakadiClient client) {
+    super(items, links, client);
     this.subscriptionResource = subscriptionResource;
   }
 

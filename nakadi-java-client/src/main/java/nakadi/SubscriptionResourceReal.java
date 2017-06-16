@@ -34,7 +34,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   SubscriptionResourceReal(NakadiClient client) {
     this.client = client;
     this.sentinelCursorCommitResultCollection =
-        new CursorCommitResultCollection(new ArrayList<>(), new ArrayList<>(), this);
+        new CursorCommitResultCollection(new ArrayList<>(), new ArrayList<>(), this, client);
   }
 
   private static Response timed(Supplier<Response> sender, NakadiClient client,
@@ -231,7 +231,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
         client.jsonSupport()
             .fromJson(response.responseBody().asString(), SubscriptionEventTypeStatsList.class);
     List<SubscriptionEventTypeStats> items = cursors.items();
-    return new SubscriptionEventTypeStatsCollection(items, new ArrayList<>(), this);
+    return new SubscriptionEventTypeStatsCollection(items, new ArrayList<>(), this, client);
   }
 
   SubscriptionCursorCollection loadCursorPage(String url) {
@@ -249,7 +249,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
         client.jsonSupport()
             .fromJson(response.responseBody().asString(), SubscriptionCursorList.class);
     List<Cursor> items = cursors.items();
-    return new SubscriptionCursorCollection(items, new ArrayList<>(), this);
+    return new SubscriptionCursorCollection(items, new ArrayList<>(), this, client);
   }
 
   SubscriptionCollection loadPage(String url) {
@@ -269,7 +269,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
      */
     SubscriptionList list =
         client.jsonSupport().fromJson(response.responseBody().asString(), SubscriptionList.class);
-    return new SubscriptionCollection(toSubscriptions(list.items()), toLinks(list._links()), this);
+    return new SubscriptionCollection(toSubscriptions(list.items()), toLinks(list._links()), this, client);
   }
 
   private Response reset(RetryPolicy retryPolicy, String id, List<Cursor> cursors) {
@@ -313,7 +313,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   }
 
   ResourceCollection<CursorCommitResult> loadCursorCommitPage(String url) {
-    return new CursorCommitResultCollection(loadCollection(url), new ArrayList<>(), this);
+    return new CursorCommitResultCollection(loadCollection(url), new ArrayList<>(), this, client);
   }
 
   private List<CursorCommitResult> loadCollection(String url) {

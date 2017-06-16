@@ -142,7 +142,7 @@ public class EventResourceRealTest {
 
       List<BatchItemResponse> collection = json.fromJson(s, TYPE_P);
 
-      BatchItemResponseCollection bir = new BatchItemResponseCollection(collection, Lists.newArrayList());
+      BatchItemResponseCollection bir = new BatchItemResponseCollection(collection, Lists.newArrayList(), client);
 
       assertTrue(bir.items().size() == 2);
       BatchItemResponse batchItemResponse = bir.items().get(0);

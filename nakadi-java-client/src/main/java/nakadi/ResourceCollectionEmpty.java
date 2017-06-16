@@ -8,7 +8,7 @@ class ResourceCollectionEmpty<T> extends ResourceCollection<T> {
   volatile ResourceCollectionEmpty<T> dummy;
 
   public ResourceCollectionEmpty() {
-    super(new ArrayList<>(), new ArrayList<>());
+    super(new ArrayList<>(), new ArrayList<>(), null);
   }
 
   @Override public ResourceCollection<T> fetchPage(String url) {
