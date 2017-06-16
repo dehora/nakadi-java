@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.8.8
+
+- Checks if the next pagination url is relative. [#204](https://github.com/zalando-incubator/nakadi-java/issues/204)
+- Fixes JSON field name for event type statistics. [#203](https://github.com/zalando-incubator/nakadi-java/issues/203)
+
+
 ### 0.8.7
 
 - Allows JSON support to be supplied via the `JsonSupport` interface. [#182](https://github.com/zalando-incubator/nakadi-java/issues/182)
