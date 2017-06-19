@@ -6,6 +6,8 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import junit.framework.TestCase;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
@@ -23,6 +25,7 @@ import org.mockito.Matchers;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -47,12 +50,255 @@ public class StreamProcessorTest {
   @Before
   public void before() throws Exception {
     server.start(InetAddress.getByName("localhost"), MOCK_SERVER_PORT);
-    processor = new StreamProcessor(client);
+    StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client, null);
+    processor = new StreamProcessor(client, factory);
   }
 
   @After
   public void after() throws Exception {
     server.shutdown();
+  }
+
+  @Test
+  public void consumerDoesNotRetryErrors() throws Exception {
+
+    server.enqueue(new MockResponse().setResponseCode(200)
+        .setBody(batch)
+        .setHeader("Content-Type", "application/x-json-stream;charset=UTF-8")
+    );
+
+    String baseURI = "http://localhost:" + MOCK_SERVER_PORT;
+
+    NakadiClient client = NakadiClient.newBuilder().baseURI(baseURI).build();
+
+    StreamConfiguration sc = new StreamConfiguration()
+        .eventTypeName("foo")
+        .connectTimeout(3, TimeUnit.SECONDS)
+        .readTimeout(3, TimeUnit.SECONDS);
+
+    StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client, null);
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    final boolean[] raised = {false};
+
+    final LoggingStreamObserverProvider provider =
+        new LoggingStreamObserverProvider() {
+          @Override public StreamObserver<String> createStreamObserver() {
+            return new LoggingStreamObserver() {
+
+              /*
+              expecting the following:
+
+              1: onNext is called and throws Error
+              2: the consumer pipeline won't retry due to the Error
+              3: The observer's onError is called and we mark it
+              4: The observer's onStop is called and we release the latch
+               */
+
+              @Override public void onError(Throwable e) {
+                raised[0] = true;
+              }
+
+              @Override public void onNext(StreamBatchRecord<String> record) {
+                throw new Error();
+              }
+
+              @Override public void onStop() {
+                latch.countDown();
+              }
+            };
+          }
+        };
+
+    final StreamProcessor processor = client.resources()
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(provider)
+        .streamProcessorRequestFactory(factory)
+        .build();
+
+    processor.start();
+    Thread.sleep(1000L);
+    latch.await(8, TimeUnit.SECONDS);
+    assertTrue("Expecting NonRetryableNakadiException to not be retryable",  raised[0]);
+  }
+
+
+  @Test
+  public void consumerDoesNotRetryNonRetryableNakadiException() throws Exception {
+
+    server.enqueue(new MockResponse().setResponseCode(200)
+        .setBody(batch)
+        .setHeader("Content-Type", "application/x-json-stream;charset=UTF-8")
+    );
+
+    String baseURI = "http://localhost:" + MOCK_SERVER_PORT;
+
+    NakadiClient client = NakadiClient.newBuilder().baseURI(baseURI).build();
+
+    StreamConfiguration sc = new StreamConfiguration()
+        .eventTypeName("foo")
+        .connectTimeout(3, TimeUnit.SECONDS)
+        .readTimeout(3, TimeUnit.SECONDS);
+
+    StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client, null);
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    final boolean[] raised = {false};
+
+    final LoggingStreamObserverProvider provider =
+        new LoggingStreamObserverProvider() {
+          @Override public StreamObserver<String> createStreamObserver() {
+            return new LoggingStreamObserver() {
+
+              /*
+              expecting the following:
+
+              1: onNext is called and throws NonRetryableNakadiException
+              2: the consumer pipeline won't retry due to the NonRetryableNakadiException
+              3: The observer's onError is called and we mark it
+              4: The observer's onStop is called and we release the latch
+               */
+
+              @Override public void onError(Throwable e) {
+                raised[0] = true;
+              }
+
+              @Override public void onNext(StreamBatchRecord<String> record) {
+                throw new NonRetryableNakadiException(Problem.localProblem("nope", "nope"));
+              }
+
+              @Override public void onStop() {
+                latch.countDown();
+              }
+            };
+          }
+        };
+
+    final StreamProcessor processor = client.resources()
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(provider)
+        .streamProcessorRequestFactory(factory)
+        .build();
+
+    processor.start();
+    Thread.sleep(1000L);
+    latch.await(8, TimeUnit.SECONDS);
+    assertTrue("Expecting NonRetryableNakadiException to not be retryable",  raised[0]);
+  }
+
+  @Test
+  public void consumerDoesNotRetryErrorsFromStreamConnection() throws Exception {
+
+    String baseURI = "http://localhost:";
+
+    NakadiClient client = NakadiClient.newBuilder().baseURI(baseURI).build();
+
+    StreamConfiguration sc = new StreamConfiguration()
+        .eventTypeName("foo")
+        .connectTimeout(3, TimeUnit.SECONDS)
+        .readTimeout(3, TimeUnit.SECONDS);
+
+
+       /*
+      expecting the following:
+
+      1: onCall is called and throws Error
+      2: the consumer pipeline won't retry due to the Error
+      3: The observer's onError is called and we mark it
+      4: The observer's onStop is called and we release the latch
+       */
+
+    StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client, null) {
+      @Override Response onCall(StreamConfiguration sc) throws Exception {
+        throw new Error("nope");
+      }
+    };
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    final boolean[] raised = {false};
+
+    final LoggingStreamObserverProvider provider =
+        new LoggingStreamObserverProvider() {
+          @Override public StreamObserver<String> createStreamObserver() {
+            return new LoggingStreamObserver() {
+              @Override public void onError(Throwable e) {
+                raised[0] = true;
+              }
+
+              @Override public void onStop() {
+                latch.countDown();
+              }
+            };
+          }
+        };
+
+    final StreamProcessor processor = client.resources()
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(provider)
+        .streamProcessorRequestFactory(factory)
+        .build();
+
+    processor.start();
+    Thread.sleep(1000L);
+    latch.await(8, TimeUnit.SECONDS);
+    assertTrue("Expecting Error from stream connection to not be retryable",  raised[0]);
+  }
+
+
+  @Test
+  public void consumerCanRetryExceptionsFromStreamConnection() throws Exception {
+
+    String baseURI = "http://localhost:";
+
+    NakadiClient client = NakadiClient.newBuilder().baseURI(baseURI).build();
+
+    StreamConfiguration sc = new StreamConfiguration()
+        .eventTypeName("foo")
+        .connectTimeout(3, TimeUnit.SECONDS)
+        .readTimeout(3, TimeUnit.SECONDS);
+
+    StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client, null) {
+      @Override Response onCall(StreamConfiguration sc) throws Exception {
+        throw new Exception("nope");
+      }
+    };
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    final boolean[] raised = {false};
+
+    final LoggingStreamObserverProvider provider =
+        new LoggingStreamObserverProvider() {
+          @Override public StreamObserver<String> createStreamObserver() {
+            return new LoggingStreamObserver() {
+              @Override public void onError(Throwable e) {
+                raised[0] = true;
+              }
+
+              @Override public void onStop() {
+                latch.countDown();
+              }
+            };
+          }
+        };
+
+    final StreamProcessor processor = client.resources()
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(provider)
+        .streamProcessorRequestFactory(factory)
+        .build();
+
+    processor.start();
+    Thread.sleep(1000L);
+    latch.await(8, TimeUnit.SECONDS);
+    assertFalse("Expecting Exception to be retryable",  raised[0]);
   }
 
 
@@ -189,9 +435,11 @@ public class StreamProcessorTest {
             .build();
 
     StreamConfiguration sc = new StreamConfiguration().subscriptionId("s1");
+    StreamProcessorRequestFactory factory = spy(new StreamProcessorRequestFactory(client, null));
     StreamProcessor sp = spy(StreamProcessor.newBuilder(client)
         .streamConfiguration(sc)
         .streamObserverFactory(new LoggingStreamObserverProvider())
+        .streamProcessorRequestFactory(factory)
         .build());
 
     Resource r = spy(new OkHttpResource(
@@ -199,7 +447,7 @@ public class StreamProcessorTest {
         new GsonSupport(),
         mock(MetricCollector.class)));
 
-    when(sp.buildResource(sc)).thenReturn(r);
+    when(factory.buildResource(sc)).thenReturn(r);
 
     // just invoke the resource supplier part of the observable, it's where we open the stream
 
@@ -214,7 +462,7 @@ public class StreamProcessorTest {
     // check our stream proc was scoped
     ArgumentCaptor<ResourceOptions> options1 =
         ArgumentCaptor.forClass(ResourceOptions.class);
-    verify(sp, times(1)).requestStreamConnection(
+    verify(factory, times(1)).requestStreamConnection(
         Matchers.eq("http://localhost:9081/subscriptions/sub1/events"),
         options1.capture(),
         any());
@@ -251,10 +499,12 @@ public class StreamProcessorTest {
             .build();
 
     StreamConfiguration sc = new StreamConfiguration().subscriptionId("s1");
+    StreamProcessorRequestFactory factory = spy(new StreamProcessorRequestFactory(client, customScope));
     StreamProcessor sp = spy(StreamProcessor.newBuilder(client)
         .streamConfiguration(sc)
         .streamObserverFactory(new LoggingStreamObserverProvider())
         .scope(customScope)
+        .streamProcessorRequestFactory(factory)
         .build());
 
     Resource r = spy(new OkHttpResource(
@@ -262,7 +512,7 @@ public class StreamProcessorTest {
         new GsonSupport(),
         mock(MetricCollector.class)));
 
-    when(sp.buildResource(sc)).thenReturn(r);
+    when(factory.buildResource(sc)).thenReturn(r);
 
     // just invoke the resource supplier part of the observable, it's where we open the stream
     Callable<Response> resourceFactory =
@@ -276,7 +526,7 @@ public class StreamProcessorTest {
     // check our stream proc was scoped
     ArgumentCaptor<ResourceOptions> options1 =
         ArgumentCaptor.forClass(ResourceOptions.class);
-    verify(sp, times(1)).requestStreamConnection(
+    verify(factory, times(1)).requestStreamConnection(
         Matchers.eq("http://localhost:9081/subscriptions/sub1/events"),
         options1.capture(),
         any());

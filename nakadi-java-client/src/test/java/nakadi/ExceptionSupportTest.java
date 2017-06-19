@@ -37,8 +37,8 @@ public class ExceptionSupportTest {
   @Test
   public void isEventStreamRetryable() {
     for (Map.Entry<Throwable, Boolean> entry : CODES_TO_EXCEPTIONS.entrySet()) {
-      assertTrue(entry.getValue() == ExceptionSupport.isRequestRetryable(entry.getKey()));
-      assertFalse(ExceptionSupport.isRequestRetryable(
+      assertTrue(entry.getValue() == ExceptionSupport.isApiRequestRetryable(entry.getKey()));
+      assertFalse(ExceptionSupport.isApiRequestRetryable(
           new ConflictException(Problem.localProblem("", ""))));
     }
   }
@@ -46,8 +46,8 @@ public class ExceptionSupportTest {
   @Test
   public void isSubscriptionStreamRetryable() {
     for (Map.Entry<Throwable, Boolean> e : CODES_TO_EXCEPTIONS.entrySet()) {
-      assertTrue(e.getValue() == ExceptionSupport.isSubscriptionStreamRetryable(e.getKey()));
-      assertTrue(ExceptionSupport.isSubscriptionStreamRetryable(
+      assertTrue(e.getValue() == ExceptionSupport.isConsumerStreamRetryable(e.getKey()));
+      assertTrue(ExceptionSupport.isConsumerStreamRetryable(
           new ConflictException(Problem.localProblem("", ""))));
     }
   }
