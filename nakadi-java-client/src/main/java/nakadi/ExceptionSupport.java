@@ -1,7 +1,6 @@
 package nakadi;
 
 import java.io.EOFException;
-import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,84 +29,54 @@ class ExceptionSupport {
     return CODES_TO_EXCEPTIONS;
   }
 
-  static boolean isSubscriptionStreamRetryable(Throwable e) {
-    if (e instanceof ConflictException) {
-      if (logger.isDebugEnabled()) {
-        logger.debug("Retryable exception for subscription: " + e.getMessage(), e);
-      } else {
-        logger.info("Retryable exception for subscription: " + e.getMessage());
-      }
-      return true;
+  static boolean isConsumerStreamRetryable(Throwable e) {
+
+    if (e instanceof Error) {
+      logger.error(String.format("non_retryable_error_class_consumer %s %s",
+          e.getClass(), e.getMessage()), e);
+
+      return false;
     }
 
-    return ExceptionSupport.isRequestRetryable(e);
+    if (e instanceof NonRetryableNakadiException) {
+      logger.error(String.format("non_retryable_nakadi_exception_consumer %s %s",
+          e.getClass(), e.getMessage()), e);
+
+      return false;
+    }
+
+    logger.info(String.format("retryable_exception_consumer %s %s",
+        e.getClass(), e.getMessage()), e);
+    return true;
   }
 
   @SuppressWarnings("WeakerAccess")
   @VisibleForTesting
-  static boolean isRequestRetryable(Throwable e) {
+  static boolean isApiRequestRetryable(Throwable e) {
 
-    if (e instanceof UncheckedIOException || e instanceof EOFException) {
-      if (e.getCause() instanceof java.net.SocketTimeoutException) {
-        logger.warn("retryable_socket_timeout_exception err=" + e.getMessage(), e);
-        return true;
-      }
+    if (e instanceof Error) {
+      logger.error(String.format("non_retryable_error_class_api %s %s",
+          e.getClass(), e.getMessage()), e);
 
-      /*
-       can indicate the server connection went away abruptly or it's not up currently. a normal
-       stream end and close from the server won't cause this
-        */
-      logger.warn("retryable_io_eof_exception err=" + e.getMessage(), e);
-      return true;
+      return false;
+    }
+
+    if (e instanceof NonRetryableNakadiException) {
+      logger.error(String.format("non_retryable_nakadi_exception_api %s %s",
+          e.getClass(), e.getMessage()), e);
+
+      return false;
     }
 
     if (e instanceof NakadiException) {
-      NakadiException n = (NakadiException) e;
-
-      if (n instanceof NetworkException) {
-        logger.warn("retryable_network_exception {} ", e.getCause());
-        return true;
-      }
-
-      if (n instanceof ServerException) {
-        logger.warn("retryable_server_exception err=" + n.getMessage());
-        return true;
-      }
-
-      if (n instanceof RateLimitException) {
-        logger.warn("rate_limit_exception err=" + n.getMessage());
-        return true;
-      }
-
-      if (n instanceof AuthorizationException) {
-        logger.warn("retryable_auth_exception err=" + n.getMessage());
-        return true;
-      }
-
-      if (n instanceof ContractRetryableException) {
-        logger.warn("retryable_contract_exception err=" + n.getMessage());
-        return true;
-      }
-
-      if (n instanceof RetryableException) {
-        logger.warn("retryable_exception err=" + n.getMessage());
-        return true;
-      }
-    }
-
-    if (e instanceof IOException) {
-      logger.warn(String.format("non_retryable_io_exception err=%s", e.getMessage()), e);
-      return false; // todo: investigate if this can be retryable
-    }
-
-    if (e instanceof java.util.concurrent.TimeoutException) {
-      logger.warn("retryable_concurrent_timeout_exception err={}", e.getMessage());
+      logger.info(String.format("retryable_nakadi_exception %s %s",
+          e.getClass(), e.getMessage()), e);
       return true;
     }
 
-    logger.warn(
-        String.format("non_retryable_exception %s %s", e.getClass(), e.getMessage()), e);
+    logger.info(
+        String.format("retryable_exception %s %s", e.getClass(), e.getMessage()), e);
 
-    return false; // likelihood is we'll be coming back here for a while qualifying errors.
+    return true;
   }
 }

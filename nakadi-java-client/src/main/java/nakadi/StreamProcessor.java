@@ -301,13 +301,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   private Function<Throwable, Boolean> buildRetryFunction(StreamConfiguration sc) {
-    final Function<Throwable, Boolean> isRetryable;
-    if (sc.isSubscriptionStream()) {
-      isRetryable = ExceptionSupport::isSubscriptionStreamRetryable;
-    } else {
-      isRetryable = ExceptionSupport::isRequestRetryable;
-    }
-    return isRetryable;
+    return ExceptionSupport::isConsumerStreamRetryable;
   }
 
   private Predicate<Long> stopRepeatingPredicate() {

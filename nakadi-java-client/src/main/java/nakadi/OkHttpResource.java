@@ -5,7 +5,6 @@ import io.reactivex.ObservableTransformer;
 import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import okhttp3.Call;
 import okhttp3.MediaType;
@@ -257,7 +256,7 @@ class OkHttpResource implements Resource {
         .retryWhenWithBackoffObserver(
             backoff,
             Schedulers.computation(),
-            ExceptionSupport::isRequestRetryable);
+            ExceptionSupport::isApiRequestRetryable);
   }
 
   private Request.Builder applyMethodForNoBody(String method, String url, Request.Builder builder) {
