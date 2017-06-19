@@ -64,10 +64,12 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final Scheduler monoIoScheduler = Schedulers.from(monoIoExecutor);
   private final Scheduler monoComputeScheduler = Schedulers.from(monoComputeExecutor);
   private final CountDownLatch startBlockingLatch;
+  private final StreamProcessorRequestFactory streamProcessorRequestFactory;
   private CompositeDisposable composite;
 
   @VisibleForTesting
-  @SuppressWarnings("unused") StreamProcessor(NakadiClient client) {
+  @SuppressWarnings("unused") StreamProcessor(NakadiClient client,
+      StreamProcessorRequestFactory streamProcessorRequestFactory) {
     this.client = client;
     this.streamConfiguration = null;
     this.streamObserverProvider = null;
@@ -78,6 +80,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.scope = null;
     this.composite = new CompositeDisposable();
     startBlockingLatch = new CountDownLatch(1);
+    this.streamProcessorRequestFactory = streamProcessorRequestFactory;
   }
 
   private StreamProcessor(Builder builder) {
@@ -91,6 +94,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.scope = builder.scope;
     this.composite = new CompositeDisposable();
     startBlockingLatch = new CountDownLatch(1);
+    this.streamProcessorRequestFactory = builder.streamProcessorRequestFactory;
   }
 
   /**
@@ -266,7 +270,7 @@ public class StreamProcessor implements StreamProcessorManaged {
         .doOnCancel(streamObserver::onStop)
         .timeout(halfOpenKick, halfOpenUnit)
         // retries handle issues like network failures and 409 conflicts
-        .retryWhen(buildStreamConnectionRetryFlowable(streamConfiguration))
+        .retryWhen(buildStreamConnectionRetryFlowable())
         // restarts handle when the server closes the connection (eg checkpointing fell behind)
         .compose(buildRestartHandler())
         /*
@@ -280,14 +284,13 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   private StreamConnectionRetryFlowable buildStreamConnectionRetryFlowable(
-      StreamConfiguration streamConfiguration
   ) {
     return new StreamConnectionRetryFlowable(ExponentialRetry.newBuilder()
         .initialInterval(StreamConnectionRetryFlowable.DEFAULT_INITIAL_DELAY_SECONDS,
             StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
         .maxInterval(maxRetryDelay, StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
         .build(),
-        buildRetryFunction(streamConfiguration), client.metricCollector());
+        buildRetryFunction(), client.metricCollector());
   }
 
   private <T> FlowableTransformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRestartHandler() {
@@ -299,7 +302,7 @@ public class StreamProcessor implements StreamProcessorManaged {
             stopRepeatingPredicate(), restartDelay, restartDelayUnit, maxRestarts);
   }
 
-  private Function<Throwable, Boolean> buildRetryFunction(StreamConfiguration sc) {
+  private Function<Throwable, Boolean> buildRetryFunction() {
     return ExceptionSupport::isConsumerStreamRetryable;
   }
 
@@ -385,24 +388,7 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
   Callable<Response> resourceFactory(StreamConfiguration sc) {
-    return () -> {
-
-      final String url = StreamResourceSupport.buildStreamUrl(client.baseURI(), sc);
-      ResourceOptions options = StreamResourceSupport.buildResourceOptions(client, sc, scope);
-      logger.info("stream_connection_open step=details mode={} url={} scope={}",
-          sc.isEventTypeStream() ? "eventStream" : "subscriptionStream",
-          url,
-          options.scope());
-      final Resource resource = buildResource(sc);
-      /*
-       sometimes we can get a 409 from here (Conflict; No free slots) on the subscription; this
-       can happen when we disconnect if we think there's a zombie connection and throw a timeout.
-       the retry/restarts will handle it
-      */
-      final Response response = requestStreamConnection(url, options, resource);
-      logger.info("stream_connection_open step=opened {} {}", response.hashCode(), response);
-      return response;
-    };
+    return streamProcessorRequestFactory.createCallable(sc);
   }
 
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
@@ -449,6 +435,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     private StreamConfiguration streamConfiguration;
     private ExecutorService executorService;
     private String scope;
+    private StreamProcessorRequestFactory streamProcessorRequestFactory;
 
     public Builder() {
     }
@@ -492,6 +479,10 @@ public class StreamProcessor implements StreamProcessorManaged {
       this.scope =
           Optional.ofNullable(scope).orElse(TokenProvider.NAKADI_EVENT_STREAM_READ);
 
+      if(streamProcessorRequestFactory == null) {
+        streamProcessorRequestFactory = new StreamProcessorRequestFactory(client, scope);
+      }
+
       return new StreamProcessor(this);
     }
 
@@ -530,6 +521,12 @@ public class StreamProcessor implements StreamProcessorManaged {
     @Unstable
     public Builder checkpointer(SubscriptionOffsetCheckpointer checkpointer) {
       this.checkpointer = checkpointer;
+      return this;
+    }
+
+    @VisibleForTesting
+    Builder streamProcessorRequestFactory(StreamProcessorRequestFactory factory) {
+      this.streamProcessorRequestFactory = factory;
       return this;
     }
   }
