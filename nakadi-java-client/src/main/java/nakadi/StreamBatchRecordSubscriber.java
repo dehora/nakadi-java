@@ -66,7 +66,6 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
       logger.warn("observer_retryable_exception msg=" + e.getMessage(), e);
     } catch (Throwable t) {
       logger.warn("observer_non_retryable_exception msg=" + t.getMessage(), t);
-      throwOnFatal(t);
 
       try {
         dispose();
@@ -78,6 +77,7 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
       }
 
       onError(t);
+      throwOnFatal(t);
     }
   }
 
