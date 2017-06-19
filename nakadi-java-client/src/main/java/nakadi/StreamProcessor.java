@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 public class StreamProcessor implements StreamProcessorManaged {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
-  private static final int DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS = 90;
   private static final int DEFAULT_BUFFER_SIZE = 16000;
 
   private final NakadiClient client;
@@ -193,13 +192,33 @@ public class StreamProcessor implements StreamProcessorManaged {
     return streamProcessorExecutorService;
   }
 
-  private <T> void stream(StreamConfiguration sc,
-      StreamObserverProvider<T> observerProvider) {
+  private <T> void stream(StreamConfiguration sc, StreamObserverProvider<T> observerProvider) {
 
-    final StreamObserver<T> observer = observerProvider.createStreamObserver();
-    final TypeLiteral<T> typeLiteral = observerProvider.typeLiteral();
+    final StreamObserver<T> streamObserver = observerProvider.createStreamObserver();
+
     final Flowable<StreamBatchRecord<T>> observable =
-        this.buildStreamObservable(observer, sc, typeLiteral);
+        new StreamProcessorObserverBuilder().createStreamObservable(
+            streamObserver,
+            buildResourceFactory(streamConfiguration),
+            buildSourceSupplier(observerProvider.typeLiteral(), streamConfiguration),
+            buildObservableDispose(),
+            buildStreamConnectionRetryFlowable(streamConfiguration),
+            buildRestartHandler(),
+            /*
+              monoIoScheduler: okhttp needs to be closed on the same thread that opened; using a
+              single thread scheduler allows that to happen whereas default/io/compute schedulers
+              all use multiple threads which can cause resource leaks: http://bit.ly/2fe4UZH
+            */
+            this.monoIoScheduler,
+            DEFAULT_BUFFER_SIZE,
+            /*
+             compute a timeout after which we assume the server's gone away or we're on
+             one end of a half-open connection. this is a big downside trying to emulate
+             a streaming model over http get; you really need bidirectional comms instead
+             todo: make these configurable
+             */
+            new StreamProcessorHalfOpenKick(this.streamConfiguration.batchFlushTimeoutSeconds())
+        );
 
     /*
      Do processing on monoComputeScheduler; if the monoIoScheduler (or any shared
@@ -209,7 +228,7 @@ public class StreamProcessor implements StreamProcessorManaged {
      (but the regular computation scheduler could work as well maybe).
     */
 
-    Optional<Integer> maybeBuffering = observer.requestBuffer();
+    Optional<Integer> maybeBuffering = streamObserver.requestBuffer();
     if (maybeBuffering.isPresent()) {
       logger.info("Creating buffering subscriber buffer={} {}", maybeBuffering.get(), sc);
       /*
@@ -220,64 +239,14 @@ public class StreamProcessor implements StreamProcessorManaged {
       composite.add(observable.observeOn(monoComputeScheduler)
           .buffer(maybeBuffering.get())
           .subscribeWith(
-              new StreamBatchRecordBufferingSubscriber<>(observer, client.metricCollector())));
+              new StreamBatchRecordBufferingSubscriber<>(streamObserver, client.metricCollector())));
     } else {
       logger.info("Creating regular subscriber {}", sc);
 
       composite.add(observable.observeOn(monoComputeScheduler)
           .subscribeWith(
-              new StreamBatchRecordSubscriber<>(observer, client.metricCollector())));
+              new StreamBatchRecordSubscriber<>(streamObserver, client.metricCollector())));
     }
-  }
-
-  private <T> Flowable<StreamBatchRecord<T>> buildStreamObservable(
-      StreamObserver<T> streamObserver,
-      StreamConfiguration streamConfiguration,
-      TypeLiteral<T> typeLiteral) {
-
-    /*
-     compute a timeout after which we assume the server's gone away or we're on
-     one end of a half-open connection. this is a big downside trying to emulate
-     a streaming model over http get; you really need bidirectional comms instead
-     todo: make these configurable
-     */
-    TimeUnit halfOpenUnit = TimeUnit.SECONDS;
-    long halfOpenGrace = DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS;
-    long batchFlushTimeoutSeconds = this.streamConfiguration.batchFlushTimeoutSeconds();
-    long halfOpenKick = halfOpenUnit.toSeconds(batchFlushTimeoutSeconds + halfOpenGrace);
-    logger.info(
-        "configuring half open timeout, batch_flush_timeout={}, grace_period={}, disconnect_after={} {}",
-        batchFlushTimeoutSeconds, halfOpenGrace, halfOpenKick, halfOpenUnit.name().toLowerCase());
-
-    final Flowable<StreamBatchRecord<T>> flowable = Flowable.using(
-        resourceFactory(streamConfiguration),
-        observableFactory(typeLiteral, streamConfiguration),
-        observableDispose()
-    )
-        /*
-        monoIoScheduler: okhttp needs to be closed on the same thread that opened; using a
-        single thread scheduler allows that to happen whereas the default/io/compute schedulers
-        all use multiple threads which can cause resource leaks: http://bit.ly/2fe4UZH
-        */
-        .subscribeOn(monoIoScheduler)
-        .unsubscribeOn(monoIoScheduler)
-        .doOnSubscribe(subscription -> streamObserver.onStart())
-        .doOnComplete(streamObserver::onCompleted)
-        .doOnCancel(streamObserver::onStop)
-        .doOnError(streamObserver::onError)
-        .timeout(halfOpenKick, halfOpenUnit)
-        // retries handle issues like network failures and 409 conflicts
-        .retryWhen(buildStreamConnectionRetryFlowable(streamConfiguration))
-        // restarts handle when the server closes the connection (eg checkpointing fell behind)
-        .compose(buildRestartHandler())
-        /*
-         todo: investigate why Integer.max causes
-        io.reactivex.exceptions.UndeliverableException: java.lang.NegativeArraySizeException
-         at io.reactivex.plugins.RxJavaPlugins.onError(RxJavaPlugins.java:366)
-         */
-        .onBackpressureBuffer(DEFAULT_BUFFER_SIZE, true, true);
-
-    return Flowable.defer(() -> flowable);
   }
 
   private StreamConnectionRetryFlowable buildStreamConnectionRetryFlowable(
@@ -288,7 +257,9 @@ public class StreamProcessor implements StreamProcessorManaged {
             StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
         .maxInterval(maxRetryDelay, StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
         .build(),
-        buildRetryFunction(streamConfiguration), client.metricCollector());
+        buildRetryFunction(streamConfiguration),
+        client.metricCollector()
+    );
   }
 
   private <T> FlowableTransformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRestartHandler() {
@@ -327,7 +298,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     };
   }
 
-  private Consumer<? super Response> observableDispose() {
+  private Consumer<? super Response> buildObservableDispose() {
     return (response) -> {
       logger.info("stream_connection_dispose thread {} {} {}", Thread.currentThread().getName(),
           response.hashCode(), response);
@@ -342,7 +313,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     };
   }
 
-  private <T> Function<? super Response, Flowable<StreamBatchRecord<T>>> observableFactory(
+  private <T> Function<? super Response, Flowable<StreamBatchRecord<T>>> buildSourceSupplier(
       TypeLiteral<T> typeLiteral, StreamConfiguration sc) {
     return (Response response) -> {
       final BufferedReader br = new BufferedReader(response.responseBody().asReader());
@@ -391,7 +362,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
-  Callable<Response> resourceFactory(StreamConfiguration sc) {
+  Callable<Response> buildResourceFactory(StreamConfiguration sc) {
     return () -> {
 
       final String url = StreamResourceSupport.buildStreamUrl(client.baseURI(), sc);
