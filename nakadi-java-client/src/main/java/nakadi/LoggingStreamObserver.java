@@ -28,7 +28,7 @@ public class LoggingStreamObserver extends StreamObserverBackPressure<String> {
   }
 
   @Override public void onError(Throwable e) {
-    logger.warn("LoggingStreamObserver.onError {}", e.getMessage());
+    logger.warn("LoggingStreamObserver.onError {} {}", e.getClass(), e.getMessage());
     if (e instanceof InterruptedException) {
       Thread.currentThread().interrupt();
     }
