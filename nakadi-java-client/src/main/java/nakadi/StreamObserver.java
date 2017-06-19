@@ -20,8 +20,7 @@ public interface StreamObserver<T> {
   void onStart();
 
   /**
-   * Called after the stream is completed and every time a retry fails.
-   * Implementations can tear down here.
+   * Called after the stream either cannot be recovered and retried, or has completed.
    */
   void onStop();
 
@@ -29,12 +28,20 @@ public interface StreamObserver<T> {
    * Notifies the Observer that the {@link StreamProcessorManaged} has finished sending batches.
    *
    * <p>Once the {@link StreamProcessorManaged} calls this method, it will not call
-   * {@link #onNext}.</p>
+   * {@link #onNext}. </p>
    */
   void onCompleted();
 
   /**
    * Notifies the Observer that the {@link StreamProcessorManaged} has seen an error.
+   *
+   * <p>
+   *  By the time this is called the processor will not attempt to retry further. The argument is
+   *  effectively a message for the observer.
+   * </p>
+   * <p>
+   *  Note: the argument may be instance of an {@link Error}.
+   * </p>
    *
    * @param t the exception sent by the {@link StreamProcessor}
    */
@@ -46,9 +53,11 @@ public interface StreamObserver<T> {
    * <p>The {@link StreamProcessor} may call this method 0 to many times.</p>
    *
    * <p>
-   * Exceptions thrown from this method will stop the {@link StreamProcessor}. Implementations
-   * that want to suppress exceptions should catch and handle them, or throw
-   * {@link RetryableException} which will be logged and consumed by the {@link StreamProcessor}.
+   * Exceptions thrown from this method will generally not stop the {@link StreamProcessor} from
+   * entering into a connection retry (an {@link Error} is not considered recoverable and  will
+   * result in the {@link StreamProcessor} stopping). Implementations that want to force the
+   * underlying {@link StreamProcessor} to stop should throw {@link NonRetryableNakadiException}.
+   * In that case the {@link StreamProcessor} will stop and not reconnect or retry further.
    * </p>
    *
    * <p>The {@link StreamProcessor} will not call this method again once it calls either
