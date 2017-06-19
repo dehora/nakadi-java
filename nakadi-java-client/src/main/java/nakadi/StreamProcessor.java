@@ -264,7 +264,6 @@ public class StreamProcessor implements StreamProcessorManaged {
         .doOnSubscribe(subscription -> streamObserver.onStart())
         .doOnComplete(streamObserver::onCompleted)
         .doOnCancel(streamObserver::onStop)
-        .doOnError(streamObserver::onError)
         .timeout(halfOpenKick, halfOpenUnit)
         // retries handle issues like network failures and 409 conflicts
         .retryWhen(buildStreamConnectionRetryFlowable(streamConfiguration))
