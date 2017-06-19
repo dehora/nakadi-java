@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-public class StreamConnectionRetryFlowable implements
+class StreamConnectionRetryFlowable implements
     Function<Flowable<? extends Throwable>, Publisher<Object>> {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());

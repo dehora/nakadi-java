@@ -57,6 +57,32 @@ public class StreamProcessorTest {
 
 
   @Test
+  public void testRetry() {
+
+    String baseURI = "http://localhost:" + MOCK_SERVER_PORT;
+
+    NakadiClient client = NakadiClient.newBuilder()
+        .baseURI(baseURI)
+        .build();
+
+    StreamConfiguration sc = new StreamConfiguration()
+        .eventTypeName("foo")
+        .batchLimit(2)
+        .streamLimit(5)
+        .streamLimit(1);
+
+    final StreamProcessor processor = client.resources()
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(new LoggingStreamObserverProvider())
+        .build();
+
+    processor.start();
+
+  }
+
+
+  @Test
   public void acceptEncodingGzipIsDefaulted() throws Exception {
 
     /*
@@ -204,7 +230,7 @@ public class StreamProcessorTest {
     // just invoke the resource supplier part of the observable, it's where we open the stream
 
     final Callable<Response> resourceFactory =
-        sp.resourceFactory(new StreamConfiguration().subscriptionId("sub1"));
+        sp.buildResourceFactory(new StreamConfiguration().subscriptionId("sub1"));
 
     try {
       resourceFactory.call();
@@ -266,7 +292,7 @@ public class StreamProcessorTest {
 
     // just invoke the resource supplier part of the observable, it's where we open the stream
     Callable<Response> resourceFactory =
-        sp.resourceFactory(new StreamConfiguration().subscriptionId("sub1"));
+        sp.buildResourceFactory(new StreamConfiguration().subscriptionId("sub1"));
 
     try {
       resourceFactory.call();
