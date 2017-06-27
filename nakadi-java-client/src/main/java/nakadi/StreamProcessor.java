@@ -202,13 +202,34 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   void stopStreaming() {
-    logger.info("stopping stream executor");
-    ExecutorServiceSupport.shutdown(executorService());
-    logger.info("stopping stream schedulers");
-    Schedulers.shutdown();
+
     logger.info("stopping subscriber");
     composite.dispose();
-    startBlockingLatch.countDown();
+
+    /*
+    call through the rxjava scheduler contract
+    */
+    logger.info("stopping_scheduler name=monoIoScheduler {}", monoIoScheduler);
+    monoIoScheduler.shutdown();
+
+    logger.info("stopping_scheduler name=monoComputeScheduler {}", monoIoScheduler);
+    monoComputeScheduler.shutdown();
+
+    logger.info("stopping_scheduler name=all_schedulers");
+    Schedulers.shutdown();
+
+    logger.info("stopping_executor name=stream_processor");
+    ExecutorServiceSupport.shutdown(streamProcessorExecutorService);
+
+    /*
+    stop these underlying executors directly. these are wrapped as rxjava schedulers, but calling
+    shutdown via the wrapping Scheduler or Schedulers.shutdown doesn't kill their threads
+     */
+    logger.info("stopping_executor name=monoIoScheduler");
+    ExecutorServiceSupport.shutdown(monoIoExecutor);
+
+    logger.info("stopping_executor name=monoComputeScheduler");
+    ExecutorServiceSupport.shutdown(monoComputeExecutor);
   }
 
   @VisibleForTesting
