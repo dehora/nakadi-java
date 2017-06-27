@@ -2,7 +2,7 @@ package nakadi;
 
 interface StreamProcessorManaged {
 
-  void start();
+  void start() throws IllegalStateException;
 
   void stop();
 }
