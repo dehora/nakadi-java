@@ -1,5 +1,18 @@
 ### Changes
 
+
+### 0.9.0
+
+Contains breaking changes relative to 0.8.x.
+
+- Breaking change. Removes deprecated means to suppress invalid exceptions.
+- Breaking change. Prevents stream processor start being called after stop.
+- Allow X-Flow-ID header to be specified by application. [#193](https://github.com/zalando-incubator/nakadi-java/issues/193)
+- Fixes stream processor shut down.  [#186](https://github.com/zalando-incubator/nakadi-java/issues/186)
+- Observer onError is only called when the consumer pipeline is going to stop processing.
+- Updates Observer documentation to reflect consumer retry policy.
+- Breaking change. Defaults stream processor to retry exceptions except for Errors and NonRetryableNakadiException.
+
 ### 0.8.8
 
 - Checks if the next pagination url is relative. [#204](https://github.com/zalando-incubator/nakadi-java/issues/204)
