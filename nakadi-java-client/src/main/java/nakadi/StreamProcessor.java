@@ -52,6 +52,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final String scope;
   // non builder supplied
   private final AtomicBoolean started = new AtomicBoolean(false);
+  private final AtomicBoolean stopped = new AtomicBoolean(false);
   private final ExecutorService monoIoExecutor = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder()
           .setNameFormat("nakadi-java-io-%d")
@@ -142,16 +143,20 @@ public class StreamProcessor implements StreamProcessorManaged {
   /**
    * Start consuming the stream. This runs in a background executor and will not block the
    * calling thread. Callers must hold onto a reference in order to be able to shut it down.
-   * The underlying executor calls {@link #startBlocking}.
    *
    * <p>
    * Calling start multiple times is the same as calling it once, when stop is not also called
    * or interleaved with.
    * </p>
    *
+   * @throws IllegalStateException if the processor has already been stopped.
    * @see #stop()
    */
-  public void start() {
+  public void start() throws IllegalStateException {
+    if(stopped.get()) {
+      throw new IllegalStateException("processor has already been stopped and cannot be restarted");
+    }
+
     if (!started.getAndSet(true)) {
       executorService().submit(this::startStreaming);
     }
@@ -178,6 +183,8 @@ public class StreamProcessor implements StreamProcessorManaged {
     if (started.getAndSet(false)) {
       stopStreaming();
     }
+
+    stopped.getAndSet(true);
   }
 
   void startStreaming() {
