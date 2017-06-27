@@ -66,7 +66,7 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private final Scheduler monoIoScheduler = Schedulers.from(monoIoExecutor);
   private final Scheduler monoComputeScheduler = Schedulers.from(monoComputeExecutor);
-  private final CountDownLatch startBlockingLatch;
+  private final CountDownLatch startLatch;
   private final StreamProcessorRequestFactory streamProcessorRequestFactory;
   private CompositeDisposable composite;
 
@@ -82,7 +82,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.maxRetryDelay = StreamConnectionRetryFlowable.DEFAULT_MAX_DELAY_SECONDS;
     this.scope = null;
     this.composite = new CompositeDisposable();
-    startBlockingLatch = new CountDownLatch(1);
+    startLatch = new CountDownLatch(1);
     this.streamProcessorRequestFactory = streamProcessorRequestFactory;
   }
 
@@ -96,7 +96,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.maxRetryDelay = streamConfiguration.maxRetryDelaySeconds();
     this.scope = builder.scope;
     this.composite = new CompositeDisposable();
-    startBlockingLatch = new CountDownLatch(1);
+    startLatch = new CountDownLatch(1);
     this.streamProcessorRequestFactory = builder.streamProcessorRequestFactory;
   }
 
@@ -155,6 +155,8 @@ public class StreamProcessor implements StreamProcessorManaged {
     if (!started.getAndSet(true)) {
       executorService().submit(this::startStreaming);
     }
+
+    waitingOnStart();
   }
 
   /**
@@ -170,35 +172,17 @@ public class StreamProcessor implements StreamProcessorManaged {
    * @see #start()
    */
   public void stop() {
+
+    waitingOnStart();
+
     if (started.getAndSet(false)) {
       stopStreaming();
     }
   }
 
-  /**
-   * Start consuming the stream. This blocks the calling thread. This method is currently
-   * visible for testing and development. It will be removed for 1.0.0 and should not be
-   * relied upon.
-   *
-   * <p>
-   * Calling start multiple times is undefined. Clients must assume responsibility for ensuring
-   * this is called once.
-   * </p>
-   */
-  @VisibleForTesting
-  public void startBlocking() {
-    if (!started.getAndSet(true)) {
-      startStreaming();
-      try {
-        startBlockingLatch.await();
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-    }
-  }
-
   void startStreaming() {
     stream(streamConfiguration, streamObserverProvider);
+    startLatch.countDown();
   }
 
   void stopStreaming() {
@@ -239,6 +223,15 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private ExecutorService executorService() {
     return streamProcessorExecutorService;
+  }
+
+  private void waitingOnStart() {
+    try {
+      startLatch.await(60, TimeUnit.SECONDS);
+      logger.info("stream_processor has started");
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 
   private <T> void stream(StreamConfiguration sc,
