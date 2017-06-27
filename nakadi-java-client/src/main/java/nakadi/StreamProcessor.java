@@ -5,12 +5,15 @@ import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
 import io.reactivex.Scheduler;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.exceptions.UndeliverableException;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.io.UncheckedIOException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -39,7 +42,6 @@ public class StreamProcessor implements StreamProcessorManaged {
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
   private static final int DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS = 90;
   private static final int DEFAULT_BUFFER_SIZE = 16000;
-
   private final NakadiClient client;
   private final StreamConfiguration streamConfiguration;
   private final StreamObserverProvider streamObserverProvider;
@@ -48,19 +50,20 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final JsonBatchSupport jsonBatchSupport;
   private final long maxRetryDelay;
   private final String scope;
-
   // non builder supplied
   private final AtomicBoolean started = new AtomicBoolean(false);
   private final ExecutorService monoIoExecutor = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder()
-          .setUncaughtExceptionHandler(
-              (t, e) -> logger.error("stream_processor_err_io {}, {}", t, e.getMessage(), e))
-          .setNameFormat("nakadi-java-io-%d").build());
+          .setNameFormat("nakadi-java-io-%d")
+          .setUncaughtExceptionHandler((t, e) -> handleUncaught(t, e, "stream_processor_err_io"))
+          .build());
   private final ExecutorService monoComputeExecutor = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder()
+          .setNameFormat("nakadi-java-compute-%d")
           .setUncaughtExceptionHandler(
-              (t, e) -> logger.error("stream_processor_err_compute {}, {}", t, e.getMessage(), e))
-          .setNameFormat("nakadi-java-compute-%d").build());
+              (t, e) -> handleUncaught(t, e, "stream_processor_err_compute"))
+          .build());
+
   private final Scheduler monoIoScheduler = Schedulers.from(monoIoExecutor);
   private final Scheduler monoComputeScheduler = Schedulers.from(monoComputeExecutor);
   private final CountDownLatch startBlockingLatch;
@@ -107,13 +110,33 @@ public class StreamProcessor implements StreamProcessorManaged {
     return new StreamProcessor.Builder().client(client);
   }
 
+  private static boolean isInterrupt(Throwable e) {
+    // unwrap to see if this is an InterruptedIOException bubbled up from rx/okio
+    if (e instanceof UndeliverableException) {
+      if (e.getCause() != null && e.getCause() instanceof UncheckedIOException) {
+        if (e.getCause().getCause() != null &&
+            e.getCause().getCause() instanceof InterruptedIOException) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   private static ExecutorService newStreamProcessorExecutorService() {
     final ThreadFactory tf =
         new ThreadFactoryBuilder()
-            .setUncaughtExceptionHandler(
-                (t, e) -> logger.error("stream_processor_err {}, {}", t, e.getMessage(), e))
+            .setUncaughtExceptionHandler((t, e) -> handleUncaught(t, e, "stream_processor_err"))
             .setNameFormat("nakadi-java").build();
     return Executors.newFixedThreadPool(1, tf);
+  }
+
+  private static void handleUncaught(Thread t, Throwable e, String name) {
+    if (isInterrupt(e)) {
+      Thread.currentThread().interrupt();
+    } else {
+      logger.error("{} {}, {}", name, t, e);
+    }
   }
 
   /**
@@ -479,7 +502,7 @@ public class StreamProcessor implements StreamProcessorManaged {
       this.scope =
           Optional.ofNullable(scope).orElse(TokenProvider.NAKADI_EVENT_STREAM_READ);
 
-      if(streamProcessorRequestFactory == null) {
+      if (streamProcessorRequestFactory == null) {
         streamProcessorRequestFactory = new StreamProcessorRequestFactory(client, scope);
       }
 
