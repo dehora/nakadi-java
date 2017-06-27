@@ -18,20 +18,6 @@ public class SubscriptionOffsetCheckpointer {
   }
 
   /**
-   * This is deprecated and will be removed in 0.9.0. Prefer setting the
-   * {@link #suppressInvalidSessionException} method instead.
-   *
-   * @param client the client
-   * @param suppressingInvalidSessions whether or not to throw invalid session responses
-   */
-  @Deprecated
-  public SubscriptionOffsetCheckpointer(
-      NakadiClient client, @Deprecated boolean suppressingInvalidSessions) {
-    this.client = client;
-    this.suppressInvalidSessionException = suppressingInvalidSessions;
-  }
-
-  /**
    * If true tells the checkpointer to suppress invalid session responses from the server instead
    * of throwing {@link NetworkException}.
    *
@@ -64,24 +50,6 @@ public class SubscriptionOffsetCheckpointer {
    */
   public void checkpoint(StreamCursorContext context) {
     checkpointInner(context, suppressInvalidSessionException, suppressNetworkException);
-  }
-
-  /**
-   * Ask the server to commit the supplied {@link StreamCursorContext} moving the subscription
-   * offset to that point.
-   * <p>
-   * This is deprecated and will be removed in 0.9.0. Prefer setting the
-   * {@link #suppressInvalidSessionException} method instead and calling
-   * {@link #checkpoint(StreamCursorContext)}.
-   * </p>
-   *
-   * @param context holds the cursor information.
-   * @param suppressUnknownSessionError if true this will not throw 422 errors. See <a
-   * href="https://github.com/zalando-incubator/nakadi-java/issues/117">issue 117</a> for details.
-   */
-  @Deprecated
-  public void checkpoint(StreamCursorContext context, boolean suppressUnknownSessionError) {
-    checkpointInner(context, suppressUnknownSessionError, suppressNetworkException);
   }
 
   private void checkpointInner(

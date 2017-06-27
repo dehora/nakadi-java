@@ -607,7 +607,8 @@ public class StreamProcessorTest {
 
     assertNotNull(sp);
 
-    SubscriptionOffsetCheckpointer checkpointer = new SubscriptionOffsetCheckpointer(client, true);
+    SubscriptionOffsetCheckpointer checkpointer = new SubscriptionOffsetCheckpointer(client)
+        .suppressInvalidSessionException(true);
     final StreamProcessor sp1 = StreamProcessor.newBuilder(client)
         .checkpointer(checkpointer)
         .streamConfiguration(new StreamConfiguration().subscriptionId("s1"))
@@ -667,7 +668,8 @@ public class StreamProcessorTest {
   @Test
   public void testBuilderSubscriptionOffsetPublisher() throws Exception {
 
-    final SubscriptionOffsetCheckpointer checkpointer1 = new SubscriptionOffsetCheckpointer(client, true);
+    final SubscriptionOffsetCheckpointer checkpointer1 = new SubscriptionOffsetCheckpointer(client)
+        .suppressInvalidSessionException(true);
     SubscriptionOffsetObserver observer = new SubscriptionOffsetObserver(checkpointer1);
     observer = spy(observer);
 

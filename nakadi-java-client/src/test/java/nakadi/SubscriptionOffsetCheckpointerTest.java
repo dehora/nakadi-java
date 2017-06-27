@@ -79,8 +79,6 @@ public class SubscriptionOffsetCheckpointerTest {
     try {
       before();
 
-      SubscriptionOffsetCheckpointer checkpointer = new SubscriptionOffsetCheckpointer(client);
-
       Cursor cursor = new Cursor("p", "o", "e");
       final HashMap<String, String> context = Maps.newHashMap();
       context.put(StreamResourceSupport.X_NAKADI_STREAM_ID, "aa");
@@ -88,32 +86,45 @@ public class SubscriptionOffsetCheckpointerTest {
 
       StreamCursorContext streamCursorContext = new StreamCursorContextReal(cursor, context);
 
+
+      SubscriptionOffsetCheckpointer checkpointerDraconian = new SubscriptionOffsetCheckpointer(client)
+          .suppressInvalidSessionException(false);
+
       try {
         server.enqueue(new MockResponse().setResponseCode(422).setBody(errJson));
-        checkpointer.checkpoint(streamCursorContext);
+        checkpointerDraconian.checkpoint(streamCursorContext);
         fail("expecting a 422 error");
       } catch (InvalidException e) {
         assertEquals(422, e.problem().status());
       }
 
+
+      SubscriptionOffsetCheckpointer checkpointer = new SubscriptionOffsetCheckpointer(client)
+          .suppressInvalidSessionException(true);
+
       try {
         server.enqueue(new MockResponse().setResponseCode(422).setBody(errJson));
-        checkpointer.checkpoint(streamCursorContext, true);
+        checkpointer.checkpoint(streamCursorContext);
       } catch (Exception e) {
         fail(e.getMessage());
       }
 
-      checkpointer = new SubscriptionOffsetCheckpointer(client, true);
+      checkpointer = new SubscriptionOffsetCheckpointer(client)
+          .suppressInvalidSessionException(true);
+
       try {
         server.enqueue(new MockResponse().setResponseCode(422).setBody(errJson));
-        checkpointer.checkpoint(streamCursorContext, true);
+        checkpointer.checkpoint(streamCursorContext);
       } catch (Exception e) {
         fail("expected default true to suppress errors " + e.getMessage());
       }
 
+      SubscriptionOffsetCheckpointer checkpointerFalse = new SubscriptionOffsetCheckpointer(client)
+          .suppressInvalidSessionException(false);
+
       try {
         server.enqueue(new MockResponse().setResponseCode(422).setBody(errJson));
-        checkpointer.checkpoint(streamCursorContext, false);
+        checkpointerFalse.checkpoint(streamCursorContext);
         fail("expecting overriding default true to produce a 422 error");
       } catch (InvalidException e) {
         assertEquals(422, e.problem().status());
