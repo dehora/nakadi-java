@@ -45,6 +45,13 @@ class ExceptionSupport {
       return false;
     }
 
+    if (e instanceof NotFoundException) {
+      logger.error(String.format("non_retryable_not_found_exception_consumer %s %s",
+              e.getClass(), e.getMessage()), e);
+
+      return false;
+    }
+
     logger.info(String.format("retryable_exception_consumer %s %s",
         e.getClass(), e.getMessage()), e);
     return true;
@@ -64,6 +71,13 @@ class ExceptionSupport {
     if (e instanceof NonRetryableNakadiException) {
       logger.error(String.format("non_retryable_nakadi_exception_api %s %s",
           e.getClass(), e.getMessage()), e);
+
+      return false;
+    }
+
+    if (e instanceof NotFoundException) {
+      logger.error(String.format("non_retryable_not_found_exception_api %s %s",
+              e.getClass(), e.getMessage()), e);
 
       return false;
     }

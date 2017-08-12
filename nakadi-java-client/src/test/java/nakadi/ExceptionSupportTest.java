@@ -29,10 +29,10 @@ public class ExceptionSupportTest {
           .put(new NakadiException(Problem.localProblem("", "")), true)
           .put(new ClientException(Problem.localProblem("", "")), true)
           .put(new ContractException(Problem.localProblem("", "")), true)
-          .put(new NotFoundException(Problem.localProblem("", "")), true)
           .put(new PreconditionFailedException(Problem.localProblem("", "")), true)
           // nope
           .put(new NonRetryableNakadiException(Problem.localProblem("", "")), false)
+          .put(new NotFoundException(Problem.localProblem("", "")), false)
           .put(new Error(), false)
           .build();
 
