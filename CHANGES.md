@@ -1,5 +1,8 @@
 ### Changes
 
+### 0.9.1
+
+- Mark 404 response codes as non-retryable. [#226](https://github.com/zalando-incubator/nakadi-java/issues/226)
 
 ### 0.9.0
 
