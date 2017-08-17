@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import junit.framework.TestCase;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
@@ -287,6 +289,62 @@ public class StreamProcessorTest {
     processor.start();
     Thread.sleep(1000L);
     latch.await(8, TimeUnit.SECONDS);
+    assertFalse("Expecting Exception to be retryable",  raised[0]);
+  }
+
+  @Test
+  public void consumerCanRetryExceptionsFromStreamConnectionWithMaxRetryAttempts() throws Exception {
+
+    String baseURI = "http://localhost:";
+
+    NakadiClient client = NakadiClient.newBuilder().baseURI(baseURI).build();
+
+    StreamConfiguration sc = new StreamConfiguration()
+            .eventTypeName("foo")
+            .maxRetryAttempts(3)
+            .connectTimeout(3, TimeUnit.SECONDS)
+            .readTimeout(3, TimeUnit.SECONDS);
+
+    StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client, null) {
+      @Override Response onCall(StreamConfiguration sc) throws Exception {
+        throw new Exception("nope");
+      }
+    };
+
+    CountDownLatch latch = new CountDownLatch(1);
+    AtomicInteger startCounter = new AtomicInteger(0);
+    final boolean[] raised = {false};
+
+    final LoggingStreamObserverProvider provider =
+            new LoggingStreamObserverProvider() {
+              @Override public StreamObserver<String> createStreamObserver() {
+                return new LoggingStreamObserver() {
+                  @Override public void onError(Throwable e) {
+                    raised[0] = true;
+                  }
+
+                  @Override public void onStart() {
+                    startCounter.incrementAndGet();
+                  }
+
+                  @Override public void onStop() {
+                    latch.countDown();
+                  }
+                };
+              }
+            };
+
+    final StreamProcessor processor = client.resources()
+            .streamBuilder()
+            .streamConfiguration(sc)
+            .streamObserverFactory(provider)
+            .streamProcessorRequestFactory(factory)
+            .build();
+
+    processor.start();
+    Thread.sleep(1000L);
+    latch.await(8, TimeUnit.SECONDS);
+    assertTrue("Expecting Exception to be retryable 3 times ",  startCounter.get() == 3);
     assertFalse("Expecting Exception to be retryable",  raised[0]);
   }
 
