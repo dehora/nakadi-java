@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.9.2
+
+- Fixes setting maxRetry attempts for stream configuration. [#231](https://github.com/dehora/nakadi-java/issues/231)
+
 ### 0.9.1
 
 - Mark 404 response codes as non-retryable. [#226](https://github.com/zalando-incubator/nakadi-java/issues/226)
