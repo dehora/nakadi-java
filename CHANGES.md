@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.9.3
+
+- Allows setting event type statistics on event creation.
+
 ### 0.9.2
 
 - Fixes setting maxRetry attempts for stream configuration. [#231](https://github.com/dehora/nakadi-java/issues/231)
