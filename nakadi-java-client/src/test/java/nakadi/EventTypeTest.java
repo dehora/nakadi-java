@@ -12,6 +12,24 @@ public class EventTypeTest {
 
 
   @Test
+  public void testEventTypeStatisticsSerialization() {
+
+    EventType et = new EventType();
+    EventTypeStatistics ets = new EventTypeStatistics(1,2,3,4);
+
+    et.eventTypeStatistics(ets);
+
+    final NakadiClient client = TestSupport.newNakadiClient();
+    final String s = client.jsonSupport().toJson(et);
+    final EventType eventType = client.jsonSupport().fromJson(s, EventType.class);
+
+    assertEquals(1, eventType.eventTypeStatistics().messagesPerMinute());
+    assertEquals(2, eventType.eventTypeStatistics().messageSize());
+    assertEquals(3, eventType.eventTypeStatistics().readParallelism());
+    assertEquals(4, eventType.eventTypeStatistics().writeParallelism());
+  }
+
+  @Test
   public void testFields() {
 
     try {
