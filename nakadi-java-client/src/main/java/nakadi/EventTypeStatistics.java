@@ -12,6 +12,14 @@ public class EventTypeStatistics {
   private int readParallelism;
   private int writeParallelism;
 
+  public EventTypeStatistics(int messagesPerMinute, int messageSize, int readParallelism,
+      int writeParallelism) {
+    this.messagesPerMinute = messagesPerMinute;
+    this.messageSize = messageSize;
+    this.readParallelism = readParallelism;
+    this.writeParallelism = writeParallelism;
+  }
+
   /**
    * @return the messages per minute
    */

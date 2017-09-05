@@ -159,6 +159,17 @@ public class EventType {
   }
 
   /**
+   * Set the statistic. Note this only is useful when initially creating an event type.
+   *
+   * @param eventTypeStatistic the statistic to set
+   * @return this
+   */
+  public EventType eventTypeStatistics(EventTypeStatistics eventTypeStatistic) {
+    this.defaultStatistic = eventTypeStatistic;
+    return this;
+  }
+
+  /**
    * Sets the options supported by the API. Note this will <b>replace was was previously set</b>.
    *
    * @param options the options
