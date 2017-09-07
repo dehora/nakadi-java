@@ -19,7 +19,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
@@ -46,7 +45,6 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final StreamConfiguration streamConfiguration;
   private final StreamObserverProvider streamObserverProvider;
   private final StreamOffsetObserver streamOffsetObserver;
-  private final ExecutorService streamProcessorExecutorService;
   private final JsonBatchSupport jsonBatchSupport;
   private final long maxRetryDelay;
   private final int maxRetryAttempts;
@@ -70,7 +68,6 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final Scheduler monoComputeScheduler = Schedulers.from(monoComputeExecutor);
   private final CountDownLatch startLatch;
   private final StreamProcessorRequestFactory streamProcessorRequestFactory;
-  private CompositeDisposable composite;
 
   @VisibleForTesting
   @SuppressWarnings("unused") StreamProcessor(NakadiClient client,
@@ -79,12 +76,10 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.streamConfiguration = null;
     this.streamObserverProvider = null;
     this.streamOffsetObserver = null;
-    this.streamProcessorExecutorService = null;
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
     this.maxRetryDelay = StreamConnectionRetryFlowable.DEFAULT_MAX_DELAY_SECONDS;
     this.maxRetryAttempts = StreamConnectionRetryFlowable.DEFAULT_MAX_ATTEMPTS;
     this.scope = null;
-    this.composite = new CompositeDisposable();
     startLatch = new CountDownLatch(1);
     this.streamProcessorRequestFactory = streamProcessorRequestFactory;
   }
@@ -94,12 +89,10 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.client = builder.client;
     this.streamObserverProvider = builder.streamObserverProvider;
     this.streamOffsetObserver = builder.streamOffsetObserver;
-    this.streamProcessorExecutorService = builder.executorService;
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
     this.maxRetryDelay = streamConfiguration.maxRetryDelaySeconds();
     this.maxRetryAttempts = streamConfiguration.maxRetryAttempts();
     this.scope = builder.scope;
-    this.composite = new CompositeDisposable();
     startLatch = new CountDownLatch(1);
     this.streamProcessorRequestFactory = builder.streamProcessorRequestFactory;
   }
@@ -127,19 +120,12 @@ public class StreamProcessor implements StreamProcessorManaged {
     return false;
   }
 
-  private static ExecutorService newStreamProcessorExecutorService() {
-    final ThreadFactory tf =
-        new ThreadFactoryBuilder()
-            .setUncaughtExceptionHandler((t, e) -> handleUncaught(t, e, "stream_processor_err"))
-            .setNameFormat("nakadi-java").build();
-    return Executors.newFixedThreadPool(1, tf);
-  }
-
-  private static void handleUncaught(Thread t, Throwable e, String name) {
+  private  void handleUncaught(Thread t, Throwable e, String name) {
     if (isInterrupt(e)) {
       Thread.currentThread().interrupt();
     } else {
-      logger.error("{} {}, {}", name, t, e);
+      logger.error("handle_uncaught_exception {} {}, {}", name, t, e);
+      //stopStreaming();
     }
   }
 
@@ -161,7 +147,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     }
 
     if (!started.getAndSet(true)) {
-      executorService().submit(this::startStreaming);
+      this.startStreaming();
     }
 
     waitingOnStart();
@@ -197,9 +183,6 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   void stopStreaming() {
 
-    logger.info("stopping subscriber");
-    composite.dispose();
-
     /*
     call through the rxjava scheduler contract
     */
@@ -211,9 +194,6 @@ public class StreamProcessor implements StreamProcessorManaged {
 
     logger.info("stopping_scheduler name=all_schedulers");
     Schedulers.shutdown();
-
-    logger.info("stopping_executor name=stream_processor");
-    ExecutorServiceSupport.shutdown(streamProcessorExecutorService);
 
     /*
     stop these underlying executors directly. these are wrapped as rxjava schedulers, but calling
@@ -229,10 +209,6 @@ public class StreamProcessor implements StreamProcessorManaged {
   @VisibleForTesting
   StreamOffsetObserver streamOffsetObserver() {
     return streamOffsetObserver;
-  }
-
-  private ExecutorService executorService() {
-    return streamProcessorExecutorService;
   }
 
   private void waitingOnStart() {
@@ -268,16 +244,15 @@ public class StreamProcessor implements StreamProcessorManaged {
       discrete batches but the rx observer wrapping around it here will be given
       buffered up lists
      */
-      composite.add(observable.observeOn(monoComputeScheduler)
+      observable.observeOn(monoComputeScheduler)
           .buffer(maybeBuffering.get())
           .subscribeWith(
-              new StreamBatchRecordBufferingSubscriber<>(observer, client.metricCollector())));
+              new StreamBatchRecordBufferingSubscriber<>(observer, client.metricCollector()));
     } else {
       logger.info("Creating regular subscriber {}", sc);
 
-      composite.add(observable.observeOn(monoComputeScheduler)
-          .subscribeWith(
-              new StreamBatchRecordSubscriber<>(observer, client.metricCollector())));
+      observable.observeOn(monoComputeScheduler)
+          .subscribeWith(new StreamBatchRecordSubscriber<>(observer, client.metricCollector()));
     }
   }
 
@@ -379,7 +354,7 @@ public class StreamProcessor implements StreamProcessorManaged {
         response.responseBody().close();
         logger.info("stream_connection_dispose_ok thread {} {} {}",
             Thread.currentThread().getName(), response.hashCode(), response);
-      } catch (IOException e) {
+      } catch (Exception e) {
         throw new NakadiException(
             Problem.networkProblem("failed to close stream response", e.getMessage()), e);
       }
@@ -481,7 +456,6 @@ public class StreamProcessor implements StreamProcessorManaged {
     private SubscriptionOffsetCheckpointer checkpointer;
     private StreamOffsetObserver streamOffsetObserver;
     private StreamConfiguration streamConfiguration;
-    private ExecutorService executorService;
     private String scope;
     private StreamProcessorRequestFactory streamProcessorRequestFactory;
 
@@ -520,10 +494,6 @@ public class StreamProcessor implements StreamProcessorManaged {
         this.streamOffsetObserver = new LoggingStreamOffsetObserver();
       }
 
-      if (executorService == null) {
-        this.executorService = newStreamProcessorExecutorService();
-      }
-
       this.scope =
           Optional.ofNullable(scope).orElse(TokenProvider.NAKADI_EVENT_STREAM_READ);
 
@@ -557,12 +527,6 @@ public class StreamProcessor implements StreamProcessorManaged {
 
     public Builder streamConfiguration(StreamConfiguration streamConfiguration) {
       this.streamConfiguration = streamConfiguration;
-      return this;
-    }
-
-    @SuppressWarnings("unused")
-    public Builder executorService(ExecutorService executorService) {
-      this.executorService = executorService;
       return this;
     }
 
