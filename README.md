@@ -35,6 +35,7 @@
   - [Consuming Events](#consuming-events)
     - [Named Event Type Streaming](#named-event-type-streaming)
     - [Subscription Streaming](#subscription-streaming)
+    - [Streaming and Compression](#streaming-and-compression)
     - [Backpressure and Buffering](#backpressure-and-buffering)
   - [Healthchecks](#healthchecks)
   - [Registry](#registry)
@@ -548,6 +549,7 @@ boundedProcessor.start();
 If no offset observer is given, the default observer used is 
 `LoggingStreamOffsetObserver` which simply logs when it is invoked.
 
+
 #### Subscription Streaming
 
 Subscription stream consumers allow consumers to store offsets with the server 
@@ -576,6 +578,19 @@ There are some notable differences:
 - The inbuilt offset observer for a subscription stream will call Nakadi's checkpointing API to update the offset. You can replace this with your own implementation if you wish.
 
 - A subscription stream also allows setting the `maxUncommittedEvents` as defined by the Nakadi API.
+
+#### Streaming and Compression
+
+The default behaviour for all streaming consumers is to request a gzipped stream. This can 
+be changed to a plain stream by setting the `Accept-Encoding` header to `identity` on 
+ `StreamConfiguration` as follows:
+
+```java
+StreamConfiguration sc = new StreamConfiguration()
+    //  ask the server for unencoded data
+    .requestHeader("Accept-Encoding", "identity")
+    ...;
+```
 
 #### Backpressure and Buffering
 

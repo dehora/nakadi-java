@@ -390,6 +390,45 @@ public class StreamProcessorTest {
   }
 
   @Test
+  public void acceptEncodingIdentityIsAccepted() throws Exception {
+
+    server.enqueue(new MockResponse().setResponseCode(200)
+        .setBody(batch)
+        .setHeader("Content-Type", "application/x-json-stream;charset=UTF-8")
+        .setHeader("Content-Encoding", "identity")
+    );
+
+    String baseURI = "http://localhost:" + MOCK_SERVER_PORT;
+
+    NakadiClient client = NakadiClient.newBuilder()
+        .baseURI(baseURI)
+        .enableHttpLogging()
+        .build();
+
+    StreamConfiguration sc = new StreamConfiguration()
+        .eventTypeName("foo")
+        .batchLimit(2)
+        .streamLimit(5)
+        .streamLimit(1)
+         // tell okhttp to ask the server for unencoded data
+        .requestHeader("Accept-Encoding", "identity")
+        ;
+
+    final StreamProcessor processor = client.resources()
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(new LoggingStreamObserverProvider())
+        .build();
+
+    processor.start();
+    Thread.sleep(1000L);
+    processor.stop();
+
+    RecordedRequest request = server.takeRequest();
+    TestCase.assertEquals("identity", request.getHeaders().get("Accept-Encoding"));
+  }
+
+  @Test
   public void customHeadersWithEventStream() throws Exception {
 
     StreamConfiguration sc = new StreamConfiguration()
