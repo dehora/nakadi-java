@@ -125,7 +125,7 @@ public class StreamProcessor implements StreamProcessorManaged {
       Thread.currentThread().interrupt();
     } else {
       logger.error("handle_uncaught_exception {} {}, {}", name, t, e);
-      //stopStreaming();
+      stopStreaming();
     }
   }
 
