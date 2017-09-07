@@ -1,7 +1,9 @@
 package nakadi;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface EventResource {
 
@@ -65,6 +67,7 @@ public interface EventResource {
    * @return the response
    */
   <T> Response send(String eventTypeName, Collection<T> events);
+  <T> Response send(String eventTypeName, Collection<T> events, Map<String, Object> headers);
 
   /**
    * Send an event to the server.
@@ -84,6 +87,7 @@ public interface EventResource {
    * @return the response
    */
   <T> Response send(String eventTypeName, T event);
+  <T> Response send(String eventTypeName, T event, Map<String, Object> headers);
 
   /**
    * Send a batch of events to the server.
@@ -104,4 +108,5 @@ public interface EventResource {
    * post was partially successful (via a 422 or 207 response)
    */
   <T> BatchItemResponseCollection sendBatch(String eventTypeName, List<T> events);
+  <T> BatchItemResponseCollection sendBatch(String eventTypeName, List<T> events, Map<String, Object> headers);
 }
