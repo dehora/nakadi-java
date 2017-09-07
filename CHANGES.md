@@ -1,5 +1,10 @@
 ### Changes
 
+### 0.9.4
+
+- Documents disabling compression on consumer streams.
+- Allows headers to be sent with posted events. [#238](https://github.com/dehora/nakadi-java/issues/238)
+
 ### 0.9.3
 
 - Allows setting event type statistics on event creation.
