@@ -3,13 +3,16 @@ package nakadi;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -25,6 +28,7 @@ public class EventResourceReal implements EventResource {
   private static final String APPLICATION_JSON = "application/json";
 
   private static final List<ResourceLink> LINKS_SENTINEL = Lists.newArrayList();
+  private static final Map<String, Object> SENTINEL_HEADERS = Maps.newHashMap();
   private static Type TYPE_BIR = new TypeToken<List<BatchItemResponse>>() {
   }.getType();
 
@@ -86,8 +90,14 @@ public class EventResourceReal implements EventResource {
 
   @Override
   public final <T> Response send(String eventTypeName, Collection<T> events) {
+    return send(eventTypeName,events, SENTINEL_HEADERS);
+  }
+
+  @Override public <T> Response send(String eventTypeName, Collection<T> events,
+      Map<String, Object> headers) {
     NakadiException.throwNonNull(eventTypeName, "Please provide an event type name");
     NakadiException.throwNonNull(events, "Please provide one or more events");
+    NakadiException.throwNonNull(headers, "Please provide some headers");
 
     if (events.size() == 0) {
       throw new NakadiException(Problem.localProblem("event send called with zero events", ""));
@@ -98,19 +108,25 @@ public class EventResourceReal implements EventResource {
 
     if (collect.get(0).event() instanceof String) {
       return sendUsingSupplier(eventTypeName,
-          () -> ("[" + Joiner.on(",").join(events) + "]").getBytes(Charsets.UTF_8));
+          () -> ("[" + Joiner.on(",").join(events) + "]").getBytes(Charsets.UTF_8), headers);
     } else {
-      return send(collect);
+      return send(collect, headers);
     }
   }
 
   @Override
   public <T> Response send(String eventTypeName, T event) {
+    return send(eventTypeName, event, SENTINEL_HEADERS);
+  }
+
+  @Override public <T> Response send(String eventTypeName, T event, Map<String, Object> headers) {
     NakadiException.throwNonNull(eventTypeName, "Please provide an event type name");
     NakadiException.throwNonNull(event, "Please provide an event");
+    NakadiException.throwNonNull(headers, "Please provide some headers");
 
     if (event instanceof String) {
-      return sendUsingSupplier(eventTypeName, () -> ("[" + event + "]").getBytes(Charsets.UTF_8));
+      return sendUsingSupplier(eventTypeName, () -> ("[" + event + "]").getBytes(Charsets.UTF_8),
+          headers);
     } else {
       ArrayList<T> events = new ArrayList<>(1);
       Collections.addAll(events, event);
@@ -119,7 +135,12 @@ public class EventResourceReal implements EventResource {
   }
 
   @Override public <T> BatchItemResponseCollection sendBatch(String eventTypeName, List<T> events) {
-    Response send = send(eventTypeName, events);
+    return sendBatch(eventTypeName, events, SENTINEL_HEADERS);
+  }
+
+  @Override public <T> BatchItemResponseCollection sendBatch(String eventTypeName, List<T> events,
+      Map<String, Object> headers) {
+    Response send = send(eventTypeName, events, headers);
     List<BatchItemResponse> items = Lists.newArrayList();
 
     if (send.statusCode() == 207 || send.statusCode() == 422) {
@@ -133,18 +154,19 @@ public class EventResourceReal implements EventResource {
     return new BatchItemResponseCollection(items, LINKS_SENTINEL, client);
   }
 
-  private Response sendUsingSupplier(String eventTypeName, ContentSupplier supplier) {
+  private Response sendUsingSupplier(String eventTypeName, ContentSupplier supplier,
+      Map<String, Object> headers) {
     // todo: close
     return timed(() -> client.resourceProvider()
                      .newResource()
                      .retryPolicy(retryPolicy)
                      .postEventsThrowing(
-                         collectionUri(eventTypeName).buildString(), options(), supplier),
+                         collectionUri(eventTypeName).buildString(), options(headers), supplier),
                  client,
                  1);
   }
 
-  private <T> Response send(List<EventRecord<T>> events) {
+  private <T> Response send(List<EventRecord<T>> events, Map<String, Object> headers) {
     NakadiException.throwNonNull(events, "Please provide one or more event records");
 
     String topic = events.get(0).eventType();
@@ -156,7 +178,7 @@ public class EventResourceReal implements EventResource {
                      .newResource()
                      .retryPolicy(retryPolicy)
                      .postEventsThrowing(
-                         collectionUri(topic).buildString(), options(), () -> jsonSupport.toJsonBytes(eventList)),
+                         collectionUri(topic).buildString(), options(headers), () -> jsonSupport.toJsonBytes(eventList)),
               client,
         eventList.size());
   }
@@ -165,13 +187,14 @@ public class EventResourceReal implements EventResource {
     return jsonSupport.transformEventRecord(er);
   }
 
-  private ResourceOptions options() {
+  private ResourceOptions options(Map<String, Object> headers) {
       final ResourceOptions options = ResourceSupport.options(APPLICATION_JSON);
       options.tokenProvider(client.resourceTokenProvider());
       options.scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));
       if (flowId != null) {
           options.flowId(flowId);
       }
+      options.headers(headers);
       return options;
   }
 
