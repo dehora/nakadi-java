@@ -61,19 +61,13 @@ public class SubscriptionOffsetCheckpointer {
     try {
       final CursorCommitResultCollection ccr = checkpointInner(context, resource);
 
-      if (!ccr.items().isEmpty()) {
-        /*
-       the cursor we  tried is older or equal to already committed one. A list of commit results
-       is returned for this one.
-
-       We could probably do something here based on a supplied policy, eg drop messages as
-       they're being reconsumed until we catch up. For now don't do anything clever, just let
-       the server absorb the commits and keep passing events along.
-        */
-        logger.info("subscription_checkpoint server_indicated_stale_cursor {}", ccr);
-      } else {
-        logger.info("subscription_checkpoint server_ok_accepted_cursor {}",
+      if (ccr.items().isEmpty()) {
+        // 204; the cursor was moved forward, the server doesn't return data
+        logger.info("subscription_checkpoint server_accepted_updated_cursor {}",
             cursorTrackingKey(context));
+      } else {
+        // 200; the cursor was older or equal to what's there, server sends back a non-empty array.
+        logger.info("subscription_checkpoint server_ok_indicated_stale_cursor {}", ccr);
       }
     } catch (RateLimitException e) {
       /*
