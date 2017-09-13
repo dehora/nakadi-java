@@ -48,6 +48,10 @@ public class JsonSupportNoop implements JsonSupport {
     return null;
   }
 
+  @Override public byte[] toJsonBytesCompressed(Object o) {
+    return null;
+  }
+
   @Override public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;

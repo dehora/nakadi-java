@@ -11,6 +11,17 @@ import static org.junit.Assert.assertFalse;
 public class GsonSupportTest {
 
   @Test
+  public void flat() {
+
+    final GsonSupport gsonSupport = new GsonSupport();
+    final Model m = new Model();
+    m.id = 1;
+    m.num = 2.0D;
+    assertFalse(gsonSupport.toJsonCompressed(m).contains(" "));
+    assertTrue(gsonSupport.toJson(m).contains(" "));
+  }
+
+  @Test
   public void string() {
 
     final GsonSupport gsonSupport = new GsonSupport();
