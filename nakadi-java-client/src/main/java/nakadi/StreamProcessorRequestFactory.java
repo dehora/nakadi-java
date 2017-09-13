@@ -17,12 +17,12 @@ class StreamProcessorRequestFactory {
     this.scope = scope;
   }
 
-  Callable<Response> createCallable(StreamConfiguration sc) {
-    return () -> onCall(sc);
+  Callable<Response> createCallable(StreamConfiguration sc, StreamProcessor streamProcessor) {
+    return () -> onCall(sc, streamProcessor);
   }
 
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
-  Response onCall(StreamConfiguration sc) throws Exception {
+  Response onCall(StreamConfiguration sc, StreamProcessor streamProcessor) throws Exception {
     final String url = StreamResourceSupport.buildStreamUrl(client.baseURI(), sc);
     ResourceOptions options = StreamResourceSupport.buildResourceOptions(client, sc, scope);
     logger.info("stream_connection_open step=details mode={} url={} scope={}",

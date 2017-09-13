@@ -4,7 +4,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
 import io.reactivex.Scheduler;
-import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.exceptions.UndeliverableException;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
@@ -52,6 +51,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   // non builder supplied
   private final AtomicBoolean started = new AtomicBoolean(false);
   private final AtomicBoolean stopped = new AtomicBoolean(false);
+  private final AtomicBoolean stopping = new AtomicBoolean(false);
   private final ExecutorService monoIoExecutor = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder()
           .setNameFormat("nakadi-java-io-%d")
@@ -172,8 +172,14 @@ public class StreamProcessor implements StreamProcessorManaged {
     if (started.getAndSet(false)) {
       stopStreaming();
     }
+  }
 
-    stopped.getAndSet(true);
+  public boolean disposed() {
+    return stopped.get();
+  }
+
+  public boolean disposing() {
+    return stopped.get() || stopping.get();
   }
 
   void startStreaming() {
@@ -182,28 +188,18 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   void stopStreaming() {
+    stopping.getAndSet(true);
 
     /*
-    call through the rxjava scheduler contract
-    */
-    logger.info("stopping_scheduler name=monoIoScheduler {}", monoIoScheduler);
-    monoIoScheduler.shutdown();
-
-    logger.info("stopping_scheduler name=monoComputeScheduler {}", monoIoScheduler);
-    monoComputeScheduler.shutdown();
-
-    logger.info("stopping_scheduler name=all_schedulers");
-    Schedulers.shutdown();
-
-    /*
-    stop these underlying executors directly. these are wrapped as rxjava schedulers, but calling
+    stop the underlying executors directly. these are wrapped as rxjava schedulers, but calling
     shutdown via the wrapping Scheduler or Schedulers.shutdown doesn't kill their threads
      */
     logger.info("stopping_executor name=monoIoScheduler");
     ExecutorServiceSupport.shutdown(monoIoExecutor);
-
     logger.info("stopping_executor name=monoComputeScheduler");
     ExecutorServiceSupport.shutdown(monoComputeExecutor);
+
+    stopped.getAndSet(true);
   }
 
   @VisibleForTesting
@@ -313,7 +309,9 @@ public class StreamProcessor implements StreamProcessorManaged {
         .maxInterval(maxRetryDelay, StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
         .maxAttempts(maxRetryAttempts)
         .build(),
-        buildRetryFunction(), client.metricCollector());
+        buildRetryFunction(),
+        client.metricCollector(),
+        this);
   }
 
   private <T> FlowableTransformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRestartHandler() {
@@ -411,7 +409,7 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
   Callable<Response> resourceFactory(StreamConfiguration sc) {
-    return streamProcessorRequestFactory.createCallable(sc);
+    return streamProcessorRequestFactory.createCallable(sc, this);
   }
 
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
