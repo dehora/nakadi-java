@@ -24,18 +24,17 @@ public class NakadiClient {
   static final String USER_AGENT = "nakadi-java/" + NakadiClient.VERSION;
   // capture some client side jvm data for diagnostics
   private static List<String> jvmData = new ArrayList<>();
-  static final String PLATFORM_DETAILS_JSON = GsonSupport.gsonCompressed()
-      .toJson(jvmData.stream().collect(Collectors.toMap(String::toString, System::getProperty)));
 
   static {
     jvmData.add("os.arch");
-    jvmData.add("os.name");
-    jvmData.add("os.version");
     jvmData.add("java.class.version");
     jvmData.add("java.runtime.version");
     jvmData.add("java.vm.name");
     jvmData.add("java.vm.version");
   }
+
+  static final String PLATFORM_DETAILS_JSON = GsonSupport.gsonCompressed()
+      .toJson(jvmData.stream().collect(Collectors.toMap(String::toString, System::getProperty)));
 
   private final URI baseURI;
   private final JsonSupport jsonSupport;
