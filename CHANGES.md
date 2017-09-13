@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.9.5
+- Fixes log message for cursor updates. [#244](https://github.com/dehora/nakadi-java/issues/244) 
+- Errors thrown inside processor schedulers are propagated. [243](https://github.com/dehora/nakadi-java/issues/243)
+- Sends flat JSON when posting events. [#236](https://github.com/dehora/nakadi-java/issues/236)
+- Improved processor shutdown  [#225](https://github.com/dehora/nakadi-java/issues/225), [#222](https://github.com/dehora/nakadi-java/issues/222)
+
 ### 0.9.4
 
 - Documents disabling compression on consumer streams.

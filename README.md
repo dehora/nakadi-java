@@ -3,7 +3,7 @@
 
 - Build: [![CircleCI](https://circleci.com/gh/zalando-incubator/nakadi-java.svg?style=svg)](https://circleci.com/gh/zalando-incubator/nakadi-java)
 - Release Download: [ ![Download](https://api.bintray.com/packages/dehora/maven/nakadi-java-client/images/download.svg) ](https://bintray.com/dehora/maven/nakadi-java-client/_latestVersion)
-- Source Release: [0.9.4](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.9.4)
+- Source Release: [0.9.5](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.9.5)
 - Contact: [maintainers](https://github.com/zalando-incubator/nakadi-java/blob/master/MAINTAINERS)
 
 
@@ -684,7 +684,7 @@ and add the project declaration to `pom.xml`:
 <dependency>
   <groupId>net.dehora.nakadi</groupId>
   <artifactId>nakadi-java-client</artifactId>
-  <version>0.9.4</version>
+  <version>0.9.5</version>
 </dependency>
 ```
 ### Gradle
@@ -701,7 +701,7 @@ and add the project to the `dependencies` block in `build.gradle`:
 
 ```groovy
 dependencies {
-  compile 'net.dehora.nakadi:nakadi-java-client:0.9.4'
+  compile 'net.dehora.nakadi:nakadi-java-client:0.9.5'
 }  
 ```
 
@@ -716,7 +716,7 @@ resolvers += "jcenter" at "http://jcenter.bintray.com"
 and add the project to `libraryDependencies` in `build.sbt`:
 
 ```scala
-libraryDependencies += "net.dehora.nakadi" % "nakadi-java-client" % "0.9.4"
+libraryDependencies += "net.dehora.nakadi" % "nakadi-java-client" % "0.9.5"
 ```
 
 
