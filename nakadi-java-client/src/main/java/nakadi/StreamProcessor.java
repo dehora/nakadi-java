@@ -142,7 +142,7 @@ public class StreamProcessor implements StreamProcessorManaged {
    * @see #stop()
    */
   public void start() throws IllegalStateException {
-    if(stopped.get()) {
+    if(stopped() || stopping()) {
       throw new IllegalStateException("processor has already been stopped and cannot be restarted");
     }
 
@@ -174,11 +174,11 @@ public class StreamProcessor implements StreamProcessorManaged {
     }
   }
 
-  public boolean disposed() {
+  public boolean stopped() {
     return stopped.get();
   }
 
-  public boolean disposing() {
+  public boolean stopping() {
     return stopped.get() || stopping.get();
   }
 
