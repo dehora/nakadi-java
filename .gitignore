@@ -20,3 +20,5 @@ gradle-app.setting
 target/
 
 */**/out
+
+*/**/*z*.pem
