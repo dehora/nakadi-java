@@ -26,6 +26,8 @@ public interface JsonSupport {
 
   byte[] toJsonBytes(Object o);
 
+  byte[] toJsonBytesCompressed(Object o);
+
   /**
    * Marshal the JSON data to an instance of T.
    *

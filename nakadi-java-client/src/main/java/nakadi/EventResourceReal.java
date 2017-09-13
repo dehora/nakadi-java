@@ -178,7 +178,8 @@ public class EventResourceReal implements EventResource {
                      .newResource()
                      .retryPolicy(retryPolicy)
                      .postEventsThrowing(
-                         collectionUri(topic).buildString(), options(headers), () -> jsonSupport.toJsonBytes(eventList)),
+                         collectionUri(topic).buildString(),
+                         options(headers), () -> jsonSupport.toJsonBytesCompressed(eventList)),
               client,
         eventList.size());
   }

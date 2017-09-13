@@ -78,9 +78,9 @@ public class OkHttpResourceTest {
 
     final RecordedRequest request = server.takeRequest();
     final String s = request.getBody().readUtf8();
-    assertFalse("expecting ints to not be converted to floats by gson", s.contains(": 100.0"));
-    assertTrue("expecting ints to be present if set", s.contains(": 100"));
-    assertTrue("expecting floats to be present if set", s.contains(": 26.3"));
+    assertFalse("expecting ints to not be converted to floats by gson", s.contains(":100.0"));
+    assertTrue("expecting ints to be present if set", s.contains(":100"));
+    assertTrue("expecting floats to be present if set", s.contains(":26.3"));
   }
 
   @Test

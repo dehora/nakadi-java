@@ -63,6 +63,10 @@ public class GsonSupport implements JsonSupport {
     return toJson(o).getBytes(Charsets.UTF_8);
   }
 
+  @Override public byte[] toJsonBytesCompressed(Object o) {
+    return toJsonCompressed(o).getBytes(Charsets.UTF_8);
+  }
+
   @Override public <T> T fromJson(String raw, Class<T> c) {
     if (String.class.isAssignableFrom(c)) {
       //noinspection unchecked
