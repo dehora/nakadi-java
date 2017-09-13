@@ -205,7 +205,7 @@ public class StreamProcessorTest {
        */
 
     StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client, null) {
-      @Override Response onCall(StreamConfiguration sc) throws Exception {
+      @Override Response onCall(StreamConfiguration sc, StreamProcessor sp) throws Exception {
         throw new Error("nope");
       }
     };
@@ -255,7 +255,7 @@ public class StreamProcessorTest {
         .readTimeout(3, TimeUnit.SECONDS);
 
     StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client, null) {
-      @Override Response onCall(StreamConfiguration sc) throws Exception {
+      @Override Response onCall(StreamConfiguration sc, StreamProcessor sp) throws Exception {
         throw new Exception("nope");
       }
     };
@@ -306,7 +306,7 @@ public class StreamProcessorTest {
             .readTimeout(3, TimeUnit.SECONDS);
 
     StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client, null) {
-      @Override Response onCall(StreamConfiguration sc) throws Exception {
+      @Override Response onCall(StreamConfiguration sc, StreamProcessor sp) throws Exception {
         throw new Exception("nope");
       }
     };

@@ -22,20 +22,30 @@ public class StreamConnectionRetryFlowable implements
   private final RetryPolicy backoff;
   private final Function<Throwable, Boolean> isRetryable;
   private MetricCollector metricCollector;
+  private final StreamProcessorManaged streamProcessor;
 
   StreamConnectionRetryFlowable(RetryPolicy backoff,
       Function<Throwable, Boolean> isRetryable,
-      MetricCollector metricCollector
-  ) {
+      MetricCollector metricCollector,
+      StreamProcessorManaged streamProcessor) {
     this.backoff = backoff;
     this.isRetryable = isRetryable;
     this.metricCollector = metricCollector;
+    this.streamProcessor = streamProcessor;
   }
 
   @Override public Publisher<Object> apply(Flowable<? extends Throwable> flowable)
       throws Exception {
 
     return flowable.flatMap(throwable -> {
+
+      if(streamProcessor.disposing()) {
+        logger.info(
+            "stream_retry_not_retryable msg=processor_disposing dummy_delay=10ms thread=%s err=%s",
+            Thread.currentThread().getName(), throwable.getMessage());
+
+        return Flowable.timer(10, MILLISECONDS);
+      }
 
       if (!isRetryable.apply(throwable)) {
         logger.warn(String.format("stream_retry_not_retryable thread=%s propagating %s, %s",
