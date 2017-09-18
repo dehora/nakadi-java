@@ -64,20 +64,14 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
        the observer's telling us to keep going
         */
       logger.warn("observer_retryable_exception msg=" + e.getMessage(), e);
-    } catch (Throwable t) {
-      logger.warn("observer_non_retryable_exception msg=" + t.getMessage(), t);
-
-      try {
-        dispose();
-      } catch (Throwable t1) {
-        throwOnFatal(t1);
-        logger.error(t1.getMessage(), t1);
-        onError(t);
-        return;
-      }
-
+    } catch (NonRetryableNakadiException t) {
+      logger.warn("observer_non_retryable_exception_rethrowing msg=" + t.getMessage());
       onError(t);
-      throwOnFatal(t);
+      throw t;
+    } catch (Throwable t) {
+      logger.warn("observer_unrecognised_exception msg=" + t.getMessage(), t);
+      onError(t);
+      throw t;
     }
   }
 

@@ -29,6 +29,10 @@ class ExceptionSupport {
     return CODES_TO_EXCEPTIONS;
   }
 
+  static boolean isFatal(Throwable e) {
+   return e instanceof Error;
+  }
+
   static boolean isConsumerStreamRetryable(Throwable e) {
 
     if (e instanceof Error) {
@@ -92,5 +96,11 @@ class ExceptionSupport {
         String.format("retryable_exception %s %s", e.getClass(), e.getMessage()), e);
 
     return true;
+  }
+
+  public static void throwIfError(Throwable t) throws Error {
+    if (t instanceof Error) {
+      throw (Error)t;
+    }
   }
 }
