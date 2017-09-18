@@ -68,6 +68,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final Scheduler monoComputeScheduler = Schedulers.from(monoComputeExecutor);
   private final CountDownLatch startLatch;
   private final StreamProcessorRequestFactory streamProcessorRequestFactory;
+  private Throwable failedProcessorException;
 
   @VisibleForTesting
   @SuppressWarnings("unused") StreamProcessor(NakadiClient client,
@@ -125,6 +126,7 @@ public class StreamProcessor implements StreamProcessorManaged {
       Thread.currentThread().interrupt();
     } else {
       logger.error("handle_uncaught_exception {} {}, {}", name, t, e);
+      failedProcessorException = e;
       stopStreaming();
     }
   }
@@ -178,8 +180,20 @@ public class StreamProcessor implements StreamProcessorManaged {
     return stopped.get();
   }
 
+  public boolean started() {
+    return started.get();
+  }
+
   public boolean stopping() {
     return stopped.get() || stopping.get();
+  }
+
+  public boolean running() {
+    return !stopped() && !stopping() && started();
+  }
+
+  public Optional<Throwable> failedProcessorException() {
+    return Optional.ofNullable(failedProcessorException);
   }
 
   void startStreaming() {
@@ -200,6 +214,12 @@ public class StreamProcessor implements StreamProcessorManaged {
     ExecutorServiceSupport.shutdown(monoComputeExecutor);
 
     stopped.getAndSet(true);
+
+    ExceptionSupport.throwIfError(failedProcessorException);
+  }
+
+  private boolean lastErrorWasFatal() {
+    return ExceptionSupport.isFatal(failedProcessorException);
   }
 
   @VisibleForTesting
