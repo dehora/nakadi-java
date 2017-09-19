@@ -109,7 +109,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     return new StreamProcessor.Builder().client(client);
   }
 
-  private static boolean isInterrupt(Throwable e) {
+  private static boolean isInterruptedIOException(Throwable e) {
     // unwrap to see if this is an InterruptedIOException bubbled up from rx/okio
     if (e instanceof UndeliverableException) {
       if (e.getCause() != null && e.getCause() instanceof UncheckedIOException) {
@@ -123,10 +123,20 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   private  void handleUncaught(Thread t, Throwable e, String name) {
-    if (isInterrupt(e)) {
+    if (isInterruptedIOException(e)) {
       Thread.currentThread().interrupt();
+      logger.warn(String.format(
+          "op=handle_exception action=interrupt_and_continue type=InterruptedIOException %s %s",
+          name, t), e);
     } else {
-      logger.error("handle_uncaught_exception {} {}, {}", name, t, e);
+      if (e instanceof NonRetryableNakadiException) {
+        logger.error(String.format(
+            "op=handle_exception action=stopping type=NonRetryableNakadiException %s %s %s", name,
+            t, ((NonRetryableNakadiException) e).problem()), e);
+      } else {
+        logger.error(String.format("op=handle_exception action=stopping type=%s %s %s",
+            e.getClass().getSimpleName(), name, t), e);
+      }
       failedProcessorException = e;
       stopStreaming();
     }
