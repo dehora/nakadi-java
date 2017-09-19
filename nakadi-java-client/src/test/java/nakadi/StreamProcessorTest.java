@@ -60,6 +60,89 @@ public class StreamProcessorTest {
   }
 
   @Test
+  public void canTrackIllegalStateExceptions() throws Exception {
+    server.enqueue(new MockResponse().setResponseCode(200)
+        .setBody(batch)
+        .setHeader("Content-Type", "application/x-json-stream;charset=UTF-8")
+    );
+
+    String baseURI = "http://localhost:" + MOCK_SERVER_PORT;
+    NakadiClient client = NakadiClient.newBuilder().baseURI(baseURI).build();
+
+    StreamConfiguration sc = new StreamConfiguration()
+        .eventTypeName("foo")
+        .connectTimeout(3, TimeUnit.SECONDS)
+        .readTimeout(3, TimeUnit.SECONDS);
+
+    final LoggingStreamObserverProvider provider = illegalStateExceptionProvider("canTrackIllegalStateExceptions");
+
+    final StreamProcessor processor = client.resources()
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(provider)
+        .build();
+
+    processor.start();
+
+    assertTrue(processor.running());
+    assertFalse(processor.stopped());
+
+    Thread.sleep(1000L);
+
+    while (processor.running()) {
+      Thread.sleep(100L);
+    }
+
+    assertFalse(processor.running());
+    assertTrue(processor.stopped());
+
+    //noinspection ConstantConditions
+    assertTrue(processor.failedProcessorException().get() instanceof IllegalStateException);
+  }
+
+  @Test
+  public void canTrackNonRetryables() throws Exception {
+    server.enqueue(new MockResponse().setResponseCode(200)
+        .setBody(batch)
+        .setHeader("Content-Type", "application/x-json-stream;charset=UTF-8")
+    );
+
+    String baseURI = "http://localhost:" + MOCK_SERVER_PORT;
+    NakadiClient client = NakadiClient.newBuilder().baseURI(baseURI).build();
+
+    StreamConfiguration sc = new StreamConfiguration()
+        .eventTypeName("foo")
+        .connectTimeout(3, TimeUnit.SECONDS)
+        .readTimeout(3, TimeUnit.SECONDS);
+
+    final LoggingStreamObserverProvider provider = nonRetryableNakadiExceptionProvider("canTrackNonRetryables");
+
+    final StreamProcessor processor = client.resources()
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(provider)
+        .build();
+
+    processor.start();
+
+    assertTrue(processor.running());
+    assertFalse(processor.stopped());
+
+    Thread.sleep(1000L);
+
+    while (processor.running()) {
+      Thread.sleep(100L);
+    }
+
+    assertFalse(processor.running());
+    assertTrue(processor.stopped());
+
+    //noinspection ConstantConditions
+    assertTrue(processor.failedProcessorException().get() instanceof NonRetryableNakadiException);
+  }
+
+
+  @Test
   public void canTrackErrors() throws Exception {
     server.enqueue(new MockResponse().setResponseCode(200)
         .setBody(batch)
@@ -87,9 +170,6 @@ public class StreamProcessorTest {
     assertTrue(processor.running());
     assertFalse(processor.stopped());
 
-    Thread.sleep(1000L);
-    processor.stop();
-
     while (processor.running()) {
       Thread.sleep(100L);
     }
@@ -98,7 +178,7 @@ public class StreamProcessorTest {
     assertTrue(processor.stopped());
 
     //noinspection ConstantConditions
-    assertTrue(processor.failedProcessorException().get() instanceof  OutOfMemoryError);
+    assertTrue(processor.failedProcessorException().get() instanceof OutOfMemoryError);
   }
 
   @Test
@@ -920,6 +1000,50 @@ public class StreamProcessorTest {
           @Override public void onNext(StreamBatchRecord<String> record) {
             System.out.println(key + " onNext");
             throw new OutOfMemoryError(key +" oomProvider");
+          }
+
+          @Override public void onStop() {
+            System.out.println(key + " onStop");
+          }
+        };
+      }
+    };
+  }
+
+  private LoggingStreamObserverProvider nonRetryableNakadiExceptionProvider(String key) {
+    return new LoggingStreamObserverProvider() {
+      @Override public StreamObserver<String> createStreamObserver() {
+        return new LoggingStreamObserver() {
+
+          @Override public void onError(Throwable e) {
+            System.out.println(key + " onError " + e.getMessage());
+          }
+
+          @Override public void onNext(StreamBatchRecord<String> record) {
+            System.out.println(key + " onNext");
+            throw new NonRetryableNakadiException(Problem.localProblem(key," nonRetryableNakadiExceptionProvider"));
+          }
+
+          @Override public void onStop() {
+            System.out.println(key + " onStop");
+          }
+        };
+      }
+    };
+  }
+
+  private LoggingStreamObserverProvider illegalStateExceptionProvider(String key) {
+    return new LoggingStreamObserverProvider() {
+      @Override public StreamObserver<String> createStreamObserver() {
+        return new LoggingStreamObserver() {
+
+          @Override public void onError(Throwable e) {
+            System.out.println(key + " @@@ onError " + e.getMessage());
+          }
+
+          @Override public void onNext(StreamBatchRecord<String> record) {
+            System.out.println(key + " onNext");
+            throw new IllegalStateException(key +" illegalStateExceptionProvider");
           }
 
           @Override public void onStop() {

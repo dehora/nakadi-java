@@ -1,7 +1,6 @@
 package nakadi;
 
 import io.reactivex.exceptions.CompositeException;
-import io.reactivex.exceptions.Exceptions;
 import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.subscribers.ResourceSubscriber;
 import org.slf4j.Logger;
@@ -33,19 +32,10 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
     }
 
     if (record == null) {
-      Throwable npe = new NullPointerException("onNext called with null batch record. "
+      NullPointerException npe = new NullPointerException("onNext called with null batch record. "
           + "Null values are not expected from stream processors.");
-
-      try {
-        dispose();
-      } catch (Throwable t1) {
-        throwOnFatal(t1);
-        logger.error(t1.getMessage(), t1);
-        onError(npe);
-        return;
-      }
       onError(npe);
-      return;
+      throw npe;
     }
 
     try {
@@ -60,29 +50,35 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
       // allow the observer to set back pressure by requesting a number of items
       observer.requestBackPressure().ifPresent(this::request);
     } catch (RetryableException e) {
-      /*
-       the observer's telling us to keep going
-        */
-      logger.warn("observer_retryable_exception msg=" + e.getMessage(), e);
+      logger.warn("StreamBatchRecordSubscriber.retryable_exception msg=" + e.getMessage(), e);
+    } catch (NonRetryableNakadiException e) {
+      logger.warn("StreamBatchRecordSubscriber.non_retryable_exception msg=" + e.getMessage());
+      onError(e);
+      throw e;
     } catch (Throwable t) {
-      logger.warn("observer_non_retryable_exception msg=" + t.getMessage(), t);
-
-      try {
-        dispose();
-      } catch (Throwable t1) {
-        throwOnFatal(t1);
-        logger.error(t1.getMessage(), t1);
+      if (t instanceof Error) {
+        logger.error("StreamBatchRecordSubscriber.detected_error msg={}", t.getMessage());
         onError(t);
-        return;
+        throw (Error) t;
       }
 
-      onError(t);
-      throwOnFatal(t);
+      if (!ExceptionSupport.isConsumerStreamRetryable(t)) {
+        logger.error(String.format(
+            "StreamBatchRecordSubscriber.detected_nonretryable_exception type=%s msg=%s", t.getClass().getSimpleName(),
+            t.getMessage()));
+
+        onError(t);
+        throw t;
+      } else {
+        logger.info(String.format(
+            "StreamBatchRecordSubscriber.detected_retryable_exception type=%s msg=%s", t.getClass().getSimpleName(),
+            t.getMessage()));
+      }
     }
   }
 
   @Override public void onError(Throwable e) {
-    logger.info("StreamBatchRecordSubscriber.onError " + e.getMessage());
+    logger.error("StreamBatchRecordSubscriber.onError " + e.getMessage());
 
     if (done) {
       RxJavaPlugins.onError(e);
@@ -94,8 +90,7 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
     try {
       observer.onError(e);
     } catch (Exception e1) {
-      throwOnFatal(e1);
-      logger.error(e1.getMessage(), e1);
+      logger.error("observer_on_error_exception msg=" + e1.getMessage(), e1);
       RxJavaPlugins.onError(new CompositeException(e, e1));
     }
   }
@@ -103,12 +98,5 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
   @Override public void onComplete() {
     logger.info("StreamBatchRecordSubscriber.onCompleted");
     observer.onCompleted();
-  }
-
-  private void throwOnFatal(Throwable t) {
-    Exceptions.throwIfFatal(t);
-    if (t instanceof Error) {
-      throw (Error) t;
-    }
   }
 }
