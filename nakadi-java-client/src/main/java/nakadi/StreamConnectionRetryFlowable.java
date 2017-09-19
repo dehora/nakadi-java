@@ -40,8 +40,8 @@ public class StreamConnectionRetryFlowable implements
     return flowable.flatMap(throwable -> {
 
       if(! streamProcessor.running()) {
-        logger.info(
-            "stream_retry_not_retryable msg=processor_disposing dummy_delay=10ms thread=%s err=%s",
+        logger.warn(
+            "stream_retry_not_retryable msg=processor_disposing dummy_delay=10ms thread={} err={}",
             Thread.currentThread().getName(), throwable.getMessage());
 
         return Flowable.timer(10, MILLISECONDS);
