@@ -69,6 +69,8 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final CountDownLatch startLatch;
   private final StreamProcessorRequestFactory streamProcessorRequestFactory;
 
+  private volatile Throwable failedProcessorException;
+
   @VisibleForTesting
   @SuppressWarnings("unused") StreamProcessor(NakadiClient client,
       StreamProcessorRequestFactory streamProcessorRequestFactory) {
@@ -125,6 +127,7 @@ public class StreamProcessor implements StreamProcessorManaged {
       Thread.currentThread().interrupt();
     } else {
       logger.error("handle_uncaught_exception {} {}, {}", name, t, e);
+      failedProcessorException = e;
       stopStreaming();
     }
   }
@@ -176,6 +179,10 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   public boolean running() {
     return !stopping() && !stopped() & started();
+  }
+
+  public Optional<Throwable> failedProcessorException() {
+    return Optional.ofNullable(failedProcessorException);
   }
 
   boolean stopped() {
