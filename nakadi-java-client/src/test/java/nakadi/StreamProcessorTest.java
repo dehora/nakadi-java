@@ -60,6 +60,48 @@ public class StreamProcessorTest {
   }
 
   @Test
+  public void retriesRuntimeExceptions() throws Exception {
+    server.enqueue(new MockResponse().setResponseCode(200)
+        .setBody(batch)
+        .setHeader("Content-Type", "application/x-json-stream;charset=UTF-8")
+    );
+
+    String baseURI = "http://localhost:" + MOCK_SERVER_PORT;
+    NakadiClient client = NakadiClient.newBuilder().baseURI(baseURI).build();
+
+    StreamConfiguration sc = new StreamConfiguration()
+        .eventTypeName("foo")
+        .connectTimeout(3, TimeUnit.SECONDS)
+        .readTimeout(3, TimeUnit.SECONDS);
+
+    final LoggingStreamObserverProvider provider = runtimeExceptionProvider("retriesRuntimeExceptions");
+
+    final StreamProcessor processor = client.resources()
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(provider)
+        .build();
+
+    processor.start();
+
+    assertTrue(processor.running());
+    assertFalse(processor.stopped());
+
+    Thread.sleep(3000L); // enough time for the observer to throw
+
+    processor.stop();
+
+    while (processor.running()) {
+      Thread.sleep(100L);
+    }
+
+    assertFalse(processor.running());
+    assertTrue(processor.stopped());
+
+    assertFalse(processor.failedProcessorException().isPresent());
+  }
+
+  @Test
   public void canTrackIllegalStateExceptions() throws Exception {
     server.enqueue(new MockResponse().setResponseCode(200)
         .setBody(batch)
@@ -1044,6 +1086,28 @@ public class StreamProcessorTest {
           @Override public void onNext(StreamBatchRecord<String> record) {
             System.out.println(key + " onNext");
             throw new IllegalStateException(key +" illegalStateExceptionProvider");
+          }
+
+          @Override public void onStop() {
+            System.out.println(key + " onStop");
+          }
+        };
+      }
+    };
+  }
+
+  private LoggingStreamObserverProvider runtimeExceptionProvider(String key) {
+    return new LoggingStreamObserverProvider() {
+      @Override public StreamObserver<String> createStreamObserver() {
+        return new LoggingStreamObserver() {
+
+          @Override public void onError(Throwable e) {
+            System.out.println(key + " @@@ onError " + e.getMessage());
+          }
+
+          @Override public void onNext(StreamBatchRecord<String> record) {
+            System.out.println(key + " onNext");
+            throw new RuntimeException(key +" runtimeExceptionProvider");
           }
 
           @Override public void onStop() {
