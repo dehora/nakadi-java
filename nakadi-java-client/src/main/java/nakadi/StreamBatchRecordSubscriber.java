@@ -1,7 +1,5 @@
 package nakadi;
 
-import io.reactivex.exceptions.CompositeException;
-import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.subscribers.ResourceSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +79,7 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
     logger.error("StreamBatchRecordSubscriber.onError " + e.getMessage());
 
     if (done) {
-      RxJavaPlugins.onError(e);
+      logger.warn("observer_on_error_exception msg=onError_already_called");
       return;
     }
 
@@ -90,8 +88,9 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
     try {
       observer.onError(e);
     } catch (Exception e1) {
-      logger.error("observer_on_error_exception msg=" + e1.getMessage(), e1);
-      RxJavaPlugins.onError(new CompositeException(e, e1));
+      throw new NonRetryableNakadiException(
+          Problem.localProblem("observer_on_error_exception", "observer.onError_threw_exception"),
+          e1);
     }
   }
 
