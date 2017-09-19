@@ -38,6 +38,12 @@ class ExceptionSupport {
       return false;
     }
 
+    if (nonRetryableException(e)) {
+      logger.error(String.format("non_retryable_exception %s %s",
+          e.getClass(), e.getMessage()), e);
+      return false;
+    }
+
     if (e instanceof NonRetryableNakadiException) {
       logger.error(String.format("non_retryable_nakadi_exception_consumer %s %s",
           e.getClass(), e.getMessage()), e);
@@ -55,6 +61,10 @@ class ExceptionSupport {
     logger.info(String.format("retryable_exception_consumer %s %s",
         e.getClass(), e.getMessage()), e);
     return true;
+  }
+
+  private static boolean nonRetryableException(Throwable e) {
+    return e instanceof IllegalStateException;
   }
 
   @SuppressWarnings("WeakerAccess")
