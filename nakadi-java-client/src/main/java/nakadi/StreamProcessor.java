@@ -174,11 +174,19 @@ public class StreamProcessor implements StreamProcessorManaged {
     }
   }
 
-  public boolean stopped() {
+  public boolean running() {
+    return !stopping() && !stopped() & started();
+  }
+
+  boolean stopped() {
     return stopped.get();
   }
 
-  public boolean stopping() {
+  boolean started() {
+    return started.get();
+  }
+
+  boolean stopping() {
     return stopped.get() || stopping.get();
   }
 

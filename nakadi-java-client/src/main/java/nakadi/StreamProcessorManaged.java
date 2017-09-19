@@ -6,7 +6,6 @@ interface StreamProcessorManaged {
 
   void stop();
 
-  boolean stopped();
+  boolean running();
 
-  boolean stopping();
 }
