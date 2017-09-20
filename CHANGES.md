@@ -1,5 +1,12 @@
 ### Changes
 
+### 0.9.6
+
+- Adds IllegalStateException to non-retryable consumer errors.
+- Allows detecting if a StreamProcessor is running.
+- Allows tracking/identification of errors thrown from StreamProcessor that caused it to stop.
+- Cleans up observer error/exception handling for errors and non-retryable exceptions.
+
 ### 0.9.5
 - Fixes log message for cursor updates. [#244](https://github.com/dehora/nakadi-java/issues/244) 
 - Errors thrown inside processor schedulers are propagated. [243](https://github.com/dehora/nakadi-java/issues/243)
