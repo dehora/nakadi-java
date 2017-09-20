@@ -187,10 +187,30 @@ public class StreamProcessor implements StreamProcessorManaged {
     }
   }
 
+  /**
+   * Indicates if the processor is running.
+   * <p>
+   *   This is set after {@link #start()} is called. Note that it can be true when the processor
+   *   is setting up and before it actually consumes the stream from Nakadi. After calling
+   *   {@link #stop()} or after an error that caused the processor to stop working this will be
+   *   false.
+   * </p>
+   *
+   * @return true if running, false if not.
+   */
   public boolean running() {
     return !stopping() && !stopped() & started();
   }
 
+  /**
+   * Allows tracking of errors from StreamProcessor.
+   * <p>
+   *   If the processor stopped due to an error that error will be visible from this method. If
+   *   there's no error this return {@link Optional#empty()}.
+   * </p>
+   *
+   * @return the exception that stopped the processor, or {@link Optional#empty()}
+   */
   public Optional<Throwable> failedProcessorException() {
     return Optional.ofNullable(failedProcessorException);
   }
