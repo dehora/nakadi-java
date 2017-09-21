@@ -14,6 +14,13 @@ import java.util.Optional;
 public interface StreamObserver<T> {
 
   /**
+   * Called when the stream processor is initially setup.
+   */
+  default void onBegin() {
+
+  }
+
+  /**
    * Called before stream connection begins and every time a retry is made.
    * Implementations can set up here.
    */
