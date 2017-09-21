@@ -13,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -232,10 +233,6 @@ public class StreamProcessor implements StreamProcessorManaged {
   void stopStreaming() {
     stopping.getAndSet(true);
 
-    /*
-    stop the underlying executors directly. these are wrapped as rxjava schedulers, but calling
-    shutdown via the wrapping Scheduler or Schedulers.shutdown doesn't kill their threads
-     */
     logger.info("stopping_executor name=monoIoScheduler");
     ExecutorServiceSupport.shutdown(monoIoExecutor);
     logger.info("stopping_executor name=monoComputeScheduler");
@@ -329,6 +326,7 @@ public class StreamProcessor implements StreamProcessorManaged {
         .doOnComplete(streamObserver::onCompleted)
         .doOnCancel(streamObserver::onStop)
         .timeout(halfOpenKick, halfOpenUnit)
+        .retryUntil(() -> ! running())
         // retries handle issues like network failures and 409 conflicts
         .retryWhen(buildStreamConnectionRetryFlowable())
         // restarts handle when the server closes the connection (eg checkpointing fell behind)
@@ -345,12 +343,15 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private StreamConnectionRetryFlowable buildStreamConnectionRetryFlowable(
   ) {
-    return new StreamConnectionRetryFlowable(ExponentialRetry.newBuilder()
+    final ExponentialRetry exponentialRetry = ExponentialRetry.newBuilder()
         .initialInterval(StreamConnectionRetryFlowable.DEFAULT_INITIAL_DELAY_SECONDS,
             StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
         .maxInterval(maxRetryDelay, StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
         .maxAttempts(maxRetryAttempts)
-        .build(),
+        .build();
+
+    return new StreamConnectionRetryFlowable(
+        exponentialRetry,
         buildRetryFunction(),
         client.metricCollector(),
         this);
@@ -390,14 +391,8 @@ public class StreamProcessor implements StreamProcessorManaged {
     return (response) -> {
       logger.info("stream_connection_dispose thread {} {} {}", Thread.currentThread().getName(),
           response.hashCode(), response);
-      try {
-        response.responseBody().close();
-        logger.info("stream_connection_dispose_ok thread {} {} {}",
-            Thread.currentThread().getName(), response.hashCode(), response);
-      } catch (Exception e) {
-        throw new NakadiException(
-            Problem.networkProblem("failed to close stream response", e.getMessage()), e);
-      }
+
+      closeTheResponse(response);
     };
   }
 
@@ -405,48 +400,77 @@ public class StreamProcessor implements StreamProcessorManaged {
       TypeLiteral<T> typeLiteral, StreamConfiguration sc) {
     return (Response response) -> {
       final BufferedReader br = new BufferedReader(response.responseBody().asReader());
-      return Flowable.fromIterable(br.lines()::iterator)
+
+      final Iterator<String> iterator = br.lines().iterator();
+
+      Iterable<String> wrappedToAvoidIoInterruptedExceptions = () -> new Iterator<String>() {
+        @Override public boolean hasNext() {
+
+          if(!running()) {
+            logger.info("processor_not_running_closing_from_iterator thread {} {} {}", Thread.currentThread().getName(),
+                response.hashCode(), response);
+            closeTheResponse(response);
+            return false;
+          }
+
+          return iterator.hasNext();
+        }
+
+        @Override public String next() {
+          return iterator.next();
+        }
+      };
+        
+      return Flowable.fromIterable(wrappedToAvoidIoInterruptedExceptions)
           .doOnError(throwable -> {
+            logger.error("processor_iterator_exception thread {} {} {} {}",
+                Thread.currentThread().getName(),
+                throwable.getMessage(), response.hashCode(), response);
 
-            boolean closed = false;
-            final String tName = Thread.currentThread().getName();
-
-            try {
-              logger.info("stream_iterator_response_close_ask thread={} error={} {} {}",
-                  tName, throwable.getMessage(), response.hashCode(), response);
-              response.responseBody().close();
-              closed = true;
-              logger.info("stream_iterator_response_close_ok thread={} error={} {} {}",
-                  tName, throwable.getMessage(), response.hashCode(), response);
-            } catch (Exception e) {
-              logger.warn(
-                  "stream_iterator_response_close_error problem closing thread={} {} {} {} {}",
-                  tName, e.getClass().getName(), e.getMessage(), response.hashCode(), response);
-            } finally {
-              if (!closed) {
-                try {
-                  response.responseBody().close();
-                  closed = true;
-                } catch (IOException e) {
-                  logger.warn(
-                      "stream_iterator_response_close_error  problem re-attempting close thread={} {} {} {} {}",
-                      tName, e.getClass().getName(), e.getMessage(), response.hashCode(), response);
-                }
-              }
-
-              if (!closed) {
-                logger.warn(
-                    String.format(
-                        "stream_iterator_response_close_failed did not close response thread=%s err=%s %s %s",
-                        tName, throwable.getMessage(),
-                        response.hashCode(), response), throwable);
-              }
-            }
+            closeTheResponse(response);
           })
           .onBackpressureBuffer(DEFAULT_BUFFER_SIZE, true, true)
           .map(r -> lineToStreamBatchRecord(r, typeLiteral, response, sc))
           ;
     };
+  }
+
+
+  void closeTheResponse(Response response) {
+
+    final String tName = Thread.currentThread().getName();
+    boolean closed = false;
+
+    try {
+      logger.info("stream_iterator_response_close_ask thread={}  {} {}",
+          tName, response.hashCode(), response);
+      response.responseBody().close();
+      closed = true;
+      logger.info("stream_iterator_response_close_ok thread={} {} {}",
+          tName, response.hashCode(), response);
+    } catch (Exception e) {
+      logger.warn(
+          "stream_iterator_response_close_error problem closing thread={} {} {} {} {}",
+          tName, e.getClass().getName(), e.getMessage(), response.hashCode(), response);
+    } finally {
+      if (!closed) {
+        try {
+          response.responseBody().close();
+          closed = true;
+        } catch (IOException e) {
+          logger.warn(
+              "stream_iterator_response_close_error  problem re-attempting close thread={} {} {} {} {}",
+              tName, e.getClass().getName(), e.getMessage(), response.hashCode(), response);
+        }
+      }
+
+      if (!closed) {
+        logger.warn(
+            String.format(
+                "stream_iterator_response_close_failed did not close response thread=%s %s %s",
+                tName, response.hashCode(), response));
+      }
+    }
   }
 
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
@@ -497,6 +521,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     private StreamOffsetObserver streamOffsetObserver;
     private StreamConfiguration streamConfiguration;
     private StreamProcessorRequestFactory streamProcessorRequestFactory;
+    private String name;
 
     public Builder() {
     }
@@ -581,6 +606,11 @@ public class StreamProcessor implements StreamProcessorManaged {
     @VisibleForTesting
     Builder streamProcessorRequestFactory(StreamProcessorRequestFactory factory) {
       this.streamProcessorRequestFactory = factory;
+      return this;
+    }
+
+    public Builder name(String name) {
+      this.name = name;
       return this;
     }
   }

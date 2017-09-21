@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class StreamConnectionRetryFlowable implements
     Function<Flowable<? extends Throwable>, Publisher<Object>> {
@@ -40,11 +41,14 @@ public class StreamConnectionRetryFlowable implements
     return flowable.flatMap(throwable -> {
 
       if(! streamProcessor.running()) {
+
+        throwable.printStackTrace();
+
         logger.warn(
-            "stream_retry_not_retryable msg=processor_disposing dummy_delay=10ms thread={} err={}",
+            "stream_retry_not_retryable msg=processor_disposing dummy_delay=0ms thread={} err={}",
             Thread.currentThread().getName(), throwable.getMessage());
 
-        return Flowable.timer(10, MILLISECONDS);
+        return Flowable.timer(1, SECONDS);
       }
 
       if (!isRetryable.apply(throwable)) {
