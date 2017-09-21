@@ -26,6 +26,7 @@ import org.mockito.Matchers;
 
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -317,21 +318,14 @@ public class EventResourceRealTest {
   }
 
   @Test
-  public void sendWithScope() {
-
-    final boolean[] askedForToken = {false};
-    final boolean[] askedForCustomScope = {false};
-    String customScope = "custom";
+  public void sendNoScope() {
 
     NakadiClient client = spy(NakadiClient.newBuilder()
         .baseURI("http://localhost:9380")
         .tokenProvider(scope -> {
-          if (TokenProvider.NAKADI_EVENT_STREAM_WRITE.equals(scope)) {
-            askedForToken[0] = true;
-          }
 
-          if (customScope.equals(scope)) {
-            askedForCustomScope[0] = true;
+          if (scope != null) {
+            throw new AssertionError("scope should not be called");
           }
 
           return Optional.empty();
@@ -347,9 +341,6 @@ public class EventResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r);
 
     try {
-      assertFalse(askedForToken[0]);
-      assertFalse(askedForCustomScope[0]);
-
       new EventResourceReal(client)
           .send("foo", Lists.newArrayList(new Event<Happened>() {
         public Happened data() {
@@ -366,9 +357,7 @@ public class EventResourceRealTest {
         options.capture(),
         Matchers.any(ContentSupplier.class));
 
-    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_WRITE, options.getValue().scope());
-    assertTrue(askedForToken[0]);
-    assertFalse(askedForCustomScope[0]);
+    assertNull(options.getValue().scope());
 
 
     r = spy(new OkHttpResource(
@@ -380,13 +369,8 @@ public class EventResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r);
 
     try {
-      askedForToken[0] = false;
-      askedForCustomScope[0] = false;
-      assertFalse(askedForToken[0]);
-      assertFalse(askedForCustomScope[0]);
 
       new EventResourceReal(client)
-          .scope(customScope)
           .send("foo", Lists.newArrayList(new Event<Happened>() {
         public Happened data() {
           return new Happened("a");
@@ -402,10 +386,7 @@ public class EventResourceRealTest {
         options.capture(),
         Matchers.any(ContentSupplier.class));
 
-    assertEquals(customScope, options.getValue().scope());
-    assertTrue(askedForCustomScope[0]);
-    assertFalse(askedForToken[0]);
-
+    assertNull(options.getValue().scope());
   }
 
   @Test

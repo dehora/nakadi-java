@@ -4,15 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -31,29 +24,26 @@ public class TokenProviderZign implements TokenProvider {
   private static final int WAIT_FOR_ZIGN_SECCONDS = 6;
   private static final String THREAD_NAME = "nakadi-java-zign";
 
-  private final Set<String> scopes;
   private long refreshEvery = REFRESH_EVERY_SECONDS;
   private long waitFor = WAIT_FOR_ZIGN_SECCONDS;
   // not provided by builder
   private final AtomicBoolean started = new AtomicBoolean(false);
   private ScheduledExecutorService executorService;
-  private Map<String, String> scopeTokens = new HashMap<>();
+  private String token = null;
 
   public static Builder newBuilder() {
     return new Builder();
   }
 
-  @Override public Optional<String> authHeaderValue(String scope) {
-    if (scopeTokens.containsKey(scope)) {
-      return Optional.of("Bearer " + scopeTokens.get(scope));
-    } else {
-      logger.info("No token for scope={}, trying uid scope", scope);
-      return Optional.of("Bearer " + scopeTokens.get(TokenProvider.UID));
+  @Override public Optional<String> authHeaderValue(@Deprecated String scope) {
+    if (scope != null) {
+      logger.warn("Scopes are deprecated in Nakadi and should not be supplied as an option.");
     }
+
+    return Optional.of("Bearer " + token);
   }
 
   private TokenProviderZign(Builder builder) {
-    this.scopes = builder.scopes;
     this.refreshEvery = builder.refreshEvery;
     this.waitFor = builder.waitFor;
   }
@@ -61,47 +51,41 @@ public class TokenProviderZign implements TokenProvider {
   public void start() {
 
     if (!started.getAndSet(true)) {
-      loadTokens(); // first time run, then refresh in the background
+      loadToken(); // first time run, then refresh in the background
       executorService = Executors.newSingleThreadScheduledExecutor();
-      executorService.scheduleAtFixedRate(this::refreshTokens, refreshEvery, refreshEvery,
+      executorService.scheduleAtFixedRate(this::refreshToken, refreshEvery, refreshEvery,
           TimeUnit.SECONDS);
 
-      logger.info("refreshing tokens in background {}, every {} seconds", scopes, refreshEvery);
+      logger.info("refreshing tokens in background every {} seconds", refreshEvery);
     }
   }
 
-  void refreshTokens() {
+  void refreshToken() {
     Thread.currentThread().setName(THREAD_NAME);
-    logger.info("refreshing tokens {}", scopes);
-    loadTokens();
+    logger.info("refreshing token");
+    loadToken();
   }
 
-  void loadTokens() {
+  void loadToken() {
     refreshFetchDiagnostic();
-    for (String scope : scopes) {
-      try {
-        fetchZign(scope).ifPresent(token -> scopeTokens.put(scope, token));
-      } catch (Exception e) {
-        logger.error("error setting token for scope={}, skipping", scope);
-      }
-    }
+    fetchZign().ifPresent(token -> this.token = token);
   }
 
   public void stop() {
     if (started.getAndSet(false)) {
-      logger.info("stopping zign token background refresh, scopes {}", scopes);
+      logger.info("stopping zign token background refresh {}");
       ExecutorServiceSupport.shutdown(executorService);
-      logger.info("stopped zign token background refresh, scopes {}", scopes);
+      logger.info("stopped zign token background refresh {}");
     }
   }
 
-  private Optional<String> fetchZign(String scope) {
+  private Optional<String> fetchZign() {
 
     String token = null;
     Process proc = null;
     try {
       proc = new ProcessBuilder()
-          .command("zign", "token", scope)
+          .command("zign", "token")
           .redirectErrorStream(true)
           .start();
 
@@ -111,18 +95,18 @@ public class TokenProviderZign implements TokenProvider {
       }
 
       if (proc.exitValue() == 0) {
-        logger.info("obtained token for scope={} process_exited={} exit_value={}",
-            scope, done, proc.exitValue());
+        logger.info("obtained token process_exited={} exit_value={}",
+            done, proc.exitValue());
       } else {
         logger.error(
-            "failed to obtain token for scope={} process_exited={} exit_value=[{}] scope={} response={}",
-            scope, done, proc.exitValue(), token);
+            "failed to obtain token process_exited={} exit_value=[{}] scope={} response={}",
+            done, proc.exitValue(), token);
         token = null;
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     } catch (IOException e) {
-      logger.error("error fetching scope [{}] [{}]", scope, e.getMessage());
+      logger.error("error fetching token [{}] [{}]",e.getMessage());
     } finally {
       if (proc != null && proc.isAlive()) {
         proc.destroyForcibly();
@@ -133,25 +117,23 @@ public class TokenProviderZign implements TokenProvider {
   }
 
   private void refreshFetchDiagnostic() {
-    if (refreshEvery < (waitFor * scopes.size())) {
+    if (refreshEvery < waitFor) {
       logger.warn(
-          "refresh every time is less than total permissible fetch time for scopes refresh_every={} zign_wait=({} * {})"
-          , refreshEvery, waitFor, scopes.size()
+          "refresh every time is less than total permissible fetch time refresh_every={} zign_wait={}"
+          , refreshEvery, waitFor
       );
     }
   }
 
   public static class Builder {
-    Set<String> scopes = new HashSet<>();
     long refreshEvery = REFRESH_EVERY_SECONDS;
     long waitFor = WAIT_FOR_ZIGN_SECCONDS;
 
     public Builder() {
     }
 
+    @Deprecated
     public Builder scopes(String... scopes) {
-      NakadiException.throwNonNull(scopes, "Please provide some scopes");
-      this.scopes.addAll(Arrays.asList(scopes));
       return this;
     }
 
@@ -168,13 +150,6 @@ public class TokenProviderZign implements TokenProvider {
     }
 
     public TokenProviderZign build() {
-
-      scopes(TokenProvider.NAKADI_CONFIG_WRITE,
-          TokenProvider.NAKADI_EVENT_STREAM_READ,
-          TokenProvider.NAKADI_EVENT_STREAM_WRITE,
-          TokenProvider.NAKADI_EVENT_TYPE_WRITE,
-          TokenProvider.UID);
-
       return new TokenProviderZign(this);
     }
   }

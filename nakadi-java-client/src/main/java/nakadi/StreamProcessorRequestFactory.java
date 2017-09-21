@@ -10,11 +10,9 @@ class StreamProcessorRequestFactory {
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   private final NakadiClient client;
-  private final String scope;
 
-  StreamProcessorRequestFactory(NakadiClient client, String scope) {
+  StreamProcessorRequestFactory(NakadiClient client) {
     this.client = client;
-    this.scope = scope;
   }
 
   Callable<Response> createCallable(StreamConfiguration sc, StreamProcessor streamProcessor) {
@@ -24,11 +22,10 @@ class StreamProcessorRequestFactory {
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
   Response onCall(StreamConfiguration sc, StreamProcessor streamProcessor) throws Exception {
     final String url = StreamResourceSupport.buildStreamUrl(client.baseURI(), sc);
-    ResourceOptions options = StreamResourceSupport.buildResourceOptions(client, sc, scope);
-    logger.info("stream_connection_open step=details mode={} url={} scope={}",
+    ResourceOptions options = StreamResourceSupport.buildResourceOptions(client, sc);
+    logger.info("stream_connection_open step=details mode={} url={}",
         sc.isEventTypeStream() ? "eventStream" : "subscriptionStream",
-        url,
-        options.scope());
+        url);
 
     final Response response = requestStreamConnection(url, options, buildResource(sc));
     logger.info("stream_connection_open step=opened {} {}", response.hashCode(), response);

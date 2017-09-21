@@ -34,7 +34,6 @@ public class EventResourceReal implements EventResource {
 
   private final NakadiClient client;
   private final JsonSupport jsonSupport;
-  private volatile String scope;
   private volatile RetryPolicy retryPolicy;
   private volatile String flowId;
 
@@ -73,8 +72,14 @@ public class EventResourceReal implements EventResource {
     }
   }
 
+  /**
+   * Deprecated since 0.9.7 and will be removed in 0.10.0. Scopes set here are ignored.
+   *
+   * @param scope the OAuth scope to be used for the request
+   * @return this
+   */
+  @Deprecated
   @Override public EventResource scope(String scope) {
-    this.scope = scope;
     return this;
   }
 
@@ -191,7 +196,6 @@ public class EventResourceReal implements EventResource {
   private ResourceOptions options(Map<String, Object> headers) {
       final ResourceOptions options = ResourceSupport.options(APPLICATION_JSON);
       options.tokenProvider(client.resourceTokenProvider());
-      options.scope(applyScope(TokenProvider.NAKADI_EVENT_STREAM_WRITE));
       if (flowId != null) {
           options.flowId(flowId);
       }
@@ -206,7 +210,4 @@ public class EventResourceReal implements EventResource {
         .path(PATH_COLLECTION);
   }
 
-  String applyScope(String fallbackScope) {
-    return scope == null ? fallbackScope : scope;
-  }
 }

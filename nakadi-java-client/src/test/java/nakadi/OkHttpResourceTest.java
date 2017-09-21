@@ -460,21 +460,15 @@ public class OkHttpResourceTest {
   }
 
   @Test
-  public void checkpointWithScope() {
-    final boolean[] askedForDefaultToken = {false};
-    final boolean[] askedForCustomToken = {false};
-    String customScope = "custom";
+  public void checkpointWithNoScope() {
 
     NakadiClient client =
         spy(NakadiClient.newBuilder()
             .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
-              if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
-                askedForDefaultToken[0] = true;
-              }
 
-              if (customScope.equals(scope)) {
-                askedForCustomToken[0] = true;
+              if (scope != null) {
+                throw new AssertionError("scope should not be called");
               }
 
               return Optional.empty();
@@ -520,9 +514,6 @@ public class OkHttpResourceTest {
         Matchers.any(ContentSupplier.class)
     );
 
-    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options.getValue().scope());
-    Assert.assertTrue(askedForDefaultToken[0]);
-    assertFalse(askedForCustomToken[0]);
 
     Resource r1 = spy(new OkHttpResource(
         new OkHttpClient.Builder().build(),
@@ -533,10 +524,6 @@ public class OkHttpResourceTest {
     when(client.resourceProvider().newResource()).thenReturn(r1);
 
     try {
-      askedForDefaultToken[0] = false;
-      askedForCustomToken[0] = false;
-      assertFalse(askedForDefaultToken[0]);
-      assertFalse(askedForCustomToken[0]);
 
       RetryPolicy backoff = ExponentialRetry.newBuilder()
           .initialInterval(1, TimeUnit.SECONDS)
@@ -544,7 +531,7 @@ public class OkHttpResourceTest {
           .maxInterval(1, TimeUnit.SECONDS)
           .build();
 
-      SubscriptionResource resource = new SubscriptionResourceReal(client).scope(customScope);
+      SubscriptionResource resource = new SubscriptionResourceReal(client);
 
       // call the inner method to control the backoff, the interface method's just a wrapper
       ((SubscriptionResourceReal)resource).checkpoint(backoff, context, c);
@@ -561,9 +548,7 @@ public class OkHttpResourceTest {
         Matchers.any(ContentSupplier.class)
     );
 
-    assertEquals(customScope, options.getValue().scope());
-    assertFalse(askedForDefaultToken[0]);
-    Assert.assertTrue(askedForCustomToken[0]);
+    assertEquals(null, options.getValue().scope());
   }
 
   @Test

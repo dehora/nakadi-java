@@ -41,8 +41,6 @@ public class EventTypeTest {
       et.owningApplication("dd");
       et.partitionStrategy("dd");
       et.partitionKeyFields("dd");
-      et.readScopes("a");
-      et.writeScopes("a");
       et.schema(new EventTypeSchema());
     } catch (Exception e) {
       fail("broken field check " +e.getMessage());
