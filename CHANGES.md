@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.9.7
+
+- Makes publishing status and steps visible in BatchItemResponse. [#264](https://github.com/dehora/nakadi-java/issues/264)
+- Deprecates scopes. [#228](https://github.com/dehora/nakadi-java/issues/228)
+- Adds authorizations to event types. [#227](https://github.com/dehora/nakadi-java/issues/227)
+
 ### 0.9.6
 
 - Adds IllegalStateException to non-retryable consumer errors.
