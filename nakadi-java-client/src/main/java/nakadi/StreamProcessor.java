@@ -47,7 +47,6 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final JsonBatchSupport jsonBatchSupport;
   private final long maxRetryDelay;
   private final int maxRetryAttempts;
-  private final String scope;
   // non builder supplied
   private final AtomicBoolean started = new AtomicBoolean(false);
   private final AtomicBoolean stopped = new AtomicBoolean(false);
@@ -81,7 +80,6 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
     this.maxRetryDelay = StreamConnectionRetryFlowable.DEFAULT_MAX_DELAY_SECONDS;
     this.maxRetryAttempts = StreamConnectionRetryFlowable.DEFAULT_MAX_ATTEMPTS;
-    this.scope = null;
     startLatch = new CountDownLatch(1);
     this.streamProcessorRequestFactory = streamProcessorRequestFactory;
   }
@@ -94,7 +92,6 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
     this.maxRetryDelay = streamConfiguration.maxRetryDelaySeconds();
     this.maxRetryAttempts = streamConfiguration.maxRetryAttempts();
-    this.scope = builder.scope;
     startLatch = new CountDownLatch(1);
     this.streamProcessorRequestFactory = builder.streamProcessorRequestFactory;
   }
@@ -499,7 +496,6 @@ public class StreamProcessor implements StreamProcessorManaged {
     private SubscriptionOffsetCheckpointer checkpointer;
     private StreamOffsetObserver streamOffsetObserver;
     private StreamConfiguration streamConfiguration;
-    private String scope;
     private StreamProcessorRequestFactory streamProcessorRequestFactory;
 
     public Builder() {
@@ -537,11 +533,9 @@ public class StreamProcessor implements StreamProcessorManaged {
         this.streamOffsetObserver = new LoggingStreamOffsetObserver();
       }
 
-      this.scope =
-          Optional.ofNullable(scope).orElse(TokenProvider.NAKADI_EVENT_STREAM_READ);
 
       if (streamProcessorRequestFactory == null) {
-        streamProcessorRequestFactory = new StreamProcessorRequestFactory(client, scope);
+        streamProcessorRequestFactory = new StreamProcessorRequestFactory(client);
       }
 
       return new StreamProcessor(this);
@@ -552,8 +546,13 @@ public class StreamProcessor implements StreamProcessorManaged {
       return this;
     }
 
+    /**
+     * Deprecated since 0.9.7 and will be removed in 0.10.0. Scopes set here are ignored.
+     *
+     * @return this
+     */
+    @Deprecated
     public Builder scope(String scope) {
-      this.scope = scope;
       return this;
     }
 

@@ -1,8 +1,10 @@
 package nakadi;
 
+import com.google.common.collect.Lists;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -14,6 +16,8 @@ public class EventType {
   public static final String ENRICHMENT_METADATA = "metadata_enrichment";
   public static final String PARTITION_RANDOM = "random";
   public static final String PARTITION_HASH = "hash";
+  private static final List<String> SENTINEL_EMPTY_SCOPES =
+      Collections.unmodifiableList(Lists.newArrayList());
   private final List<String> enrichmentStrategies = new ArrayList<>();
   private String name;
   private String owningApplication;
@@ -23,8 +27,6 @@ public class EventType {
   private List<String> partitionKeyFields = new ArrayList<>();
   private EventTypeStatistics defaultStatistic;
   private EventTypeOptions options;
-  private List<String> readScopes = new ArrayList<>();
-  private List<String> writeScopes = new ArrayList<>();
   private String compatibilityMode;
   private OffsetDateTime createdAt;
   private OffsetDateTime updatedAt;
@@ -215,42 +217,48 @@ public class EventType {
   }
 
   /**
-   * @return the allowed read scopes
+   * Deprecated since 0.9.7 and will be removed in 0.10.0.
+   *
+   * @return an empty list
    */
+  @Deprecated
   public List<String> readScopes() {
-    return readScopes;
+    return SENTINEL_EMPTY_SCOPES;
   }
 
   /**
-   * Add one or more read scopes.
-   *
+   * Deprecated since 0.9.7 and will be removed in 0.10.0.
+   * <p>
+   * Scopes have been removed in recent Nakadi versions. Scopes set here are ignored.
+   *</p>
    * @param readScopes the read scopes
    * @return this
    */
+  @Deprecated
   public EventType readScopes(String... readScopes) {
-    NakadiException.throwNonNull(readScopes, "Please provide non-null read scopes");
-    this.readScopes = Arrays.asList(readScopes);
     return this;
   }
 
   /**
-   * The allowed write scopes.
+   * Deprecated since 0.9.7 and will be removed in 0.10.0.
    *
-   * @return this
+   * @return an empty list
    */
+  @Deprecated
   public List<String> writeScopes() {
-    return writeScopes;
+    return SENTINEL_EMPTY_SCOPES;
   }
 
   /**
-   * Add one or more write scopes.
-   *
+   * Deprecated since 0.9.7 and will be removed in 0.10.0.
+   * <p>
+   * Scopes have been removed in recent Nakadi versions. Scopes set here are ignored.
+   *</p>
    * @param writeScopes the write scopes
    * @return this
    */
+  @Deprecated
   public EventType writeScopes(String... writeScopes) {
-    NakadiException.throwNonNull(writeScopes, "Please provide non-null write scopes");
-    this.writeScopes = Arrays.asList(writeScopes);
     return this;
   }
 
@@ -293,8 +301,7 @@ public class EventType {
 
   @Override public int hashCode() {
     return Objects.hash(enrichmentStrategies, name, owningApplication, category, partitionStrategy,
-        schema, partitionKeyFields, defaultStatistic, options, readScopes, writeScopes,
-        compatibilityMode);
+        schema, partitionKeyFields, defaultStatistic, options, compatibilityMode);
   }
 
   @Override public boolean equals(Object o) {
@@ -310,8 +317,6 @@ public class EventType {
         Objects.equals(partitionKeyFields, eventType.partitionKeyFields) &&
         Objects.equals(defaultStatistic, eventType.defaultStatistic) &&
         Objects.equals(options, eventType.options) &&
-        Objects.equals(readScopes, eventType.readScopes) &&
-        Objects.equals(writeScopes, eventType.writeScopes) &&
         Objects.equals(compatibilityMode, eventType.compatibilityMode);
   }
 
@@ -325,8 +330,6 @@ public class EventType {
         ", partitionKeyFields=" + partitionKeyFields +
         ", defaultStatistic=" + defaultStatistic +
         ", options=" + options +
-        ", readScopes=" + readScopes +
-        ", writeScopes=" + writeScopes +
         ", compatibilityMode='" + compatibilityMode + '\'' +
         '}';
   }

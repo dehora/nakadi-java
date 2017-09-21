@@ -19,6 +19,7 @@ import org.mockito.Matchers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -122,21 +123,13 @@ public class SubscriptionResourceRealTest {
   }
 
   @Test
-  public void listWithScope() {
-    final boolean[] askedForDefaultToken = {false};
-    final boolean[] askedForCustomToken = {false};
-    String customScope = "custom";
-
+  public void listWithNoScope() {
     NakadiClient client =
         spy(NakadiClient.newBuilder()
             .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
-              if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
-                askedForDefaultToken[0] = true;
-              }
-
-              if (customScope.equals(scope)) {
-                askedForCustomToken[0] = true;
+              if (scope != null) {
+                throw new AssertionError("scope should not be called");
               }
 
               return Optional.empty();
@@ -165,9 +158,7 @@ public class SubscriptionResourceRealTest {
         options.capture()
     );
 
-    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options.getValue().scope());
-    assertTrue(askedForDefaultToken[0]);
-    assertFalse(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
 
     Resource r1 = spy(new OkHttpResource(
         new OkHttpClient.Builder().build(),
@@ -178,13 +169,8 @@ public class SubscriptionResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r1);
 
     try {
-      askedForDefaultToken[0] = false;
-      askedForCustomToken[0] = false;
-      assertFalse(askedForDefaultToken[0]);
-      assertFalse(askedForCustomToken[0]);
 
       new SubscriptionResourceReal(client)
-          .scope(customScope)
           .list();
     } catch (RetryableException | NotFoundException ignored) {
     }
@@ -197,29 +183,19 @@ public class SubscriptionResourceRealTest {
         options.capture()
     );
 
-    assertEquals(customScope, options.getValue().scope());
-    assertFalse(askedForDefaultToken[0]);
-    assertTrue(askedForCustomToken[0]);
-
-
+    assertNull(options.getValue().scope());
   }
 
   @Test
-  public void findWithScope() {
-    final boolean[] askedForDefaultToken = {false};
-    final boolean[] askedForCustomToken = {false};
-    String customScope = "custom";
+  public void findWithNoScope() {
 
     NakadiClient client =
         spy(NakadiClient.newBuilder()
             .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
-              if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
-                askedForDefaultToken[0] = true;
-              }
 
-              if (customScope.equals(scope)) {
-                askedForCustomToken[0] = true;
+              if (scope != null) {
+                throw new AssertionError("scope should not be called");
               }
 
               return Optional.empty();
@@ -249,9 +225,7 @@ public class SubscriptionResourceRealTest {
         Matchers.eq(Subscription.class)
     );
 
-    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options.getValue().scope());
-    assertTrue(askedForDefaultToken[0]);
-    assertFalse(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
 
     Resource r1 = spy(new OkHttpResource(
         new OkHttpClient.Builder().build(),
@@ -262,13 +236,7 @@ public class SubscriptionResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r1);
 
     try {
-      askedForDefaultToken[0] = false;
-      askedForCustomToken[0] = false;
-      assertFalse(askedForDefaultToken[0]);
-      assertFalse(askedForCustomToken[0]);
-
       new SubscriptionResourceReal(client)
-          .scope(customScope)
           .find("sid");
     } catch (RetryableException | NotFoundException ignored) {
     }
@@ -282,29 +250,18 @@ public class SubscriptionResourceRealTest {
         Matchers.eq(Subscription.class)
     );
 
-    assertEquals(customScope, options.getValue().scope());
-    assertFalse(askedForDefaultToken[0]);
-    assertTrue(askedForCustomToken[0]);
-
-
+    assertNull(options.getValue().scope());
   }
 
   @Test
-  public void cursorsWithScope() {
-    final boolean[] askedForDefaultToken = {false};
-    final boolean[] askedForCustomToken = {false};
-    String customScope = "custom";
-
+  public void cursorsWithNoScope() {
     NakadiClient client =
         spy(NakadiClient.newBuilder()
             .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
-              if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
-                askedForDefaultToken[0] = true;
-              }
 
-              if (customScope.equals(scope)) {
-                askedForCustomToken[0] = true;
+              if (scope != null) {
+                throw new AssertionError("scope should not be called");
               }
 
               return Optional.empty();
@@ -333,9 +290,7 @@ public class SubscriptionResourceRealTest {
         options.capture()
     );
 
-    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options.getValue().scope());
-    assertTrue(askedForDefaultToken[0]);
-    assertFalse(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
 
     Resource r1 = spy(new OkHttpResource(
         new OkHttpClient.Builder().build(),
@@ -346,13 +301,7 @@ public class SubscriptionResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r1);
 
     try {
-      askedForDefaultToken[0] = false;
-      askedForCustomToken[0] = false;
-      assertFalse(askedForDefaultToken[0]);
-      assertFalse(askedForCustomToken[0]);
-
       new SubscriptionResourceReal(client)
-          .scope(customScope)
           .cursors("sid");
     } catch (RetryableException | NotFoundException ignored) {
     }
@@ -365,29 +314,18 @@ public class SubscriptionResourceRealTest {
         options.capture()
     );
 
-    assertEquals(customScope, options.getValue().scope());
-    assertFalse(askedForDefaultToken[0]);
-    assertTrue(askedForCustomToken[0]);
-
-
+    assertNull(options.getValue().scope());
   }
 
   @Test
-  public void statsWithScope() {
-    final boolean[] askedForDefaultToken = {false};
-    final boolean[] askedForCustomToken = {false};
-    String customScope = "custom";
+  public void statsWithNoScope() {
 
     NakadiClient client =
         spy(NakadiClient.newBuilder()
             .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
-              if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
-                askedForDefaultToken[0] = true;
-              }
-
-              if (customScope.equals(scope)) {
-                askedForCustomToken[0] = true;
+              if (scope != null) {
+                throw new AssertionError("scope should not be called");
               }
 
               return Optional.empty();
@@ -416,9 +354,7 @@ public class SubscriptionResourceRealTest {
         options.capture()
     );
 
-    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options.getValue().scope());
-    assertTrue(askedForDefaultToken[0]);
-    assertFalse(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
 
     Resource r1 = spy(new OkHttpResource(
         new OkHttpClient.Builder().build(),
@@ -429,13 +365,7 @@ public class SubscriptionResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r1);
 
     try {
-      askedForDefaultToken[0] = false;
-      askedForCustomToken[0] = false;
-      assertFalse(askedForDefaultToken[0]);
-      assertFalse(askedForCustomToken[0]);
-
       new SubscriptionResourceReal(client)
-          .scope(customScope)
           .stats("sid");
     } catch (RetryableException | NotFoundException ignored) {
     }
@@ -448,29 +378,17 @@ public class SubscriptionResourceRealTest {
         options.capture()
     );
 
-    assertEquals(customScope, options.getValue().scope());
-    assertFalse(askedForDefaultToken[0]);
-    assertTrue(askedForCustomToken[0]);
-
-
+    assertNull(options.getValue().scope());
   }
 
   @Test
-  public void deleteWithScope() {
-    final boolean[] askedForDefaultToken = {false};
-    final boolean[] askedForCustomToken = {false};
-    String customScope = "custom";
-
+  public void deleteWithNoScope() {
     NakadiClient client =
         spy(NakadiClient.newBuilder()
             .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
-              if (TokenProvider.NAKADI_CONFIG_WRITE.equals(scope)) {
-                askedForDefaultToken[0] = true;
-              }
-
-              if (customScope.equals(scope)) {
-                askedForCustomToken[0] = true;
+              if (scope != null) {
+                throw new AssertionError("scope should not be called");
               }
 
               return Optional.empty();
@@ -499,9 +417,7 @@ public class SubscriptionResourceRealTest {
         options.capture()
     );
 
-    assertEquals(TokenProvider.NAKADI_CONFIG_WRITE, options.getValue().scope());
-    assertTrue(askedForDefaultToken[0]);
-    assertFalse(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
 
     Resource r1 = spy(new OkHttpResource(
         new OkHttpClient.Builder().build(),
@@ -512,13 +428,7 @@ public class SubscriptionResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r1);
 
     try {
-      askedForDefaultToken[0] = false;
-      askedForCustomToken[0] = false;
-      assertFalse(askedForDefaultToken[0]);
-      assertFalse(askedForCustomToken[0]);
-
       new SubscriptionResourceReal(client)
-          .scope(customScope)
           .delete("id");
     } catch (RetryableException | NotFoundException ignored) {
     }
@@ -531,19 +441,11 @@ public class SubscriptionResourceRealTest {
         options.capture()
     );
 
-    assertEquals(customScope, options.getValue().scope());
-    assertFalse(askedForDefaultToken[0]);
-    assertTrue(askedForCustomToken[0]);
-
-
+    assertNull(options.getValue().scope());
   }
 
   @Test
-  public void createWithScope() {
-    final boolean[] askedForDefaultToken = {false};
-    final boolean[] askedForCustomToken = {false};
-    String customScope = "custom";
-
+  public void createWithNoScope() {
     Subscription subscription = new Subscription()
         .consumerGroup("mccaffrey-cg")
         .eventType("priority-requisitions")
@@ -553,12 +455,9 @@ public class SubscriptionResourceRealTest {
         spy(NakadiClient.newBuilder()
             .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
-              if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
-                askedForDefaultToken[0] = true;
-              }
 
-              if (customScope.equals(scope)) {
-                askedForCustomToken[0] = true;
+              if (scope != null) {
+                throw new AssertionError("scope should not be called");
               }
 
               return Optional.empty();
@@ -590,9 +489,7 @@ public class SubscriptionResourceRealTest {
         Matchers.any(ContentSupplier.class)
     );
 
-    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options.getValue().scope());
-    assertTrue(askedForDefaultToken[0]);
-    assertFalse(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
 
     Resource r1 = spy(new OkHttpResource(
         new OkHttpClient.Builder().build(),
@@ -603,14 +500,8 @@ public class SubscriptionResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r1);
 
     try {
-      askedForDefaultToken[0] = false;
-      askedForCustomToken[0] = false;
-      assertFalse(askedForDefaultToken[0]);
-      assertFalse(askedForCustomToken[0]);
-
 
       new SubscriptionResourceReal(client)
-          .scope(customScope)
           .createReturningResponse(subscription);
 
     } catch (RetryableException | NotFoundException ignored) {
@@ -625,11 +516,7 @@ public class SubscriptionResourceRealTest {
         Matchers.any(ContentSupplier.class)
     );
 
-    assertEquals(customScope, options.getValue().scope());
-    assertFalse(askedForDefaultToken[0]);
-    assertTrue(askedForCustomToken[0]);
-
-
+    assertNull(options.getValue().scope());
   }
 
 }

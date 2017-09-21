@@ -28,7 +28,6 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   private final NakadiClient client;
   private CursorCommitResultCollection sentinelCursorCommitResultCollection;
-  private String scope;
   private volatile RetryPolicy retryPolicy;
 
   SubscriptionResourceReal(NakadiClient client) {
@@ -51,8 +50,13 @@ class SubscriptionResourceReal implements SubscriptionResource {
     }
   }
 
+  /**
+   * Deprecated since 0.9.7 and will be removed in 0.10.0. Scopes set here are ignored.
+   *
+   * @return this
+   */
+  @Deprecated
   @Override public SubscriptionResource scope(String scope) {
-    this.scope = scope;
     return this;
   }
 
@@ -66,7 +70,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
       RateLimitException, NakadiException {
     //todo:filebug: nakadi.event_stream.read is in the yaml but this is a write action
     NakadiException.throwNonNull(subscription, "Please provide a subscription");
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -78,7 +82,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, ConflictException, NakadiException {
     NakadiException.throwNonNull(subscription, "Please provide a subscription");
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -91,7 +95,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
       RateLimitException, NakadiException {
     NakadiException.throwNonNull(id, "Please provide an id");
     String url = collectionUri().path(id).buildString();
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -126,8 +130,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
       RateLimitException, NakadiException {
     NakadiException.throwNonNull(id, "Please provide an id");
     String url = collectionUri().path(id).buildString();
-    // todo:filebug: no delete operation in yaml, got with config write as per event type delete
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_CONFIG_WRITE);
+    ResourceOptions options = prepareOptions();
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -186,8 +189,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
         .path(SubscriptionResourceReal.PATH_CURSORS)
         .buildString();
 
-    // todo:filebug: 'nakadi.event_stream.read' in yaml but this is a write method
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
 
     options.header(StreamResourceSupport.X_NAKADI_STREAM_ID, streamId);
 
@@ -217,7 +219,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   }
 
   SubscriptionEventTypeStatsCollection loadStatsPage(String url) {
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
     Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -235,7 +237,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   }
 
   SubscriptionCursorCollection loadCursorPage(String url) {
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
     Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -253,7 +255,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
   }
 
   SubscriptionCollection loadPage(String url) {
-    ResourceOptions options = this.prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = this.prepareOptions();
     Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -276,7 +278,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     final Resource resource = client.resourceProvider().newResource().retryPolicy(retryPolicy);
     final String url = collectionUri().path(id).path(PATH_CURSORS).buildString();
     // read scope: see https://github.com/zalando/nakadi/issues/648
-    final ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    final ResourceOptions options = prepareOptions();
     final List<Cursor> cleaned = Cursor.prepareRequiringEventType(cursors);
 
     return timed(() ->
@@ -302,9 +304,8 @@ class SubscriptionResourceReal implements SubscriptionResource {
     return subscriptions;
   }
 
-  private ResourceOptions prepareOptions(String fallbackScope) {
+  private ResourceOptions prepareOptions() {
     return ResourceSupport.options(APPLICATION_JSON)
-        .scope(Optional.ofNullable(scope).orElse(fallbackScope))
         .tokenProvider(client.resourceTokenProvider());
   }
 
@@ -318,7 +319,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
 
   private List<CursorCommitResult> loadCollection(String url) {
 
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
     Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)

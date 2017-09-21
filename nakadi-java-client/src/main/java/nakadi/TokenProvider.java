@@ -10,15 +10,14 @@ import java.util.Optional;
 @FunctionalInterface
 public interface TokenProvider {
 
-  String NAKADI_CONFIG_WRITE = "nakadi.config.write";
-  String NAKADI_EVENT_TYPE_WRITE = "nakadi.event_type.write";
-  String NAKADI_EVENT_STREAM_WRITE = "nakadi.event_stream.write";
-  String NAKADI_EVENT_STREAM_READ = "nakadi.event_stream.read";
-  String UID = "uid";
-
   /**
+   * <p>
+   * Scopes have been removed in recent Nakadi versions. Scopes set here are ignored.
+   * </p>
+   *
    * @return a value suitable for use in an Authorization header, or null to suppress the
    * Authorization header being set
    */
-  Optional<String> authHeaderValue(String scope);
+  Optional<String> authHeaderValue(@Deprecated String scope);
+
 }

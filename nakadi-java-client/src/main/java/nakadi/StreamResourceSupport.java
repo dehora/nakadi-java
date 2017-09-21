@@ -44,12 +44,10 @@ class StreamResourceSupport {
    * single line JSON encoding of {@link StreamConfiguration#cursors()} if the configuration
    * is a basic event stream.
    */
-  static ResourceOptions buildResourceOptions(NakadiClient client, StreamConfiguration sc,
-      String scope) {
+  static ResourceOptions buildResourceOptions(NakadiClient client, StreamConfiguration sc) {
     ResourceOptions options = ResourceSupport
         // breaks with api definition https://github.com/zalando-incubator/nakadi-java/issues/98
         .options(APPLICATION_JSON)
-        .scope(Optional.ofNullable(scope).orElse(TokenProvider.NAKADI_EVENT_STREAM_READ))
         .tokenProvider(client.resourceTokenProvider());
 
     applyConfiguredHeaders(sc, options);

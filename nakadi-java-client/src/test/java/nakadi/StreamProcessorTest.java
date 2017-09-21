@@ -28,6 +28,7 @@ import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -51,7 +52,7 @@ public class StreamProcessorTest {
   @Before
   public void before() throws Exception {
     server.start(InetAddress.getByName("localhost"), MOCK_SERVER_PORT);
-    processor = new StreamProcessor(client, new StreamProcessorRequestFactory(client, null));
+    processor = new StreamProcessor(client, new StreamProcessorRequestFactory(client));
   }
 
   @After
@@ -407,7 +408,7 @@ public class StreamProcessorTest {
       4: The observer's onStop is called and we release the latch
        */
 
-    StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client, null) {
+    StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client) {
       @Override Response onCall(StreamConfiguration sc, StreamProcessor sp) throws Exception {
         throw new Error("nope");
       }
@@ -457,7 +458,7 @@ public class StreamProcessorTest {
         .connectTimeout(3, TimeUnit.SECONDS)
         .readTimeout(3, TimeUnit.SECONDS);
 
-    StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client, null) {
+    StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client) {
       @Override Response onCall(StreamConfiguration sc, StreamProcessor sp) throws Exception {
         throw new Exception("nope");
       }
@@ -508,7 +509,7 @@ public class StreamProcessorTest {
             .connectTimeout(3, TimeUnit.SECONDS)
             .readTimeout(3, TimeUnit.SECONDS);
 
-    StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client, null) {
+    StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client) {
       @Override Response onCall(StreamConfiguration sc, StreamProcessor sp) throws Exception {
         throw new Exception("nope");
       }
@@ -708,23 +709,21 @@ public class StreamProcessorTest {
   }
 
   @Test
-  public void defaultScope() {
-
-    final boolean[] askedForToken = {false};
+  public void defaultNoScope() {
 
     NakadiClient client =
         NakadiClient.newBuilder()
             .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
-              if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
-                askedForToken[0] = true;
+              if (scope != null) {
+                throw new AssertionError("scope should not be called");
               }
               return Optional.empty();
             })
             .build();
 
     StreamConfiguration sc = new StreamConfiguration().subscriptionId("s1");
-    StreamProcessorRequestFactory factory = spy(new StreamProcessorRequestFactory(client, null));
+    StreamProcessorRequestFactory factory = spy(new StreamProcessorRequestFactory(client));
     StreamProcessor sp = spy(StreamProcessor.newBuilder(client)
         .streamConfiguration(sc)
         .streamObserverFactory(new LoggingStreamObserverProvider())
@@ -755,7 +754,7 @@ public class StreamProcessorTest {
         Matchers.eq("http://localhost:9081/subscriptions/sub1/events"),
         options1.capture(),
         any());
-    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options1.getValue().scope());
+    assertNull(options1.getValue().scope());
 
     // check out underlying resource was scoped
     ArgumentCaptor<ResourceOptions> options2 =
@@ -764,35 +763,28 @@ public class StreamProcessorTest {
         Matchers.eq(Resource.GET),
         Matchers.eq("http://localhost:9081/subscriptions/sub1/events"),
         options2.capture());
-    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options2.getValue().scope());
-
-    // check our token provider was asked for the right scope
-    assertTrue(askedForToken[0]);
+    assertNull(options2.getValue().scope());
   }
 
   @Test
-  public void customScope() {
-
-    final boolean[] askedForToken = {false};
-    String customScope = "custom";
+  public void customNoScope() {
 
     NakadiClient client =
         NakadiClient.newBuilder()
             .baseURI("http://localhost:9081")
             .tokenProvider(scope -> {
-              if (customScope.equals(scope)) {
-                askedForToken[0] = true;
+              if (scope != null) {
+                throw new AssertionError("scope should not be called");
               }
               return Optional.empty();
             })
             .build();
 
     StreamConfiguration sc = new StreamConfiguration().subscriptionId("s1");
-    StreamProcessorRequestFactory factory = spy(new StreamProcessorRequestFactory(client, customScope));
+    StreamProcessorRequestFactory factory = spy(new StreamProcessorRequestFactory(client));
     StreamProcessor sp = spy(StreamProcessor.newBuilder(client)
         .streamConfiguration(sc)
         .streamObserverFactory(new LoggingStreamObserverProvider())
-        .scope(customScope)
         .streamProcessorRequestFactory(factory)
         .build());
 
@@ -819,7 +811,7 @@ public class StreamProcessorTest {
         Matchers.eq("http://localhost:9081/subscriptions/sub1/events"),
         options1.capture(),
         any());
-    assertEquals(customScope, options1.getValue().scope());
+    assertNull(options1.getValue().scope());
 
     // check out underlying resource was scoped
     ArgumentCaptor<ResourceOptions> options2 =
@@ -828,10 +820,7 @@ public class StreamProcessorTest {
         Matchers.eq(Resource.GET),
         Matchers.eq("http://localhost:9081/subscriptions/sub1/events"),
         options2.capture());
-    assertEquals(customScope, options2.getValue().scope());
-
-    // check our token provider was asked for the right scope
-    assertTrue(askedForToken[0]);
+    assertNull(options2.getValue().scope());
   }
 
 

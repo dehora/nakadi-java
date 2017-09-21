@@ -8,11 +8,12 @@ import java.util.Map;
 public interface EventResource {
 
   /**
-   * Set the OAuth scope to be used for the request. This can be reset between requests.
+   * Deprecated since 0.9.7 and will be removed in 0.10.0. Scopes set here are ignored.
    *
    * @param scope the OAuth scope to be used for the request
    * @return this
    */
+  @Deprecated
   EventResource scope(String scope);
 
   /**

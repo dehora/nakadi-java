@@ -28,15 +28,19 @@ class EventTypeResourceReal implements EventTypeResource {
   private static final List<ResourceLink> SENTINEL_LINKS = Collections.emptyList();
 
   private final NakadiClient client;
-  private String scope;
   private volatile RetryPolicy retryPolicy;
 
   EventTypeResourceReal(NakadiClient client) {
     this.client = client;
   }
 
+  /**
+   * Deprecated since 0.9.7 and will be removed in 0.10.0. Scopes set here are ignored.
+   *
+   * @return this
+   */
+  @Deprecated
   @Override public EventTypeResource scope(String scope) {
-    this.scope = scope;
     return this;
   }
 
@@ -50,7 +54,7 @@ class EventTypeResourceReal implements EventTypeResource {
       RateLimitException, NakadiException {
 
     // todo: close
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_TYPE_WRITE);
+    ResourceOptions options = prepareOptions();
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -62,7 +66,7 @@ class EventTypeResourceReal implements EventTypeResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
     String url = collectionUri().path(eventType.name()).buildString();
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_TYPE_WRITE);
+    ResourceOptions options = prepareOptions();
     // todo: close
     return client.resourceProvider()
         .newResource()
@@ -75,8 +79,7 @@ class EventTypeResourceReal implements EventTypeResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
     String url = collectionUri().path(eventTypeName).buildString();
-    // filebug: no scope defined on this resource; work with NAKADI_EVENT_STREAM_READ for now
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -97,7 +100,7 @@ class EventTypeResourceReal implements EventTypeResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
     String url = collectionUri().path(eventTypeName).buildString();
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_CONFIG_WRITE);
+    ResourceOptions options = prepareOptions();
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -122,7 +125,7 @@ class EventTypeResourceReal implements EventTypeResource {
       RateLimitException, NakadiException {
     final String url =
         collectionUri().path(eventTypeName).path(PATH_PARTITIONS).path(partitionId).buildString();
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -138,7 +141,7 @@ class EventTypeResourceReal implements EventTypeResource {
             .path(partitionId)
             .query(params)
             .buildString();
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -156,7 +159,7 @@ class EventTypeResourceReal implements EventTypeResource {
     NakadiException.throwNotNullOrEmpty(cursorList, "Please provide at least one cursor");
 
     final String url = collectionUri().path(eventTypeName).path(PATH_CURSOR_SHIFTS).buildString();
-    final ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    final ResourceOptions options = prepareOptions();
     final Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -174,7 +177,7 @@ class EventTypeResourceReal implements EventTypeResource {
       String eventTypeName, List<CursorDistance> cursorDistanceList) {
 
     final String url = collectionUri().path(eventTypeName).path(PATH_CURSOR_DISTANCE).buildString();
-    final ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    final ResourceOptions options = prepareOptions();
     final Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -189,7 +192,7 @@ class EventTypeResourceReal implements EventTypeResource {
 
   @Override public PartitionCollection lag(String eventTypeName, List<Cursor> cursors) {
     final String url = collectionUri().path(eventTypeName).path("cursors-lag").buildString();
-    final ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    final ResourceOptions options = prepareOptions();
 
     final Response response = client.resourceProvider()
         .newResource()
@@ -203,13 +206,9 @@ class EventTypeResourceReal implements EventTypeResource {
     return new PartitionCollection(collection, SENTINEL_LINKS, this, client);
   }
 
-  String applyScope(String fallbackScope) {
-    return scope == null ? fallbackScope : scope;
-  }
-
   EventTypeCollection loadPage(String url) {
     // filebug: no scope defined on this resource; work with NAKADI_EVENT_STREAM_READ for now
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
     Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -222,7 +221,7 @@ class EventTypeResourceReal implements EventTypeResource {
   }
 
   PartitionCollection loadPartitionPage(String url) {
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
     Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -235,7 +234,7 @@ class EventTypeResourceReal implements EventTypeResource {
   }
 
   EventTypeSchemaCollection loadSchemaPage(String url) {
-    ResourceOptions options = prepareOptions(TokenProvider.NAKADI_EVENT_STREAM_READ);
+    ResourceOptions options = prepareOptions();
     Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -252,10 +251,9 @@ class EventTypeResourceReal implements EventTypeResource {
         client);
   }
 
-  private ResourceOptions prepareOptions(String fallbackScope) {
+  private ResourceOptions prepareOptions() {
     return ResourceSupport.options(APPLICATION_JSON)
-        .tokenProvider(client.resourceTokenProvider())
-        .scope(applyScope(fallbackScope)); // use the set scope or fallback
+        .tokenProvider(client.resourceTokenProvider());
   }
 
   private UriBuilder collectionUri() {

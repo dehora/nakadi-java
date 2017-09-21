@@ -8,6 +8,7 @@ import org.junit.Test;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -19,30 +20,26 @@ public class StreamResourceSupportTest {
       NakadiClient.newBuilder().baseURI(baseUrl()).build();
 
   @Test
-  public void testScope() {
+  public void testNoScope() {
 
-    assertEquals(
-        TokenProvider.NAKADI_EVENT_STREAM_READ,
+    assertNull(
         StreamResourceSupport.buildResourceOptions(client,
-            new StreamConfiguration().eventTypeName("et"), null).scope()
+            new StreamConfiguration().eventTypeName("et")).scope()
     );
 
-    assertEquals(
-        TokenProvider.NAKADI_EVENT_STREAM_READ,
+    assertNull(
         StreamResourceSupport.buildResourceOptions(client,
-            new StreamConfiguration().subscriptionId("sub1"), null).scope()
+            new StreamConfiguration().subscriptionId("sub1")).scope()
     );
 
-    assertEquals(
-        "custom",
+    assertNull(
         StreamResourceSupport.buildResourceOptions(client,
-            new StreamConfiguration().eventTypeName("et"), "custom").scope()
+            new StreamConfiguration().eventTypeName("et")).scope()
     );
 
-    assertEquals(
-        "custom",
+    assertNull(
         StreamResourceSupport.buildResourceOptions(client,
-            new StreamConfiguration().subscriptionId("sub1"), "custom").scope()
+            new StreamConfiguration().subscriptionId("sub1")).scope()
     );
   }
 
@@ -141,7 +138,7 @@ public class StreamResourceSupportTest {
         NakadiClient.newBuilder().baseURI(baseUrl()).build();
 
     final ResourceOptions resourceOptions =
-        StreamResourceSupport.buildResourceOptions(client, sc, null);
+        StreamResourceSupport.buildResourceOptions(client, sc);
 
     assertTrue(resourceOptions.headers().containsKey("Accept-Encoding"));
   }

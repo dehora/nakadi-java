@@ -14,6 +14,7 @@ import org.mockito.Matchers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -188,25 +189,17 @@ public class EventTypeResourceRealTest {
   }
 
   @Test
-  public void createWithScope() {
+  public void createNoScope() {
 
     EventType et2 = buildEventType();
-
-    final boolean[] askedForNAKADI_EVENT_TYPE_WRITE = {false};
-    final boolean[] askedForCustomToken = {false};
-    String customScope = "custom";
 
     NakadiClient client = spy(NakadiClient.newBuilder()
         .baseURI("http://localhost:9081")
         .tokenProvider(scope -> {
-          if (TokenProvider.NAKADI_EVENT_TYPE_WRITE.equals(scope)) {
-            askedForNAKADI_EVENT_TYPE_WRITE[0] = true;
-          }
 
-          if (customScope.equals(scope)) {
-            askedForCustomToken[0] = true;
+          if (scope != null) {
+            throw new AssertionError("scope should not be called");
           }
-
           return Optional.empty();
         })
         .build());
@@ -234,9 +227,7 @@ public class EventTypeResourceRealTest {
         Matchers.any(ContentSupplier.class)
     );
 
-    assertEquals(TokenProvider.NAKADI_EVENT_TYPE_WRITE, options.getValue().scope());
-    assertTrue(askedForNAKADI_EVENT_TYPE_WRITE[0]);
-    assertFalse(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
 
     Resource r1 = spy(new OkHttpResource(
         new OkHttpClient.Builder().build(),
@@ -248,7 +239,6 @@ public class EventTypeResourceRealTest {
 
     try {
       new EventTypeResourceReal(client)
-          .scope(customScope)
           .update(et2);
     } catch (RetryableException | NotFoundException ignored) {
     }
@@ -262,30 +252,21 @@ public class EventTypeResourceRealTest {
         Matchers.any(ContentSupplier.class)
     );
 
-    assertEquals(customScope, options.getValue().scope());
-    assertTrue(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
   }
 
   @Test
-  public void updateWithScope() {
+  public void updateNoScope() {
 
     EventType et2 = buildEventType();
-
-    final boolean[] askedForNAKADI_EVENT_TYPE_WRITE = {false};
-    final boolean[] askedForCustomToken = {false};
-    String customScope = "custom";
 
     NakadiClient client = spy(NakadiClient.newBuilder()
         .baseURI("http://localhost:9081")
         .tokenProvider(scope -> {
-          if (TokenProvider.NAKADI_EVENT_TYPE_WRITE.equals(scope)) {
-            askedForNAKADI_EVENT_TYPE_WRITE[0] = true;
-          }
 
-          if (customScope.equals(scope)) {
-            askedForCustomToken[0] = true;
+          if (scope != null) {
+            throw new AssertionError("scope should not be called");
           }
-
           return Optional.empty();
         })
         .build());
@@ -313,9 +294,7 @@ public class EventTypeResourceRealTest {
         Matchers.any(ContentSupplier.class)
     );
 
-    assertEquals(TokenProvider.NAKADI_EVENT_TYPE_WRITE, options.getValue().scope());
-    assertTrue(askedForNAKADI_EVENT_TYPE_WRITE[0]);
-    assertFalse(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
 
     Resource r1 = spy(new OkHttpResource(
         new OkHttpClient.Builder().build(),
@@ -327,7 +306,6 @@ public class EventTypeResourceRealTest {
 
     try {
       new EventTypeResourceReal(client)
-          .scope(customScope)
           .create(et2);
     } catch (RetryableException | NotFoundException ignored) {
     }
@@ -341,8 +319,7 @@ public class EventTypeResourceRealTest {
         Matchers.any(ContentSupplier.class)
     );
 
-    assertEquals(customScope, options.getValue().scope());
-    assertTrue(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
   }
 
   private EventType buildEventType() {
@@ -358,21 +335,13 @@ public class EventTypeResourceRealTest {
   }
 
   @Test
-  public void listWithScope() {
-
-    final boolean[] askedForNAKADI_EVENT_STREAM_READ = {false};
-    final boolean[] askedForCustomToken = {false};
-    String customScope = "custom";
+  public void listNoScope() {
 
     NakadiClient client = spy(NakadiClient.newBuilder()
         .baseURI("http://localhost:9081")
         .tokenProvider(scope -> {
-          if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
-            askedForNAKADI_EVENT_STREAM_READ[0] = true;
-          }
-
-          if (customScope.equals(scope)) {
-            askedForCustomToken[0] = true;
+          if (scope != null) {
+            throw new AssertionError("scope should not be called");
           }
 
           return Optional.empty();
@@ -400,9 +369,7 @@ public class EventTypeResourceRealTest {
         options.capture()
     );
 
-    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options.getValue().scope());
-    assertTrue(askedForNAKADI_EVENT_STREAM_READ[0]);
-    assertFalse(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
 
     Resource r1 = spy(new OkHttpResource(
         new OkHttpClient.Builder().build(),
@@ -413,7 +380,7 @@ public class EventTypeResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r1);
 
     try {
-      new EventTypeResourceReal(client).scope(customScope).list();
+      new EventTypeResourceReal(client).list();
     } catch (RetryableException | NotFoundException ignored) {
     }
 
@@ -424,26 +391,18 @@ public class EventTypeResourceRealTest {
         Matchers.eq("http://localhost:9081/event-types"),
         options.capture());
 
-    assertEquals(customScope, options.getValue().scope());
-    assertTrue(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
   }
 
   @Test
-  public void findWithScope() {
-
-    final boolean[] askedForNAKADI_EVENT_STREAM_READ = {false};
-    final boolean[] askedForCustomToken = {false};
-    String customScope = "custom";
+  public void findNoScope() {
 
     NakadiClient client = spy(NakadiClient.newBuilder()
         .baseURI("http://localhost:9081")
         .tokenProvider(scope -> {
-          if (TokenProvider.NAKADI_EVENT_STREAM_READ.equals(scope)) {
-            askedForNAKADI_EVENT_STREAM_READ[0] = true;
-          }
 
-          if (customScope.equals(scope)) {
-            askedForCustomToken[0] = true;
+          if (scope != null) {
+            throw new AssertionError("scope should not be called");
           }
 
           return Optional.empty();
@@ -459,9 +418,6 @@ public class EventTypeResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r1);
 
     try {
-      assertFalse(askedForCustomToken[0]);
-      assertFalse(askedForNAKADI_EVENT_STREAM_READ[0]);
-
       new EventTypeResourceReal(client)
           .findByName("foo");
     } catch (RetryableException | NotFoundException ignored) {
@@ -477,9 +433,7 @@ public class EventTypeResourceRealTest {
         options.capture(),
         Matchers.eq(EventType.class));
 
-    assertEquals(TokenProvider.NAKADI_EVENT_STREAM_READ, options.getValue().scope());
-    assertFalse(askedForCustomToken[0]);
-    assertTrue(askedForNAKADI_EVENT_STREAM_READ[0]);
+    assertNull(options.getValue().scope());
 
     Resource r2 = spy(new OkHttpResource(
         new OkHttpClient.Builder().build(),
@@ -490,11 +444,7 @@ public class EventTypeResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r2);
 
     try {
-      askedForCustomToken[0] = false;
-      assertFalse(askedForCustomToken[0]);
-
       new EventTypeResourceReal(client)
-          .scope(customScope)
           .findByName("foo");
     } catch (RetryableException | NotFoundException ignored) {
     }
@@ -507,26 +457,17 @@ public class EventTypeResourceRealTest {
         options.capture(),
         Matchers.eq(EventType.class));
 
-    assertEquals(customScope, options.getValue().scope());
-    assertTrue(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
   }
 
   @Test
-  public void deleteWithScope() {
-
-    final boolean[] askedForNAKADI_CONFIG_WRITE = {false};
-    final boolean[] askedForCustomToken = {false};
-    String customScope = "custom";
+  public void deleteNoScope() {
 
     NakadiClient client = spy(NakadiClient.newBuilder()
         .baseURI("http://localhost:9081")
         .tokenProvider(scope -> {
-          if (TokenProvider.NAKADI_CONFIG_WRITE.equals(scope)) {
-            askedForNAKADI_CONFIG_WRITE[0] = true;
-          }
-
-          if (customScope.equals(scope)) {
-            askedForCustomToken[0] = true;
+          if (scope != null) {
+            throw new AssertionError("scope should not be called");
           }
 
           return Optional.empty();
@@ -542,9 +483,6 @@ public class EventTypeResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r1);
 
     try {
-      assertFalse(askedForCustomToken[0]);
-      assertFalse(askedForNAKADI_CONFIG_WRITE[0]);
-
       new EventTypeResourceReal(client).delete("foo");
     } catch (RetryableException | NotFoundException ignored) {
     }
@@ -558,9 +496,7 @@ public class EventTypeResourceRealTest {
         Matchers.eq("http://localhost:9081/event-types/foo"),
         options.capture());
 
-    assertEquals(TokenProvider.NAKADI_CONFIG_WRITE, options.getValue().scope());
-    assertFalse(askedForCustomToken[0]);
-    assertTrue(askedForNAKADI_CONFIG_WRITE[0]);
+    assertNull(options.getValue().scope());
 
     Resource r2 = spy(new OkHttpResource(
         new OkHttpClient.Builder().build(),
@@ -571,11 +507,8 @@ public class EventTypeResourceRealTest {
     when(client.resourceProvider().newResource()).thenReturn(r2);
 
     try {
-      askedForCustomToken[0] = false;
-      assertFalse(askedForCustomToken[0]);
 
       new EventTypeResourceReal(client)
-          .scope(customScope)
           .delete("foo");
     } catch (RetryableException | NotFoundException ignored) {
     }
@@ -587,7 +520,6 @@ public class EventTypeResourceRealTest {
         Matchers.eq("http://localhost:9081/event-types/foo"),
         options.capture());
 
-    assertEquals(customScope, options.getValue().scope());
-    assertTrue(askedForCustomToken[0]);
+    assertNull(options.getValue().scope());
   }
 }
