@@ -40,7 +40,7 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
   private static final int DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS = 90;
-  private static final int DEFAULT_BUFFER_SIZE = 16000;
+  private static final int DEFAULT_BUFFER_SIZE = 8000;
   private final NakadiClient client;
   private final StreamConfiguration streamConfiguration;
   private final StreamObserverProvider streamObserverProvider;
