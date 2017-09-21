@@ -390,14 +390,8 @@ public class StreamProcessor implements StreamProcessorManaged {
     return (response) -> {
       logger.info("stream_connection_dispose thread {} {} {}", Thread.currentThread().getName(),
           response.hashCode(), response);
-      try {
-        response.responseBody().close();
-        logger.info("stream_connection_dispose_ok thread {} {} {}",
-            Thread.currentThread().getName(), response.hashCode(), response);
-      } catch (Exception e) {
-        throw new NakadiException(
-            Problem.networkProblem("failed to close stream response", e.getMessage()), e);
-      }
+
+      closeTheResponse(response);
     };
   }
 
@@ -407,41 +401,7 @@ public class StreamProcessor implements StreamProcessorManaged {
       final BufferedReader br = new BufferedReader(response.responseBody().asReader());
       return Flowable.fromIterable(br.lines()::iterator)
           .doOnError(throwable -> {
-
-            boolean closed = false;
-            final String tName = Thread.currentThread().getName();
-
-            try {
-              logger.info("stream_iterator_response_close_ask thread={} error={} {} {}",
-                  tName, throwable.getMessage(), response.hashCode(), response);
-              response.responseBody().close();
-              closed = true;
-              logger.info("stream_iterator_response_close_ok thread={} error={} {} {}",
-                  tName, throwable.getMessage(), response.hashCode(), response);
-            } catch (Exception e) {
-              logger.warn(
-                  "stream_iterator_response_close_error problem closing thread={} {} {} {} {}",
-                  tName, e.getClass().getName(), e.getMessage(), response.hashCode(), response);
-            } finally {
-              if (!closed) {
-                try {
-                  response.responseBody().close();
-                  closed = true;
-                } catch (IOException e) {
-                  logger.warn(
-                      "stream_iterator_response_close_error  problem re-attempting close thread={} {} {} {} {}",
-                      tName, e.getClass().getName(), e.getMessage(), response.hashCode(), response);
-                }
-              }
-
-              if (!closed) {
-                logger.warn(
-                    String.format(
-                        "stream_iterator_response_close_failed did not close response thread=%s err=%s %s %s",
-                        tName, throwable.getMessage(),
-                        response.hashCode(), response), throwable);
-              }
-            }
+            closeTheResponse(response);
           })
           .onBackpressureBuffer(DEFAULT_BUFFER_SIZE, true, true)
           .map(r -> lineToStreamBatchRecord(r, typeLiteral, response, sc))
@@ -471,6 +431,42 @@ public class StreamProcessor implements StreamProcessorManaged {
     } else {
       return jsonBatchSupport.lineToEventStreamBatchRecord(
           line, typeLiteral.type(), streamOffsetObserver());
+    }
+  }
+
+  private void closeTheResponse(Response response) {
+
+    final String tName = Thread.currentThread().getName();
+    boolean closed = false;
+
+    try {
+      logger.info("stream_response_close_ask thread={}  {} {}",
+          tName, response.hashCode(), response);
+      response.responseBody().close();
+      closed = true;
+      logger.info("stream_response_close_ok thread={} {} {}",
+          tName, response.hashCode(), response);
+    } catch (Exception e) {
+      logger.warn(
+          "stream_response_close_error problem closing thread={} {} {} {} {}",
+          tName, e.getClass().getName(), e.getMessage(), response.hashCode(), response);
+    } finally {
+      if (!closed) {
+        try {
+          response.responseBody().close();
+          closed = true;
+        } catch (IOException e) {
+          logger.warn(
+              "stream_response_close_error  problem re-attempting close thread={} {} {} {} {}",
+              tName, e.getClass().getName(), e.getMessage(), response.hashCode(), response);
+        }
+      }
+
+      if (!closed) {
+        logger.warn(String.format(
+                "stream_response_close_failed did not close response thread=%s %s %s",
+                tName, response.hashCode(), response));
+      }
     }
   }
 
