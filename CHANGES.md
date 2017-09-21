@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.9.8
+
+- Excludes test jar from nakadi-java-zign. [#223](https://github.com/dehora/nakadi-java/issues/223)
+
 ### 0.9.7
 
 - Makes publishing status and steps visible in BatchItemResponse. [#264](https://github.com/dehora/nakadi-java/issues/264)
