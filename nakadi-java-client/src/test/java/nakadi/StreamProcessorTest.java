@@ -499,15 +499,16 @@ public class StreamProcessorTest {
   @Test
   public void consumerCanRetryExceptionsFromStreamConnectionWithMaxRetryAttempts() throws Exception {
 
-    String baseURI = "http://localhost:";
+    String baseURI = "http://acme";
 
     NakadiClient client = NakadiClient.newBuilder().baseURI(baseURI).build();
 
+    final int retryAttempts = 3;
     StreamConfiguration sc = new StreamConfiguration()
-            .eventTypeName("foo")
-            .maxRetryAttempts(3)
-            .connectTimeout(3, TimeUnit.SECONDS)
-            .readTimeout(3, TimeUnit.SECONDS);
+        .eventTypeName("foo")
+        .maxRetryAttempts(retryAttempts)
+        .connectTimeout(3, TimeUnit.SECONDS)
+        .readTimeout(3, TimeUnit.SECONDS);
 
     StreamProcessorRequestFactory factory = new StreamProcessorRequestFactory(client) {
       @Override Response onCall(StreamConfiguration sc, StreamProcessor sp) throws Exception {
@@ -515,43 +516,44 @@ public class StreamProcessorTest {
       }
     };
 
-    CountDownLatch latch = new CountDownLatch(1);
+    CountDownLatch latch = new CountDownLatch(retryAttempts);
     AtomicInteger startCounter = new AtomicInteger(0);
     final boolean[] raised = {false};
 
     final LoggingStreamObserverProvider provider =
-            new LoggingStreamObserverProvider() {
-              @Override public StreamObserver<String> createStreamObserver() {
-                return new LoggingStreamObserver() {
-                  @Override public void onError(Throwable e) {
-                    raised[0] = true;
-                  }
+        new LoggingStreamObserverProvider() {
+          @Override public StreamObserver<String> createStreamObserver() {
+            return new LoggingStreamObserver() {
+              @Override public void onError(Throwable e) {
+                raised[0] = true;
+              }
 
-                  @Override public void onStart() {
-                    startCounter.incrementAndGet();
-                  }
+              @Override public void onStart() {
+                startCounter.incrementAndGet();
+                latch.countDown();
+              }
 
-                  @Override public void onStop() {
-                    latch.countDown();
-                  }
-                };
+              @Override public void onStop() {
               }
             };
+          }
+        };
 
     final StreamProcessor processor = client.resources()
-            .streamBuilder()
-            .streamConfiguration(sc)
-            .streamObserverFactory(provider)
-            .streamProcessorRequestFactory(factory)
-            .build();
+        .streamBuilder()
+        .streamConfiguration(sc)
+        .streamObserverFactory(provider)
+        .streamProcessorRequestFactory(factory)
+        .build();
 
     processor.start();
-    Thread.sleep(1000L);
-    latch.await(8, TimeUnit.SECONDS);
-    assertTrue("Expecting Exception to be retryable 3 times ",  startCounter.get() == 3);
+    latch.await(2, TimeUnit.MINUTES);
+
+    assertTrue(
+        "Expecting Exception to be retried " + retryAttempts + " times " + startCounter.get(),
+        startCounter.get() == retryAttempts);
     assertFalse("Expecting Exception to be retryable",  raised[0]);
   }
-
 
   @Test
   public void acceptEncodingGzipIsDefaulted() throws Exception {
