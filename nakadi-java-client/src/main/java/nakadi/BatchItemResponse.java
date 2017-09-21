@@ -17,6 +17,18 @@ public class BatchItemResponse {
     return publishing_status;
   }
 
+  @VisibleForTesting
+  BatchItemResponse publishingStatus(PublishingStatus publishingStatus) {
+    this.publishing_status = publishingStatus;
+    return this;
+  }
+
+  @VisibleForTesting
+  BatchItemResponse step(Step step) {
+    this.step = step;
+    return this;
+  }
+
   public Step step() {
     return step;
   }
@@ -47,11 +59,11 @@ public class BatchItemResponse {
         '}';
   }
 
-  enum PublishingStatus {
+  public enum PublishingStatus {
     failed, submitted, aborted
   }
 
-  enum Step {
+  public enum Step {
     none, validating, partitioning, enriching, publishing
   }
 }
