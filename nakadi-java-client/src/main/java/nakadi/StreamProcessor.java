@@ -8,6 +8,7 @@ import io.reactivex.exceptions.UndeliverableException;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
+import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.schedulers.Schedulers;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -69,6 +70,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final StreamProcessorRequestFactory streamProcessorRequestFactory;
 
   private volatile Throwable failedProcessorException;
+  private StreamBatchRecordSubscriber subscriber;
 
   @VisibleForTesting
   @SuppressWarnings("unused") StreamProcessor(NakadiClient client,
@@ -156,6 +158,38 @@ public class StreamProcessor implements StreamProcessorManaged {
       throw new IllegalStateException("processor has already been stopped and cannot be restarted");
     }
 
+    RxJavaPlugins.setErrorHandler(
+        new Consumer<Throwable>() {
+          @Override public void accept(Throwable throwable) throws Exception {
+            if (throwable instanceof java.util.concurrent.RejectedExecutionException) {
+              /*
+               this can happen between one processor stopping and new one starting if the
+               old one is interrupted mid-flight.
+                */
+              logger.warn("op=unhandled_rejected_execution action=continue {}", throwable.getMessage());
+            } else {
+              if (throwable instanceof NonRetryableNakadiException) {
+                logger.error(String.format(
+                    "op=unhandled_non_retryable_exception action=stopping type=NonRetryableNakadiException %s ",
+                    ((NonRetryableNakadiException) throwable).problem()), throwable);
+                stopStreaming();
+              } else if (throwable instanceof Error) {
+                logger.error(String.format(
+                    "op=unhandled_error action=stopping type=NonRetryableNakadiException %s ",
+                    throwable.getMessage()), throwable);
+                stopStreaming();
+              } else {
+                logger.error(
+                    String.format("unhandled_unknown_exception action=stopping type=%s %s",
+                        throwable.getClass().getSimpleName(), throwable.getMessage()),
+                    throwable);
+                stopStreaming();
+              }
+            }
+          }
+        }
+    );
+
     if (!started.getAndSet(true)) {
       this.startStreaming();
     }
@@ -232,10 +266,9 @@ public class StreamProcessor implements StreamProcessorManaged {
   void stopStreaming() {
     stopping.getAndSet(true);
 
-    /*
-    stop the underlying executors directly. these are wrapped as rxjava schedulers, but calling
-    shutdown via the wrapping Scheduler or Schedulers.shutdown doesn't kill their threads
-     */
+
+    subscriber.dispose();
+
     logger.info("stopping_executor name=monoIoScheduler");
     ExecutorServiceSupport.shutdown(monoIoExecutor);
     logger.info("stopping_executor name=monoComputeScheduler");
@@ -289,6 +322,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     } else {
       logger.info("Creating regular subscriber {}", sc);
 
+      subscriber = new StreamBatchRecordSubscriber<>(observer, client.metricCollector());
       observable.observeOn(monoComputeScheduler)
           .subscribeWith(new StreamBatchRecordSubscriber<>(observer, client.metricCollector()));
     }
