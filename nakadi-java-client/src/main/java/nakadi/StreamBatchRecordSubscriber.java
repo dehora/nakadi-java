@@ -20,7 +20,8 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
 
   @Override protected void onStart() {
     super.onStart();
-    observer.onStart();
+    logger.info("StreamBatchRecordSubscriber.onStart");
+    observer.onBegin();
   }
 
   @Override public void onNext(StreamBatchRecord<T> record) {

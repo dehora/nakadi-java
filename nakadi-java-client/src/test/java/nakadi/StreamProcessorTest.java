@@ -499,13 +499,14 @@ public class StreamProcessorTest {
   @Test
   public void consumerCanRetryExceptionsFromStreamConnectionWithMaxRetryAttempts() throws Exception {
 
-    String baseURI = "http://localhost:";
+    String baseURI = "http://acme";
 
     NakadiClient client = NakadiClient.newBuilder().baseURI(baseURI).build();
 
+    final int retryAttempts = 3;
     StreamConfiguration sc = new StreamConfiguration()
             .eventTypeName("foo")
-            .maxRetryAttempts(3)
+            .maxRetryAttempts(retryAttempts)
             .connectTimeout(3, TimeUnit.SECONDS)
             .readTimeout(3, TimeUnit.SECONDS);
 
@@ -515,7 +516,7 @@ public class StreamProcessorTest {
       }
     };
 
-    CountDownLatch latch = new CountDownLatch(1);
+    CountDownLatch latch = new CountDownLatch(retryAttempts);
     AtomicInteger startCounter = new AtomicInteger(0);
     final boolean[] raised = {false};
 
@@ -529,10 +530,10 @@ public class StreamProcessorTest {
 
                   @Override public void onStart() {
                     startCounter.incrementAndGet();
+                    latch.countDown();
                   }
 
                   @Override public void onStop() {
-                    latch.countDown();
                   }
                 };
               }
@@ -546,9 +547,11 @@ public class StreamProcessorTest {
             .build();
 
     processor.start();
-    Thread.sleep(1000L);
-    latch.await(8, TimeUnit.SECONDS);
-    assertTrue("Expecting Exception to be retryable 3 times ",  startCounter.get() == 3);
+    latch.await(2, TimeUnit.MINUTES);
+
+    assertTrue(
+        "Expecting Exception to be retried " + retryAttempts + " times " + startCounter.get(),
+        startCounter.get() == retryAttempts);
     assertFalse("Expecting Exception to be retryable",  raised[0]);
   }
 
