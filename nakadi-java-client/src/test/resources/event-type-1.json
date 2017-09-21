@@ -9,5 +9,10 @@
   "schema": {
     "type": "json_schema",
     "schema": "{ \"properties\": { \"order_number\": { \"type\": \"string\" } } }"
+  },
+  "authorization": {
+    "admins": [{"data_type": "*", "value": "a"}],
+    "readers": [{"data_type": "*", "value": "r"}],
+    "writers": [{"data_type": "*", "value": "w"}]
   }
 }

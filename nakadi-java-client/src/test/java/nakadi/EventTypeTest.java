@@ -10,6 +10,35 @@ import static org.junit.Assert.fail;
 
 public class EventTypeTest {
 
+  @Test
+  public void testEventTypeAuthorizationSerialization() {
+    EventType et = new EventType();
+
+    EventTypeAuthorization authorization0 = new EventTypeAuthorization()
+        .admin(new AuthorizationAttribute().dataType(AuthorizationAttribute.WILDCARD).value("a"))
+        .reader(new AuthorizationAttribute().dataType(AuthorizationAttribute.WILDCARD).value("r"))
+        .writer(new AuthorizationAttribute().dataType(AuthorizationAttribute.WILDCARD).value("w"));
+
+    et.authorization(authorization0);
+    final NakadiClient client = TestSupport.newNakadiClient();
+    final String s = client.jsonSupport().toJson(et);
+    final EventType eventType = client.jsonSupport().fromJson(s, EventType.class);
+
+    final EventTypeAuthorization authorization = eventType.authorization();
+    assertNotNull(authorization);
+    assertNotNull(authorization.admins());
+    assertEquals(1, authorization.admins().size());
+    assertEquals(AuthorizationAttribute.WILDCARD, authorization.admins().get(0).dataType());
+    assertEquals("a", authorization.admins().get(0).value());
+    assertNotNull(authorization.readers());
+    assertEquals(1, authorization.readers().size());
+    assertEquals(AuthorizationAttribute.WILDCARD, authorization.readers().get(0).dataType());
+    assertEquals("r", authorization.readers().get(0).value());
+    assertNotNull(authorization.writers());
+    assertEquals(1, authorization.writers().size());
+    assertEquals(AuthorizationAttribute.WILDCARD, authorization.writers().get(0).dataType());
+    assertEquals("w", authorization.writers().get(0).value());
+  }
 
   @Test
   public void testEventTypeStatisticsSerialization() {
@@ -64,6 +93,21 @@ public class EventTypeTest {
     assertNotNull(eventType.enrichmentStrategies());
     assertNull(eventType.eventTypeStatistics());
     assertNull(eventType.options());
+    final EventTypeAuthorization authorization = eventType.authorization();
+    assertNotNull(authorization);
+    assertNotNull(authorization.admins());
+    assertEquals(1, authorization.admins().size());
+    assertEquals(AuthorizationAttribute.WILDCARD, authorization.admins().get(0).dataType());
+    assertEquals("a", authorization.admins().get(0).value());
+    assertNotNull(authorization.readers());
+    assertEquals(1, authorization.readers().size());
+    assertEquals(AuthorizationAttribute.WILDCARD, authorization.readers().get(0).dataType());
+    assertEquals("r", authorization.readers().get(0).value());
+    assertNotNull(authorization.writers());
+    assertEquals(1, authorization.writers().size());
+    assertEquals(AuthorizationAttribute.WILDCARD, authorization.writers().get(0).dataType());
+    assertEquals("w", authorization.writers().get(0).value());
+
   }
 
   @Test
@@ -76,8 +120,6 @@ public class EventTypeTest {
 
     final String et1 = client.jsonSupport().toJson(eventType1);
     final EventType eventType2 = client.jsonSupport().fromJson(et1, EventType.class);
-    //System.out.println(et1);
-
     assertEquals("order.ORDER_RECEIVED", eventType2.name());
     assertEquals("order-service", eventType2.owningApplication());
     assertEquals(EventType.Category.business, eventType2.category());
@@ -90,5 +132,19 @@ public class EventTypeTest {
     assertNotNull(eventType2.enrichmentStrategies());
     assertNull(eventType2.eventTypeStatistics());
     assertNull(eventType2.options());
+    final EventTypeAuthorization authorization = eventType2.authorization();
+    assertNotNull(authorization);
+    assertNotNull(authorization.admins());
+    assertEquals(1, authorization.admins().size());
+    assertEquals(AuthorizationAttribute.WILDCARD, authorization.admins().get(0).dataType());
+    assertEquals("a", authorization.admins().get(0).value());
+    assertNotNull(authorization.readers());
+    assertEquals(1, authorization.readers().size());
+    assertEquals(AuthorizationAttribute.WILDCARD, authorization.readers().get(0).dataType());
+    assertEquals("r", authorization.readers().get(0).value());
+    assertNotNull(authorization.writers());
+    assertEquals(1, authorization.writers().size());
+    assertEquals(AuthorizationAttribute.WILDCARD, authorization.writers().get(0).dataType());
+    assertEquals("w", authorization.writers().get(0).value());
   }
 }

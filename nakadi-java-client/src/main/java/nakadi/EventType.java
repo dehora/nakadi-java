@@ -28,6 +28,7 @@ public class EventType {
   private EventTypeStatistics defaultStatistic;
   private EventTypeOptions options;
   private String compatibilityMode;
+  private EventTypeAuthorization authorization;
   private OffsetDateTime createdAt;
   private OffsetDateTime updatedAt;
 
@@ -299,9 +300,23 @@ public class EventType {
     return updatedAt;
   }
 
-  @Override public int hashCode() {
-    return Objects.hash(enrichmentStrategies, name, owningApplication, category, partitionStrategy,
-        schema, partitionKeyFields, defaultStatistic, options, compatibilityMode);
+  /**
+   *
+   * @return the authorization for this event type.
+   */
+  public EventTypeAuthorization authorization() {
+    return authorization;
+  }
+
+  /**
+   * Set the authorization for this event type.
+   *
+   * @param authorization the authorization for this event type.
+   * @return this
+   */
+  public EventType authorization(EventTypeAuthorization authorization) {
+    this.authorization = authorization;
+    return this;
   }
 
   @Override public boolean equals(Object o) {
@@ -317,7 +332,10 @@ public class EventType {
         Objects.equals(partitionKeyFields, eventType.partitionKeyFields) &&
         Objects.equals(defaultStatistic, eventType.defaultStatistic) &&
         Objects.equals(options, eventType.options) &&
-        Objects.equals(compatibilityMode, eventType.compatibilityMode);
+        Objects.equals(compatibilityMode, eventType.compatibilityMode) &&
+        Objects.equals(authorization, eventType.authorization) &&
+        Objects.equals(createdAt, eventType.createdAt) &&
+        Objects.equals(updatedAt, eventType.updatedAt);
   }
 
   @Override public String toString() {
@@ -331,6 +349,9 @@ public class EventType {
         ", defaultStatistic=" + defaultStatistic +
         ", options=" + options +
         ", compatibilityMode='" + compatibilityMode + '\'' +
+        ", authorization=" + authorization +
+        ", createdAt=" + createdAt +
+        ", updatedAt=" + updatedAt +
         '}';
   }
 
