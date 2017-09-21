@@ -24,6 +24,10 @@ sourceSets {
   }
 }
 
+jar {
+  exclude 'logback-test.xml'
+}
+
 
 bintray {
   // verbose to let these eval to empty when not being used; `project.property` isn't lazy
