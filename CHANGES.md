@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.9.9
+
+- Routes  undeliverable exceptions to a handler.  [#225](https://github.com/dehora/nakadi-java/issues/225)
+- Removes duplicate Observer onStart call and adds an onBegin call.
+- Reduces default buffer size on stream processor when consumers can't keep up from 16K to 8K.
+
 ### 0.9.8
 
 - Excludes test jar from nakadi-java-zign. [#223](https://github.com/dehora/nakadi-java/issues/223)
