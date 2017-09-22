@@ -13,6 +13,7 @@ import java.lang.reflect.Type;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 class GsonSupport implements JsonSupport {
@@ -80,6 +81,14 @@ class GsonSupport implements JsonSupport {
     return gson.fromJson(raw, tType);
   }
 
+  public <T> T fromJson(JsonObject jsonObject, Type tType) {
+    if (tType.getTypeName().equals("java.lang.String")) {
+      //noinspection unchecked
+      return (T) jsonObject.toString();
+    }
+    return gson.fromJson(jsonObject, tType);
+  }
+
   @Override public <T> T fromJson(Reader r, Class<T> c) {
     return gson.fromJson(r, c);
   }
@@ -117,13 +126,24 @@ class GsonSupport implements JsonSupport {
     return eventRecord.event();
   }
 
-  private <T> UndefinedEventMapped<T> marshalUndefinedEventMapped(String raw, Type type) {
+  private <T> UndefinedEventMapped<T> marshalUndefinedEventMapped(JsonObject jo, Type type) {
+    return marshalUndefinedEventMapped(type, (t) -> fromJson(jo, t));
+  }
 
+  private <T> UndefinedEventMapped<T> marshalUndefinedEventMapped(String raw, Type type) {
+    return marshalUndefinedEventMapped(type, (t) -> fromJson(raw, t));
+  }
+
+  private <T> UndefinedEventMapped<T> marshalUndefinedEventMapped(Type type,
+      Function<Type, T> function) {
     if (!isAssignableFrom(type, UndefinedEventMapped.class)) {
       throw new IllegalArgumentException(
           "Supplied type must be assignable from UndefinedEventMapped " + type.getTypeName());
     }
+    return toUndefinedEventMapped(type, function);
+  }
 
+  private <T> UndefinedEventMapped<T> toUndefinedEventMapped(Type type, Function<Type, T> function) {
     if (type instanceof ParameterizedType) {
       /*
       we want the generic parameter type of T captured by UndefinedEventMapped<T> as that's
@@ -134,7 +154,7 @@ class GsonSupport implements JsonSupport {
       ParameterizedType genericType = (ParameterizedType) type;
       Type[] actualTypeArguments = genericType.getActualTypeArguments();
       Type serdeType = actualTypeArguments[0];
-      T data = fromJson(raw, serdeType);
+      T data = function.apply(serdeType);
       return new UndefinedEventMapped<>(data);
     } else {
       throw new IllegalArgumentException(
@@ -145,17 +165,19 @@ class GsonSupport implements JsonSupport {
 
   @VisibleForTesting
   <T> BusinessEventMapped<T> marshalBusinessEventMapped(String raw, Type type) {
-
-
     if (!isAssignableFrom(type, BusinessEventMapped.class)) {
       throw new IllegalArgumentException(
           "Supplied type must be assignable BusinessEventMapped " + type.getTypeName());
     }
+    return marshalBusinessEventMapped(fromJson(raw, JsonObject.class), type);
+  }
 
-    JsonObject jo = fromJson(raw, JsonObject.class);
+  private <T> BusinessEventMapped<T> marshalBusinessEventMapped(JsonObject jo, Type type) {
 
     // pluck out the metadata block and marshal it
     EventMetadata metadata = gson.fromJson(jo.remove(METADATA_FIELD), EventMetadata.class);
+
+    final Function<Type, T> function = (Type serdeType) -> fromJson(jo, serdeType);
 
     if (type instanceof ParameterizedType) {
       /*
@@ -167,7 +189,7 @@ class GsonSupport implements JsonSupport {
       ParameterizedType genericType = (ParameterizedType) type;
       Type[] actualTypeArguments = genericType.getActualTypeArguments();
       Type serdeType = actualTypeArguments[0];
-      T data = gson.fromJson(jo, serdeType);
+      T data = function.apply(serdeType);
       return new BusinessEventMapped<>(data, metadata);
     } else {
       throw new IllegalArgumentException(
@@ -176,7 +198,7 @@ class GsonSupport implements JsonSupport {
     }
   }
 
-  private <T> T marshalEvent(String raw, Type type) {
+  private <T> T marshalJsonObjectToEvent(JsonObject json, Type type) {
     /*
      * Herein some workarounds to handle business and undefined event types. Those two are
      * defined in the API to be extended/subclassed by custom schema, but have no extension
@@ -203,21 +225,22 @@ class GsonSupport implements JsonSupport {
 
     if (isAssignableFrom(type, UndefinedEventMapped.class)) {
       //noinspection unchecked
-      t = (T) marshalUndefinedEventMapped(raw, type);
+      t = (T) marshalUndefinedEventMapped(json, type);
     } else if (isAssignableFrom(type, BusinessEventMapped.class)) {
       //noinspection unchecked
-      t = (T) marshalBusinessEventMapped(raw, type);
+      t = (T) marshalBusinessEventMapped(json, type);
     } else {
-      t = fromJson(raw, type);
+      t = fromJson(json, type);
     }
 
     return t;
   }
 
   @Override public <T> EventStreamBatch<T> marshalEventStreamBatch(String raw, Type type) {
-    // inefficient, marshal to map, then stringify JsonObject, then marshal to object :(
+    // inefficient, marshal string to json; todo see how to pass JsonObject/chars directly
     EventStreamBatch<JsonObject> esb = marshalBatch(raw, EVENT_STREAM_BATCH_FIRSTPASS_TYPE);
     List<T> ts = marshallEvents(type, esb.events());
+    esb.events().clear(); // deallocate interim data
     return new EventStreamBatch<>(esb.cursor(), esb.info(), ts);
   }
 
@@ -229,7 +252,7 @@ class GsonSupport implements JsonSupport {
     //noinspection unchecked
     return events.stream()
         // assumes the supplied type literal is of type T; if not this will throw a CCE
-        .map(e -> this.<T>marshalEvent(e.toString(), type)).collect(Collectors.toList());
+        .map(e -> this.<T>marshalJsonObjectToEvent(e, type)).collect(Collectors.toList());
   }
 
   private static class GsonCompressedHolder {
