@@ -1,10 +1,16 @@
 package nakadi;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import okhttp3.internal.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class OkHttpResponse implements Response {
+
+  private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   private final okhttp3.Response okResponse;
 
@@ -26,6 +32,16 @@ class OkHttpResponse implements Response {
 
   @Override public ResponseBody responseBody() {
     return new OkHttpResponseBody(okResponse);
+  }
+
+  @Override public void close() {
+    try {
+      responseBody().close();
+    } catch (RuntimeException rethrow) {
+      throw rethrow;
+    } catch (Exception suppressed) {
+      logger.warn("exception closing http response {}", suppressed.getMessage());
+    }
   }
 
   @Override public int hashCode() {
