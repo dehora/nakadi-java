@@ -145,17 +145,14 @@ public class EventResourceReal implements EventResource {
 
   @Override public <T> BatchItemResponseCollection sendBatch(String eventTypeName, List<T> events,
       Map<String, Object> headers) {
-    Response send = send(eventTypeName, events, headers);
-    List<BatchItemResponse> items = Lists.newArrayList();
 
-    if (send.statusCode() == 207 || send.statusCode() == 422) {
-      try (ResponseBody responseBody = send.responseBody()) {
+    List<BatchItemResponse> items = Lists.newArrayList();
+    try (Response send = send(eventTypeName, events, headers)) {
+      if (send.statusCode() == 207 || send.statusCode() == 422) {
+        ResponseBody responseBody = send.responseBody();
         items.addAll(jsonSupport.fromJson(responseBody.asReader(), TYPE_BIR));
-      } catch (IOException e) {
-        logger.error("Error handling BatchItemResponse " + e.getMessage(), e);
       }
     }
-
     return new BatchItemResponseCollection(items, LINKS_SENTINEL, client);
   }
 

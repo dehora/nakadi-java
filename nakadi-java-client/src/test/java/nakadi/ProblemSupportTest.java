@@ -44,6 +44,14 @@ public class ProblemSupportTest {
         return null;
       }
 
+      @Override public void close() {
+        try {
+          responseBody().close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+
       @Override public ResponseBody responseBody() {
         return new ResponseBody() {
           @Override public String asString() throws ContractRetryableException {
