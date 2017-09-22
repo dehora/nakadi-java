@@ -369,7 +369,6 @@ public class OkHttpResourceTest {
     assertEquals("GET / HTTP/1.1", request.getRequestLine());
     assertEquals(NakadiClient.USER_AGENT, request.getHeaders().get("User-Agent"));
     assertTrue(request.getHeaders().get("X-Flow-Id") != null);
-    assertTrue(request.getHeaders().get("X-Client-Platform-Details") != null);
   }
 
   @Test
@@ -389,7 +388,6 @@ public class OkHttpResourceTest {
     assertEquals("application/json; charset=utf8", request.getHeaders().get("Content-Type"));
     assertEquals(NakadiClient.USER_AGENT, request.getHeaders().get("User-Agent"));
     assertTrue(request.getHeaders().get("X-Flow-Id") != null);
-    assertTrue(request.getHeaders().get("X-Client-Platform-Details") != null);
 
     Subscription fromJson = json.fromJson(request.getBody().readUtf8(), Subscription.class);
     assertEquals(subscription, fromJson);
@@ -568,7 +566,6 @@ public class OkHttpResourceTest {
     assertEquals("application/json; charset=utf8", request.getHeaders().get("Content-Type"));
     assertEquals(NakadiClient.USER_AGENT, request.getHeaders().get("User-Agent"));
     assertTrue(request.getHeaders().get("X-Flow-Id") != null);
-    assertTrue(request.getHeaders().get("X-Client-Platform-Details") != null);
 
     Subscription fromJson = json.fromJson(request.getBody().readUtf8(), Subscription.class);
     assertEquals(subscription, fromJson);

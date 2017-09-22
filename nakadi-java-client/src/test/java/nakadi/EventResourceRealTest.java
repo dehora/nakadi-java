@@ -196,7 +196,6 @@ public class EventResourceRealTest {
       assertEquals("application/json; charset=utf8", request.getHeaders().get("Content-Type"));
       assertEquals(NakadiClient.USER_AGENT, request.getHeaders().get("User-Agent"));
       TestCase.assertTrue(request.getHeaders().get("X-Flow-Id") != null);
-      TestCase.assertTrue(request.getHeaders().get("X-Client-Platform-Details") != null);
 
       Type U_TYPE =
           new TypeToken<List<Map<String, String>>>() {
@@ -256,7 +255,6 @@ public class EventResourceRealTest {
       assertEquals("application/json; charset=utf8", request.getHeaders().get("Content-Type"));
       assertEquals(NakadiClient.USER_AGENT, request.getHeaders().get("User-Agent"));
       TestCase.assertTrue(request.getHeaders().get("X-Flow-Id") != null);
-      TestCase.assertTrue(request.getHeaders().get("X-Client-Platform-Details") != null);
 
       String body = request.getBody().readUtf8();
 
