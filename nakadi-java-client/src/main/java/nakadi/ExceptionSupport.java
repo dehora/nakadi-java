@@ -1,6 +1,8 @@
 package nakadi;
 
+import io.reactivex.exceptions.UndeliverableException;
 import java.io.EOFException;
+import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +25,19 @@ class ExceptionSupport {
     CODES_TO_EXCEPTIONS.put(429, RateLimitException.class);
     CODES_TO_EXCEPTIONS.put(500, ServerException.class);
     CODES_TO_EXCEPTIONS.put(503, ServerException.class);
+  }
+
+  static boolean isInterruptedIOException(Throwable e) {
+    // unwrap to see if this is an InterruptedIOException bubbled up from rx/okio
+    if (e instanceof UndeliverableException) {
+      if (e.getCause() != null && e.getCause() instanceof UncheckedIOException) {
+        if (e.getCause().getCause() != null &&
+            e.getCause().getCause() instanceof InterruptedIOException) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   static Map<Integer, Class> responseCodesToExceptionsMap() {
