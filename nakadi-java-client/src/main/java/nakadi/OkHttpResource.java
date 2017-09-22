@@ -34,18 +34,23 @@ class OkHttpResource implements Resource {
   private volatile Response response;
 
   OkHttpResource(OkHttpClient okHttpClient, JsonSupport jsonSupport, MetricCollector collector) {
+    NakadiException.throwNonNull(okHttpClient, "Please provide a client");
+    NakadiException.throwNonNull(jsonSupport, "Please provide JSON support");
+    NakadiException.throwNonNull(collector, "Please provide a metric collector");
     this.okHttpClient = okHttpClient;
     this.jsonSupport = jsonSupport;
     this.metricCollector = collector;
   }
 
   public OkHttpResource connectTimeout(long timeout, TimeUnit unit) {
+    NakadiException.throwNonNull(unit, "Please provide a time unit");
     this.connectTimeout = unit.toMillis(timeout);
     hasPerRequestConnectTimeout = true;
     return this;
   }
 
   public OkHttpResource readTimeout(long timeout, TimeUnit unit) {
+    NakadiException.throwNonNull(unit, "Please provide a time unit");
     this.readTimeout = unit.toMillis(timeout);
     hasPerRequestReadTimeout = true;
     return this;
@@ -59,25 +64,28 @@ class OkHttpResource implements Resource {
   @Override
   public Response request(String method, String url, ResourceOptions options)
       throws NakadiException {
-    /*
-    if we have a retry in place use a throwing call and return the last response captured.
-     the rx retry mechanism is driven by exceptions but the caller is asking for a response here
-     so we don't propagate the exception
-     */
 
+    // If we have a retry in place use a throwing call and return the last response captured.
+    // the rx retry mechanism is driven by exceptions but the caller is asking for a response here
+    // so we don't propagate the exception
     if (retryPolicy != null) {
       if (retryPolicy.isFinished()) {
         logger.warn("no_retry_cowardly refusing to apply finished retry policy {}", retryPolicy);
         metricCollector.mark(retrySkipFinished);
       } else {
+        Response first = null;
         try {
           Observable<Response> observable =
               Observable.defer(
                   () -> Observable.just(requestThrowingInner(method, url, options, null)));
-          Response first = observable.compose(buildRetry(retryPolicy)).blockingFirst();
+          first = observable.compose(buildRetry(retryPolicy)).blockingFirst();
           releaseResponseQuietly();
           return first;
         } catch (HttpException e) {
+          if(first != null) {
+            ResponseSupport.closeQuietly(first);
+          }
+
           logger.error("retryable_request_failed, {}", e.getMessage(), e);
           return response;
         }
@@ -139,14 +147,7 @@ class OkHttpResource implements Resource {
   private void releaseResponseQuietly() {
     if (response != null) {
       try {
-        logger.info("request_retry_close_ask thread {} {} {}", Thread.currentThread().getName(),
-            response.hashCode(), response);
-        response.responseBody().close();
-        logger.info("request_retry_close_ok thread {} {} {}", Thread.currentThread().getName(),
-            response.hashCode(), response);
-      } catch (IOException e) {
-        logger.error(String.format("request_retry_close_fail thread %s %s %s",
-            Thread.currentThread().getName(), response.hashCode(), response), e);
+        ResponseSupport.closeQuietly(response, 1);
       } finally {
         response = null; // zero out any previous responses
       }
@@ -170,11 +171,9 @@ class OkHttpResource implements Resource {
   private Observable<Response> maybeComposeRetryPolicy(final Observable<Response> observable) {
     if (retryPolicy != null) {
       if (retryPolicy.isFinished()) {
-        /*
-        this can happen if
-        a) the policy is a no-op policy always returning finished
-        b) it's being reused across requests, likely a client bug
-         */
+        // this can happen if
+        // a) the policy is a no-op policy always returning finished
+        // b) it's being reused across requests, likely a client bug
         logger.warn("no_retry_cowardly refusing to used finished retry policy {}", retryPolicy);
         metricCollector.mark(retrySkipFinished);
       } else {
@@ -199,10 +198,8 @@ class OkHttpResource implements Resource {
     options.headers()
         .entrySet()
         .stream()
-        /*
-         okhttp automatically sets up and decompresses Accept-Encoding: gzip
-         setting it manually requires manual decompression, so a supplied option is best skipped
-          */
+         // okhttp automatically sets up and decompresses Accept-Encoding: gzip
+         // setting it manually requires manual decompression, so a supplied option is best skipped
         .filter(this::filterAcceptEncodingGzip)
         .forEach(e -> builder.addHeader(e.getKey(), e.getValue().toString()));
 
@@ -236,14 +233,10 @@ class OkHttpResource implements Resource {
       if (hasPerRequestConnectTimeout) {
         clientBuilder.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS);
       }
-      final Request request = builder.build();
-      final OkHttpClient client = clientBuilder.build();
-      final Call call = client.newCall(request);
-      return call.execute();
+
+      return clientBuilder.build().newCall(builder.build()).execute();
     } else {
-      final Request request = builder.build();
-      final Call call = okHttpClient.newCall(request);
-      return call.execute();
+      return okHttpClient.newCall(builder.build()).execute();
     }
   }
 
@@ -288,11 +281,9 @@ class OkHttpResource implements Resource {
     if (code >= 200 && code < 300) {
       return response;
     } else {
-      /*
-       field the response as this allows us to return it when a non-throwing request
-        with a retry fails (we have to wrap non-throwing requests as throwing to
-        drive the rx retry mechanism)
-        */
+       // field the response as this allows us to return it when a non-throwing request
+       // with a retry fails (we have to wrap non-throwing requests as throwing to
+       // drive the rx retry mechanism)
       this.response = response;
       return handleError(response);
     }
