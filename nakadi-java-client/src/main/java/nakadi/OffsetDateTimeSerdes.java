@@ -42,16 +42,6 @@ class OffsetDateTimeSerdes
   }
 
   private <T> T toDateObject(String raw, TemporalQuery<T> from) {
-    // lo-fi detect a leap
-    if (raw.contains(":59:60")) {
-      // ISO_INSTANT doesn't crash on leap seconds
-      TemporalAccessor parse = DateTimeFormatter.ISO_INSTANT.parse(raw);
-      if (parse.query(DateTimeFormatter.parsedLeapSecond())) {
-        // lazy: push back the second instead of bump to tomm requires less time manipulation
-        logger.warn("saw leap second, shifting the date back 1s, {}", raw);
-        return ISO.parse(raw.replace(":59:60", ":59:59"), from);
-      }
-    }
     return ISO.parse(raw, from);
   }
 }
