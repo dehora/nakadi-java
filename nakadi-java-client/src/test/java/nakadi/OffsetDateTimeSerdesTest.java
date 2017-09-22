@@ -30,8 +30,9 @@ public class OffsetDateTimeSerdesTest {
       that we cater for it
        */
       serdes.toOffsetDateTime("2016-12-31T23:59:60Z");
+      fail("expecting to fail on a leap second");
     } catch (Exception ignored) {
-      fail();
+      assertTrue(true);
     }
   }
 }
