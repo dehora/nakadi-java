@@ -4,16 +4,12 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
 import io.reactivex.Scheduler;
-import io.reactivex.exceptions.UndeliverableException;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.schedulers.Schedulers;
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.io.UncheckedIOException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -104,42 +100,9 @@ public class StreamProcessor implements StreamProcessorManaged {
     return new StreamProcessor.Builder().client(client);
   }
 
-  private static boolean isInterruptedIOException(Throwable e) {
-    // unwrap to see if this is an InterruptedIOException bubbled up from rx/okio
-    if (e instanceof UndeliverableException) {
-      if (e.getCause() != null && e.getCause() instanceof UncheckedIOException) {
-        if (e.getCause().getCause() != null &&
-            e.getCause().getCause() instanceof InterruptedIOException) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private void handleUncaught(Thread t, Throwable e, String name) {
-    if (isInterruptedIOException(e)) {
-      Thread.currentThread().interrupt();
-      logger.warn(String.format(
-          "op=handle_exception action=interrupt_and_continue type=InterruptedIOException %s %s",
-          name, t), e);
-    } else {
-      if (e instanceof NonRetryableNakadiException) {
-        logger.error(String.format(
-            "op=handle_exception action=stopping type=NonRetryableNakadiException %s %s %s", name,
-            t, ((NonRetryableNakadiException) e).problem()), e);
-      } else {
-        logger.error(String.format("op=handle_exception action=stopping type=%s %s %s",
-            e.getClass().getSimpleName(), name, t), e);
-      }
-      failedProcessorException = e;
-      stopStreaming();
-    }
-  }
-
   /**
-   * Start consuming the stream. This runs in a background executor and will not block the calling
-   * thread. Callers must hold onto a reference in order to be able to shut it down.
+   * Start consuming the stream. <p> This runs in a background executor and will not block the
+   * calling thread. Callers must hold onto a reference in order to be able to shut it down.</p>
    *
    * <p> Calling start multiple times is the same as calling it once, when stop is not also called
    * or interleaved with. </p>
@@ -162,9 +125,9 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   /**
-   * Perform a controlled shutdown of the stream. The {@link StreamObserver} will have its
+   * Perform a controlled shutdown of the stream. <p> The {@link StreamObserver} will have its
    * onCompleted or onError called under normal circumstances. The {@link StreamObserver} in turn
-   * can call its {@link StreamOffsetObserver} to perform cleanup.
+   * can call its {@link StreamOffsetObserver} to perform cleanup.</p>
    *
    * <p> Calling stop multiple times is the same as calling it once, when start is not also called
    * or interleaved with. </p>
@@ -216,6 +179,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   private void startStreaming() {
+    //noinspection unchecked
     stream(streamConfiguration, streamObserverProvider);
     startLatch.countDown();
   }
@@ -318,14 +282,14 @@ public class StreamProcessor implements StreamProcessorManaged {
     return (Response response) -> {
       final BufferedReader br = new BufferedReader(response.responseBody().asReader());
       return Flowable.fromIterable(br.lines()::iterator)
-          .doOnError(throwable -> closeTheResponse(response))
+          .doOnError(throwable -> ResponseSupport.closeQuietly(response))
           .onBackpressureBuffer(DEFAULT_BACKPRESSURE_BUFFER_SIZE, true, true)
           .map(r -> lineToStreamBatchRecord(r, literal, response, sc));
     };
   }
 
   private Consumer<? super Response> httpResponseDispose() {
-    return this::closeTheResponse;
+    return ResponseSupport::closeQuietly;
   }
 
   private StreamConnectionRetryFlowable buildStreamConnectionRetryFlowable() {
@@ -388,68 +352,59 @@ public class StreamProcessor implements StreamProcessorManaged {
     }
   }
 
-  private void closeTheResponse(Response res) {
-    final String tName = Thread.currentThread().getName();
-    boolean closed = false;
-
-    try {
-      logger.debug("op=connection_close msg=close_ask thread={} res_hash={} res={}",
-          tName, res.hashCode(), res);
-      res.responseBody().close();
-      closed = true;
-    } catch (Exception e) {
-      logger.error("op=connection_close msg=err_close thread={} class={} err={} res_hash={} res={}",
-          tName, e.getClass().getName(), e.getMessage(), res.hashCode(), res);
-    } finally {
-      if (!closed) {
-        try {
-          res.responseBody().close();
-          closed = true;
-        } catch (IOException e) {
-          logger.error(
-              "op=connection_close msg=err_close_reattempt thread={}  class={} err={} res_hash={} res={}",
-              tName, e.getClass().getName(), e.getMessage(), res.hashCode(), res);
-        }
-      }
-
-      if (!closed) {
-        logger.warn(String.format("op=connection_close msg=error_clos_fail thread=%s %s %s",
-            tName, res.hashCode(), res));
-      }
-    }
-  }
-
   private void setupRxErrorHandler() {
     RxJavaPlugins.setErrorHandler(
-        throwable -> {
-          if (throwable instanceof java.util.concurrent.RejectedExecutionException) {
-            /*
-             this can happen between one processor stopping and new one starting if the
-             old one is interrupted mid-flight.
-              */
-            logger.warn("op=unhandled_rejected_execution action=continue {}",
-                throwable.getMessage());
+        t -> {
+          if (t instanceof java.util.concurrent.RejectedExecutionException) {
+             // can happen with a processor stop and another start if the old one is interrupted
+            logger.warn("op=unhandled_rejected_execution action=continue {}", t.getMessage());
           } else {
-            if (throwable instanceof NonRetryableNakadiException) {
+            if (t instanceof NonRetryableNakadiException) {
               logger.error(String.format(
                   "op=unhandled_non_retryable_exception action=stopping type=NonRetryableNakadiException %s ",
-                  ((NonRetryableNakadiException) throwable).problem()), throwable);
+                  ((NonRetryableNakadiException) t).problem()), t);
+
               stopStreaming();
-            } else if (throwable instanceof Error) {
+
+            } else if (t instanceof Error) {
               logger.error(String.format(
                   "op=unhandled_error action=stopping type=NonRetryableNakadiException %s ",
-                  throwable.getMessage()), throwable);
+                  t.getMessage()), t);
+
               stopStreaming();
+
             } else {
               logger.error(
                   String.format("unhandled_unknown_exception action=stopping type=%s %s",
-                      throwable.getClass().getSimpleName(), throwable.getMessage()),
-                  throwable);
+                      t.getClass().getSimpleName(), t.getMessage()),
+                  t);
+
               stopStreaming();
             }
           }
         }
     );
+  }
+
+  private void handleUncaught(Thread t, Throwable e, String name) {
+    if (ExceptionSupport.isInterruptedIOException(e)) {
+      Thread.currentThread().interrupt();
+      logger.warn(String.format(
+          "op=handle_exception action=interrupt_and_continue type=InterruptedIOException %s %s",
+          name, t), e);
+    } else {
+      if (e instanceof NonRetryableNakadiException) {
+        logger.error(String.format(
+            "op=handle_exception action=stopping type=NonRetryableNakadiException %s %s %s", name,
+            t, ((NonRetryableNakadiException) e).problem()), e);
+      } else {
+        logger.error(String.format("op=handle_exception action=stopping type=%s %s %s",
+            e.getClass().getSimpleName(), name, t), e);
+      }
+
+      failedProcessorException = e;
+      stopStreaming();
+    }
   }
 
   @VisibleForTesting
@@ -525,7 +480,7 @@ public class StreamProcessor implements StreamProcessorManaged {
      *
      * @return this
      */
-    @Deprecated
+    @SuppressWarnings("unused") @Deprecated
     public Builder scope(String scope) {
       return this;
     }
