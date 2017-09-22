@@ -197,20 +197,26 @@ class SubscriptionResourceReal implements SubscriptionResource {
         .newResource()
         .retryPolicy(retryPolicy);
 
-    Response response;
-    final MetricCollector.Timer timer = MetricCollector.Timer.checkpointSend;
+    Response response = null;
+    try {
+      final MetricCollector.Timer timer = MetricCollector.Timer.checkpointSend;
 
-    response = timed(() -> resource.requestThrowing(Resource.POST, url, options,
-        () -> client.jsonSupport().toJsonBytes(requestMap)), client, timer);
+      response = timed(() -> resource.requestThrowing(Resource.POST, url, options,
+          () -> client.jsonSupport().toJsonBytes(requestMap)), client, timer);
 
-    if (response.statusCode() == 204) {
-      return sentinelCursorCommitResultCollection;
-    }
+      if (response.statusCode() == 204) {
+        return sentinelCursorCommitResultCollection;
+      }
 
-    if (response.statusCode() == 200) {
-      String raw = response.responseBody().asString();
-      return client.jsonSupport()
-          .fromJson(raw, TYPE_CURSOR_COMMIT_RESULT);
+      if (response.statusCode() == 200) {
+        String raw = response.responseBody().asString();
+        return client.jsonSupport()
+            .fromJson(raw, TYPE_CURSOR_COMMIT_RESULT);
+      }
+    } finally {
+      if (response != null) {
+        response.close();
+      }
     }
 
     // success but not expected, throw this to signal
