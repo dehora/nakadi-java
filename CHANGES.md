@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.9.10
+
+- Adds a close method to the Response interface. [#237](https://github.com/dehora/nakadi-java/issues/237)
+
 ### 0.9.9
 
 - Routes  undeliverable exceptions to a handler.  [#225](https://github.com/dehora/nakadi-java/issues/225)
