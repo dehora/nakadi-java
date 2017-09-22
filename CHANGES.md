@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.9.11
+
+- Reduce allocations when marshalling events from a stream. [#256](https://github.com/dehora/nakadi-java/issues/256)
+
 ### 0.9.10
 
 - Adds a close method to the Response interface. [#237](https://github.com/dehora/nakadi-java/issues/237)
