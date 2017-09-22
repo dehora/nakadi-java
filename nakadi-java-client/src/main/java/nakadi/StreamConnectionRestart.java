@@ -17,7 +17,7 @@ class StreamConnectionRestart {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
-  static int DEFAULT_DELAY_SECONDS = 3;
+  static long DEFAULT_DELAY_SECONDS = 3;
   static TimeUnit DEFAULT_DELAY_UNIT = TimeUnit.SECONDS;
   static int DEFAULT_MAX_RESTARTS = Integer.MAX_VALUE;
 

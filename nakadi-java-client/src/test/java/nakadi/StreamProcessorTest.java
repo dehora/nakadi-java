@@ -742,7 +742,7 @@ public class StreamProcessorTest {
     // just invoke the resource supplier part of the observable, it's where we open the stream
 
     final Callable<Response> resourceFactory =
-        sp.resourceFactory(new StreamConfiguration().subscriptionId("sub1"));
+        sp.httpRequestFactory(new StreamConfiguration().subscriptionId("sub1"));
 
     try {
       resourceFactory.call();
@@ -799,7 +799,7 @@ public class StreamProcessorTest {
 
     // just invoke the resource supplier part of the observable, it's where we open the stream
     Callable<Response> resourceFactory =
-        sp.resourceFactory(new StreamConfiguration().subscriptionId("sub1"));
+        sp.httpRequestFactory(new StreamConfiguration().subscriptionId("sub1"));
 
     try {
       resourceFactory.call();
