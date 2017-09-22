@@ -1,5 +1,6 @@
 package nakadi;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -48,32 +49,7 @@ class OkHttpResponseBody implements ResponseBody {
   }
 
   @Override public void close() throws IOException {
-    boolean closed = false;
-    try {
-      logger.debug("response_close_ask thread={}", Thread.currentThread().getName());
-      okResponse.body().close();
-      logger.debug("response_close_ok thread={}", Thread.currentThread().getName());
-      closed = true;
-    } catch (Exception e) {
-      logger.error("response_close_error problem closing on {} {}", e.getClass().getName(),
-          e.getMessage());
-    } finally {
-      // try again, but it looks like you get one shot with okhttp, esp. for a cross thread problem
-      int attempt = 0;
-      while (!closed && attempt++ < CLOSE_ATTEMPTS) {
-        try {
-          okResponse.close();
-          closed = true;
-        } catch (Exception e1) {
-          logger.error("response_close_error retrying close attempts {}/{} on {}", attempt,
-              CLOSE_ATTEMPTS, e1.getMessage());
-        }
-      }
-
-      if (!closed) {
-        logger.error("response_close_error could not close http response attempts {}/{}", attempt,
-            CLOSE_ATTEMPTS);
-      }
-    }
+    ResponseSupport.closeQuietly(this.okResponse, CLOSE_ATTEMPTS);
   }
+
 }

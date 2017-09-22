@@ -1,5 +1,6 @@
 package nakadi;
 
+import java.io.Closeable;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +9,7 @@ class ResponseSupport {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
-  public static void closeQuietly(Response res) {
+  static void closeQuietly(Response res) {
     final String tName = Thread.currentThread().getName();
     boolean closed = false;
 
@@ -33,8 +34,38 @@ class ResponseSupport {
       }
 
       if (!closed) {
-        logger.warn(String.format("op=connection_close msg=error_clos_fail thread=%s %s %s",
+        logger.warn(String.format("op=connection_close msg=error_close_fail thread=%s %s %s",
             tName, res.hashCode(), res));
+      }
+    }
+  }
+
+  static void closeQuietly(Closeable closeable, int attempts) {
+    final String tName = Thread.currentThread().getName();
+    boolean closed = false;
+    try {
+      logger.debug("response_close_ask thread={}", tName);
+      closeable.close();
+      logger.debug("response_close_ok thread={}", tName);
+      closed = true;
+    } catch (Exception e) {
+      logger.error("response_close_error problem closing on {} {}", e.getClass().getName(),
+          e.getMessage());
+    } finally {
+      int attempt = 0;
+      while (!closed && attempt++ < attempts) {
+        try {
+          closeable.close();
+          closed = true;
+        } catch (Exception e1) {
+          logger.error("response_close_error retrying close attempts {}/{} on {}", attempt,
+              attempts, e1.getMessage());
+        }
+      }
+
+      if (!closed) {
+        logger.error("response_close_error could not close http response attempts {}/{}", attempt,
+            attempts);
       }
     }
   }
