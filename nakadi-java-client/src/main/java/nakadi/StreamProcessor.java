@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -26,22 +25,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * API support for streaming events to a consumer.
- * <p>
- * Supports both the name event type streams and the more recent subscription based streams.
- * The API's connection streaming models are fundamentally the same, but have some differences
- * in  detail, such as request parameters and the structure of the batch cursor. Users
- * should consult the Nakadi API documentation and {@link StreamConfiguration} for details
- * on the streaming options.
- * </p>
+ * API support for streaming events to a consumer. <p> Supports both the name event type streams and
+ * the more recent subscription based streams. The API's connection streaming models are
+ * fundamentally the same, but have some differences in  detail, such as request parameters and the
+ * structure of the batch cursor. Users should consult the Nakadi API documentation and {@link
+ * StreamConfiguration} for details on the streaming options. </p>
  *
  * @see nakadi.StreamConfiguration
  */
 public class StreamProcessor implements StreamProcessorManaged {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
+  private static final String X_NAKADI_STREAM_ID = "X-Nakadi-StreamId";
   private static final int DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS = 90;
-  private static final int DEFAULT_BUFFER_SIZE = 8000;
+  private static final int DEFAULT_BACKPRESSURE_BUFFER_SIZE = 8000;
   private final NakadiClient client;
   private final StreamConfiguration streamConfiguration;
   private final StreamObserverProvider streamObserverProvider;
@@ -53,25 +50,23 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final AtomicBoolean started = new AtomicBoolean(false);
   private final AtomicBoolean stopped = new AtomicBoolean(false);
   private final AtomicBoolean stopping = new AtomicBoolean(false);
+  private final CountDownLatch startLatch;
+  private final StreamProcessorRequestFactory streamProcessorRequestFactory;
+  private volatile Throwable failedProcessorException;
+  private StreamBatchRecordSubscriber subscriber;
   private final ExecutorService monoIoExecutor = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder()
           .setNameFormat("nakadi-java-io-%d")
           .setUncaughtExceptionHandler((t, e) -> handleUncaught(t, e, "stream_processor_err_io"))
           .build());
+  private final Scheduler monoIoScheduler = Schedulers.from(monoIoExecutor);
   private final ExecutorService monoComputeExecutor = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder()
           .setNameFormat("nakadi-java-compute-%d")
           .setUncaughtExceptionHandler(
               (t, e) -> handleUncaught(t, e, "stream_processor_err_compute"))
           .build());
-
-  private final Scheduler monoIoScheduler = Schedulers.from(monoIoExecutor);
   private final Scheduler monoComputeScheduler = Schedulers.from(monoComputeExecutor);
-  private final CountDownLatch startLatch;
-  private final StreamProcessorRequestFactory streamProcessorRequestFactory;
-
-  private volatile Throwable failedProcessorException;
-  private StreamBatchRecordSubscriber subscriber;
 
   @VisibleForTesting
   @SuppressWarnings("unused") StreamProcessor(NakadiClient client,
@@ -122,7 +117,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     return false;
   }
 
-  private  void handleUncaught(Thread t, Throwable e, String name) {
+  private void handleUncaught(Thread t, Throwable e, String name) {
     if (isInterruptedIOException(e)) {
       Thread.currentThread().interrupt();
       logger.warn(String.format(
@@ -143,53 +138,21 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   /**
-   * Start consuming the stream. This runs in a background executor and will not block the
-   * calling thread. Callers must hold onto a reference in order to be able to shut it down.
+   * Start consuming the stream. This runs in a background executor and will not block the calling
+   * thread. Callers must hold onto a reference in order to be able to shut it down.
    *
-   * <p>
-   * Calling start multiple times is the same as calling it once, when stop is not also called
-   * or interleaved with.
-   * </p>
+   * <p> Calling start multiple times is the same as calling it once, when stop is not also called
+   * or interleaved with. </p>
    *
    * @throws IllegalStateException if the processor has already been stopped.
    * @see #stop()
    */
   public void start() throws IllegalStateException {
-    if(stopped() || stopping()) {
+    if (stopped() || stopping()) {
       throw new IllegalStateException("processor has already been stopped and cannot be restarted");
     }
 
-    RxJavaPlugins.setErrorHandler(
-        new Consumer<Throwable>() {
-          @Override public void accept(Throwable throwable) throws Exception {
-            if (throwable instanceof java.util.concurrent.RejectedExecutionException) {
-              /*
-               this can happen between one processor stopping and new one starting if the
-               old one is interrupted mid-flight.
-                */
-              logger.warn("op=unhandled_rejected_execution action=continue {}", throwable.getMessage());
-            } else {
-              if (throwable instanceof NonRetryableNakadiException) {
-                logger.error(String.format(
-                    "op=unhandled_non_retryable_exception action=stopping type=NonRetryableNakadiException %s ",
-                    ((NonRetryableNakadiException) throwable).problem()), throwable);
-                stopStreaming();
-              } else if (throwable instanceof Error) {
-                logger.error(String.format(
-                    "op=unhandled_error action=stopping type=NonRetryableNakadiException %s ",
-                    throwable.getMessage()), throwable);
-                stopStreaming();
-              } else {
-                logger.error(
-                    String.format("unhandled_unknown_exception action=stopping type=%s %s",
-                        throwable.getClass().getSimpleName(), throwable.getMessage()),
-                    throwable);
-                stopStreaming();
-              }
-            }
-          }
-        }
-    );
+    setupRxErrorHandler();
 
     if (!started.getAndSet(true)) {
       this.startStreaming();
@@ -199,14 +162,12 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   /**
-   * Perform a controlled shutdown of the stream. The {@link StreamObserver} will have
-   * its onCompleted or onError called under normal circumstances. The {@link StreamObserver}
-   * in turn can call its {@link StreamOffsetObserver} to perform cleanup.
+   * Perform a controlled shutdown of the stream. The {@link StreamObserver} will have its
+   * onCompleted or onError called under normal circumstances. The {@link StreamObserver} in turn
+   * can call its {@link StreamOffsetObserver} to perform cleanup.
    *
-   * <p>
-   * Calling stop multiple times is the same as calling it once, when start is not also called
-   * or interleaved with.
-   * </p>
+   * <p> Calling stop multiple times is the same as calling it once, when start is not also called
+   * or interleaved with. </p>
    *
    * @see #start()
    */
@@ -220,13 +181,10 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   /**
-   * Indicates if the processor is running.
-   * <p>
-   *   This is set after {@link #start()} is called. Note that it can be true when the processor
-   *   is setting up and before it actually consumes the stream from Nakadi. After calling
-   *   {@link #stop()} or after an error that caused the processor to stop working this will be
-   *   false.
-   * </p>
+   * Indicates if the processor is running. <p> This is set after {@link #start()} is called. Note
+   * that it can be true when the processor is setting up and before it actually consumes the stream
+   * from Nakadi. After calling {@link #stop()} or after an error that caused the processor to stop
+   * working this will be false. </p>
    *
    * @return true if running, false if not.
    */
@@ -235,15 +193,13 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   /**
-   * Allows tracking of errors from StreamProcessor.
-   * <p>
-   *   If the processor stopped due to an error that error will be visible from this method. If
-   *   there's no error this return {@link Optional#empty()}.
-   * </p>
+   * Allows tracking of errors from StreamProcessor. <p> If the processor stopped due to an error
+   * that error will be visible from this method. If there's no error this return {@link
+   * Optional#empty()}. </p>
    *
    * @return the exception that stopped the processor, or {@link Optional#empty()}
    */
-  public Optional<Throwable> failedProcessorException() {
+  @SuppressWarnings("WeakerAccess") public Optional<Throwable> failedProcessorException() {
     return Optional.ofNullable(failedProcessorException);
   }
 
@@ -255,109 +211,87 @@ public class StreamProcessor implements StreamProcessorManaged {
     return started.get();
   }
 
-  boolean stopping() {
+  private boolean stopping() {
     return stopped.get() || stopping.get();
   }
 
-  void startStreaming() {
+  private void startStreaming() {
     stream(streamConfiguration, streamObserverProvider);
     startLatch.countDown();
-  }
-
-  void stopStreaming() {
-    stopping.getAndSet(true);
-
-
-    subscriber.dispose();
-
-    logger.info("stopping_executor name=monoIoScheduler");
-    ExecutorServiceSupport.shutdown(monoIoExecutor);
-    logger.info("stopping_executor name=monoComputeScheduler");
-    ExecutorServiceSupport.shutdown(monoComputeExecutor);
-
-    stopped.getAndSet(true);
-  }
-
-  @VisibleForTesting
-  StreamOffsetObserver streamOffsetObserver() {
-    return streamOffsetObserver;
   }
 
   private void waitingOnStart() {
     try {
       startLatch.await(60, TimeUnit.SECONDS);
-      logger.info("stream_processor has started");
+      logger.info("stream_processor op=has_started");
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
   }
 
-  private <T> void stream(StreamConfiguration sc,
-      StreamObserverProvider<T> observerProvider) {
+  private void stopStreaming() {
+    stopping.getAndSet(true);
+    subscriber.dispose();
+    logger.debug("stream_processor op=stopping_executor name=monoIoScheduler");
+    ExecutorServiceSupport.shutdown(monoIoExecutor);
+    logger.debug("stream_processor op=stopping_executor name=monoComputeScheduler");
+    ExecutorServiceSupport.shutdown(monoComputeExecutor);
+    stopped.getAndSet(true);
+  }
 
-    final StreamObserver<T> observer = observerProvider.createStreamObserver();
-    final TypeLiteral<T> typeLiteral = observerProvider.typeLiteral();
-    final Flowable<StreamBatchRecord<T>> observable =
-        this.buildStreamObservable(observer, sc, typeLiteral);
+  private <T> void stream(StreamConfiguration sc, StreamObserverProvider<T> provider) {
 
-    /*
-     Do processing on monoComputeScheduler; if the monoIoScheduler (or any shared
-     single thread executor) is used, the pipeline can lock up as the thread is dominated by
-     io and never frees to process batches. monoComputeScheduler is a single thread executor
-     to make things easier to reason about for now wrt to ordering/sequential batch processing
-     (but the regular computation scheduler could work as well maybe).
-    */
+    final StreamObserver<T> observer = provider.createStreamObserver();
+    final TypeLiteral<T> literal = provider.typeLiteral();
+    final Flowable<StreamBatchRecord<T>> observable = this.buildObservable(observer, sc, literal);
 
+    // Do processing on monoComputeScheduler; if the monoIoScheduler (or any shared
+    // single thread executor) is used, the pipeline can lock up as the thread is dominated by
+    // io and never frees to process batches. monoComputeScheduler is a single thread executor
+    // to make things easier to reason about for now wrt to ordering/sequential batch processing
+    // (but the regular computation scheduler could work as well maybe).
     Optional<Integer> maybeBuffering = observer.requestBuffer();
     if (maybeBuffering.isPresent()) {
-      logger.info("Creating buffering subscriber buffer={} {}", maybeBuffering.get(), sc);
-      /*
-      if the stream observer wants buffering set that up; it will still see
-      discrete batches but the rx observer wrapping around it here will be given
-      buffered up lists
-     */
+      logger.info("op=create_subscriber type=buffering buffer={} config={}", sc);
+
       observable.observeOn(monoComputeScheduler)
+          // If the stream observer wants buffering set that up; it will see discrete
+          // batches but the rx observer wrapping around it will be given buffered lists.
           .buffer(maybeBuffering.get())
           .subscribeWith(
               new StreamBatchRecordBufferingSubscriber<>(observer, client.metricCollector()));
     } else {
-      logger.info("Creating regular subscriber {}", sc);
-
+      logger.info("op=create_subscriber type=regular config={}", sc);
       subscriber = new StreamBatchRecordSubscriber<>(observer, client.metricCollector());
       observable.observeOn(monoComputeScheduler)
           .subscribeWith(new StreamBatchRecordSubscriber<>(observer, client.metricCollector()));
     }
   }
 
-  private <T> Flowable<StreamBatchRecord<T>> buildStreamObservable(
+  private <T> Flowable<StreamBatchRecord<T>> buildObservable(
       StreamObserver<T> streamObserver,
       StreamConfiguration streamConfiguration,
       TypeLiteral<T> typeLiteral) {
 
-    /*
-     compute a timeout after which we assume the server's gone away or we're on
-     one end of a half-open connection. this is a big downside trying to emulate
-     a streaming model over http get; you really need bidirectional comms instead
-     todo: make these configurable
-     */
+    // compute a timeout after which we assume the server's gone away or we're on
+    // one end of a half-open connection. this is a big downside trying to emulate
+    // a streaming model over http get
     TimeUnit halfOpenUnit = TimeUnit.SECONDS;
     long halfOpenGrace = DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS;
     long batchFlushTimeoutSeconds = this.streamConfiguration.batchFlushTimeoutSeconds();
     long halfOpenKick = halfOpenUnit.toSeconds(batchFlushTimeoutSeconds + halfOpenGrace);
     logger.info(
-        "configuring half open timeout, batch_flush_timeout={}, grace_period={}, disconnect_after={} {}",
+        "op=processor_configure_half_open, batch_flush_timeout={}, grace_period={}, kick_after={}{}",
         batchFlushTimeoutSeconds, halfOpenGrace, halfOpenKick, halfOpenUnit.name().toLowerCase());
 
+    // monoIoScheduler: okhttp needs to be closed on the same thread that opened it; using a
+    // single thread scheduler allows that to happen whereas the default/io/compute schedulers
+    // all use multiple threads which can cause resource leaks: http://bit.ly/2fe4UZH
     final Flowable<StreamBatchRecord<T>> flowable = Flowable.using(
-        resourceFactory(streamConfiguration),
-        observableFactory(typeLiteral, streamConfiguration),
-        observableDispose()
+        httpRequestFactory(streamConfiguration),
+        streamConsumerFactory(typeLiteral, streamConfiguration),
+        httpResponseDispose()
     )
-        /*
-        monoIoScheduler: okhttp needs to be closed on the same thread that opened; using a
-        single thread scheduler allows that to happen whereas the default/io/compute schedulers
-        all use multiple threads which can cause resource leaks: http://bit.ly/2fe4UZH
-        */
         .subscribeOn(monoIoScheduler)
         .unsubscribeOn(monoIoScheduler)
         .doOnSubscribe(subscription -> streamObserver.onStart())
@@ -368,36 +302,55 @@ public class StreamProcessor implements StreamProcessorManaged {
         .retryWhen(buildStreamConnectionRetryFlowable())
         // restarts handle when the server closes the connection (eg checkpointing fell behind)
         .compose(buildRestartHandler())
-        /*
-         todo: investigate why Integer.max causes
-        io.reactivex.exceptions.UndeliverableException: java.lang.NegativeArraySizeException
-         at io.reactivex.plugins.RxJavaPlugins.onError(RxJavaPlugins.java:366)
-         */
-        .onBackpressureBuffer(DEFAULT_BUFFER_SIZE, true, true);
+        .onBackpressureBuffer(DEFAULT_BACKPRESSURE_BUFFER_SIZE, true, true);
 
     return Flowable.defer(() -> flowable);
   }
 
-  private StreamConnectionRetryFlowable buildStreamConnectionRetryFlowable(
-  ) {
-    return new StreamConnectionRetryFlowable(ExponentialRetry.newBuilder()
-        .initialInterval(StreamConnectionRetryFlowable.DEFAULT_INITIAL_DELAY_SECONDS,
-            StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
+  @SuppressWarnings("WeakerAccess") @VisibleForTesting
+  Callable<Response> httpRequestFactory(StreamConfiguration sc) {
+    return streamProcessorRequestFactory.createCallable(sc, this);
+  }
+
+  private <T> Function<? super Response, Flowable<StreamBatchRecord<T>>> streamConsumerFactory(
+      TypeLiteral<T> literal, StreamConfiguration sc) {
+
+    return (Response response) -> {
+      final BufferedReader br = new BufferedReader(response.responseBody().asReader());
+      return Flowable.fromIterable(br.lines()::iterator)
+          .doOnError(throwable -> closeTheResponse(response))
+          .onBackpressureBuffer(DEFAULT_BACKPRESSURE_BUFFER_SIZE, true, true)
+          .map(r -> lineToStreamBatchRecord(r, literal, response, sc));
+    };
+  }
+
+  private Consumer<? super Response> httpResponseDispose() {
+    return this::closeTheResponse;
+  }
+
+  private StreamConnectionRetryFlowable buildStreamConnectionRetryFlowable() {
+
+    final ExponentialRetry exponentialRetry = ExponentialRetry.newBuilder()
+        .initialInterval(
+            StreamConnectionRetryFlowable.DEFAULT_INITIAL_DELAY_SECONDS,
+            StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT
+        )
         .maxInterval(maxRetryDelay, StreamConnectionRetryFlowable.DEFAULT_TIME_UNIT)
         .maxAttempts(maxRetryAttempts)
-        .build(),
-        buildRetryFunction(),
-        client.metricCollector(),
-        this);
+        .build();
+
+    return new StreamConnectionRetryFlowable(
+        exponentialRetry, buildRetryFunction(), client.metricCollector(), this);
   }
 
   private <T> FlowableTransformer<StreamBatchRecord<T>, StreamBatchRecord<T>> buildRestartHandler() {
-    long restartDelay = StreamConnectionRestart.DEFAULT_DELAY_SECONDS;
-    TimeUnit restartDelayUnit = StreamConnectionRestart.DEFAULT_DELAY_UNIT;
-    int maxRestarts = StreamConnectionRestart.DEFAULT_MAX_RESTARTS;
+
     return new StreamConnectionRestart()
         .repeatWhenWithDelayAndUntil(
-            stopRepeatingPredicate(), restartDelay, restartDelayUnit, maxRestarts);
+            stopRepeatingPredicate(),
+            StreamConnectionRestart.DEFAULT_DELAY_SECONDS,
+            StreamConnectionRestart.DEFAULT_DELAY_UNIT,
+            StreamConnectionRestart.DEFAULT_MAX_RESTARTS);
   }
 
   private Function<Throwable, Boolean> buildRetryFunction() {
@@ -407,10 +360,9 @@ public class StreamProcessor implements StreamProcessorManaged {
   private Predicate<Long> stopRepeatingPredicate() {
     return attemptCount -> {
 
-      // todo: track the actual events checkpointed or seen instead
       if (streamConfiguration.streamLimit() != StreamConfiguration.DEFAULT_STREAM_TIMEOUT) {
-        logger.info(
-            "stream repeater will not continue to restart, request for a bounded number of events detected stream_limit={} restarts={}",
+        logger.debug(
+            "op=repeater msg=will not continue to restart, request for a bounded number of events detected stream_limit={} restarts={}",
             streamConfiguration.streamLimit(), attemptCount);
         return true;
       }
@@ -421,96 +373,88 @@ public class StreamProcessor implements StreamProcessorManaged {
     };
   }
 
-  private Consumer<? super Response> observableDispose() {
-    return (response) -> {
-      logger.info("stream_connection_dispose thread {} {} {}", Thread.currentThread().getName(),
-          response.hashCode(), response);
-
-      closeTheResponse(response);
-    };
-  }
-
-  private <T> Function<? super Response, Flowable<StreamBatchRecord<T>>> observableFactory(
-      TypeLiteral<T> typeLiteral, StreamConfiguration sc) {
-    return (Response response) -> {
-      final BufferedReader br = new BufferedReader(response.responseBody().asReader());
-      return Flowable.fromIterable(br.lines()::iterator)
-          .doOnError(throwable -> {
-            closeTheResponse(response);
-          })
-          .onBackpressureBuffer(DEFAULT_BUFFER_SIZE, true, true)
-          .map(r -> lineToStreamBatchRecord(r, typeLiteral, response, sc))
-          ;
-    };
-  }
-
-  @SuppressWarnings("WeakerAccess") @VisibleForTesting
-  Callable<Response> resourceFactory(StreamConfiguration sc) {
-    return streamProcessorRequestFactory.createCallable(sc, this);
-  }
-
-  @SuppressWarnings("WeakerAccess") @VisibleForTesting
-  Response requestStreamConnection(String url, ResourceOptions options, Resource resource) {
-    return resource.requestThrowing(Resource.GET, url, options);
-  }
-
   private <T> StreamBatchRecord<T> lineToStreamBatchRecord(String line,
       TypeLiteral<T> typeLiteral, Response response, StreamConfiguration sc) {
 
-    logger.debug("tokenized line from stream {}, {}", line, response);
+    logger.debug("op=line_to_batch line={}, res={}", line, response);
 
     if (sc.isSubscriptionStream()) {
-      String xNakadiStreamId = response.headers().get("X-Nakadi-StreamId").get(0);
+      String sessionId = response.headers().get(X_NAKADI_STREAM_ID).get(0);
       return jsonBatchSupport.lineToSubscriptionStreamBatchRecord(
-          line, typeLiteral.type(), streamOffsetObserver(), xNakadiStreamId, sc.subscriptionId());
+          line, typeLiteral.type(), streamOffsetObserver(), sessionId, sc.subscriptionId());
     } else {
       return jsonBatchSupport.lineToEventStreamBatchRecord(
           line, typeLiteral.type(), streamOffsetObserver());
     }
   }
 
-  private void closeTheResponse(Response response) {
-
+  private void closeTheResponse(Response res) {
     final String tName = Thread.currentThread().getName();
     boolean closed = false;
 
     try {
-      logger.info("stream_response_close_ask thread={}  {} {}",
-          tName, response.hashCode(), response);
-      response.responseBody().close();
+      logger.debug("op=connection_close msg=close_ask thread={} res_hash={} res={}",
+          tName, res.hashCode(), res);
+      res.responseBody().close();
       closed = true;
-      logger.info("stream_response_close_ok thread={} {} {}",
-          tName, response.hashCode(), response);
     } catch (Exception e) {
-      logger.warn(
-          "stream_response_close_error problem closing thread={} {} {} {} {}",
-          tName, e.getClass().getName(), e.getMessage(), response.hashCode(), response);
+      logger.error("op=connection_close msg=err_close thread={} class={} err={} res_hash={} res={}",
+          tName, e.getClass().getName(), e.getMessage(), res.hashCode(), res);
     } finally {
       if (!closed) {
         try {
-          response.responseBody().close();
+          res.responseBody().close();
           closed = true;
         } catch (IOException e) {
-          logger.warn(
-              "stream_response_close_error  problem re-attempting close thread={} {} {} {} {}",
-              tName, e.getClass().getName(), e.getMessage(), response.hashCode(), response);
+          logger.error(
+              "op=connection_close msg=err_close_reattempt thread={}  class={} err={} res_hash={} res={}",
+              tName, e.getClass().getName(), e.getMessage(), res.hashCode(), res);
         }
       }
 
       if (!closed) {
-        logger.warn(String.format(
-                "stream_response_close_failed did not close response thread=%s %s %s",
-                tName, response.hashCode(), response));
+        logger.warn(String.format("op=connection_close msg=error_clos_fail thread=%s %s %s",
+            tName, res.hashCode(), res));
       }
     }
   }
 
-  @SuppressWarnings("WeakerAccess") @VisibleForTesting
-  Resource buildResource(StreamConfiguration sc) {
-    return client.resourceProvider()
-        .newResource()
-        .readTimeout(sc.readTimeoutMillis(), TimeUnit.MILLISECONDS)
-        .connectTimeout(sc.connectTimeoutMillis(), TimeUnit.MILLISECONDS);
+  private void setupRxErrorHandler() {
+    RxJavaPlugins.setErrorHandler(
+        throwable -> {
+          if (throwable instanceof java.util.concurrent.RejectedExecutionException) {
+            /*
+             this can happen between one processor stopping and new one starting if the
+             old one is interrupted mid-flight.
+              */
+            logger.warn("op=unhandled_rejected_execution action=continue {}",
+                throwable.getMessage());
+          } else {
+            if (throwable instanceof NonRetryableNakadiException) {
+              logger.error(String.format(
+                  "op=unhandled_non_retryable_exception action=stopping type=NonRetryableNakadiException %s ",
+                  ((NonRetryableNakadiException) throwable).problem()), throwable);
+              stopStreaming();
+            } else if (throwable instanceof Error) {
+              logger.error(String.format(
+                  "op=unhandled_error action=stopping type=NonRetryableNakadiException %s ",
+                  throwable.getMessage()), throwable);
+              stopStreaming();
+            } else {
+              logger.error(
+                  String.format("unhandled_unknown_exception action=stopping type=%s %s",
+                      throwable.getClass().getSimpleName(), throwable.getMessage()),
+                  throwable);
+              stopStreaming();
+            }
+          }
+        }
+    );
+  }
+
+  @VisibleForTesting
+  StreamOffsetObserver streamOffsetObserver() {
+    return streamOffsetObserver;
   }
 
   @VisibleForTesting
@@ -563,7 +507,6 @@ public class StreamProcessor implements StreamProcessorManaged {
       if (streamConfiguration.isEventTypeStream() && streamOffsetObserver == null) {
         this.streamOffsetObserver = new LoggingStreamOffsetObserver();
       }
-
 
       if (streamProcessorRequestFactory == null) {
         streamProcessorRequestFactory = new StreamProcessorRequestFactory(client);
