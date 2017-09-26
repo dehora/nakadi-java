@@ -35,6 +35,8 @@ public class StreamProcessor implements StreamProcessorManaged {
   private static final String X_NAKADI_STREAM_ID = "X-Nakadi-StreamId";
   private static final int DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS = 90;
   private static final int DEFAULT_BACKPRESSURE_BUFFER_SIZE = 8000;
+  private static final int START_AWAIT_TIMEOUT_SECONDS = 63;
+  private static final TimeUnit START_AWAIT_TIMEOUT_UNIT = TimeUnit.SECONDS;
   private final NakadiClient client;
   private final StreamConfiguration streamConfiguration;
   private final StreamObserverProvider streamObserverProvider;
@@ -126,7 +128,7 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   /**
    * Perform a controlled shutdown of the stream. <p> The {@link StreamObserver} will have its
-   * onCompleted or onError called under normal circumstances. The {@link StreamObserver} in turn
+   * onCompleted or onStop called under normal circumstances. The {@link StreamObserver} in turn
    * can call its {@link StreamOffsetObserver} to perform cleanup.</p>
    *
    * <p> Calling stop multiple times is the same as calling it once, when start is not also called
@@ -136,7 +138,9 @@ public class StreamProcessor implements StreamProcessorManaged {
    */
   public void stop() {
 
-    waitingOnStart();
+    if(startLatch.getCount() == 1L) {
+      logger.warn("stop called before start completed");
+    }
 
     if (started.getAndSet(false)) {
       stopStreaming();
@@ -185,9 +189,10 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   private void waitingOnStart() {
+    logger.info("stream_processor op=waiting_on_start startup_wait_time={}s", START_AWAIT_TIMEOUT_SECONDS);
     try {
-      startLatch.await(60, TimeUnit.SECONDS);
-      logger.info("stream_processor op=has_started");
+      final boolean await = startLatch.await(START_AWAIT_TIMEOUT_SECONDS, START_AWAIT_TIMEOUT_UNIT);
+      logger.info("stream_processor op=has_started startup_within_allowed_time="+await);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
