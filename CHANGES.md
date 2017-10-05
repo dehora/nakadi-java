@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.9.13
+
+- Lowers default batch buffer and allows setting by configuration. [#256](https://github.com/dehora/nakadi-java/issues/256)
+
 ### 0.9.12
 
 - Stops stream processor after retries are exceeded.  [#284](https://github.com/dehora/nakadi-java/issues/284)
