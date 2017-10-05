@@ -1,5 +1,12 @@
 ### Changes
 
+### 0.9.12
+
+- Stops stream processor after retries are exceeded.  [#284](https://github.com/dehora/nakadi-java/issues/284)
+- Avoids StreamProcessor.stop waiting on start completion.
+- Tidies up OkHttpResource args and connection closing.
+- Removes leap second check on event times.
+
 ### 0.9.11
 
 - Reduce allocations when marshalling events from a stream. [#256](https://github.com/dehora/nakadi-java/issues/256)
