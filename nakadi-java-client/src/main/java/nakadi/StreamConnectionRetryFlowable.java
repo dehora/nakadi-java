@@ -60,6 +60,8 @@ public class StreamConnectionRetryFlowable implements
             "stream_retry failed after %d attempts, propagating error %s, %s",
             backoff.workingAttempts(), throwable.getClass().getSimpleName(),
             throwable.getMessage()));
+        streamProcessor.retryAttemptsFinished(true);
+        streamProcessor.failedProcessorException(throwable);
         return Flowable.error(throwable);
       } else {
         final long delay = backoff.nextBackoffMillis();
@@ -68,6 +70,8 @@ public class StreamConnectionRetryFlowable implements
               "stream_retry being stopped after %d attempts, propagating error %s, %s",
               backoff.workingAttempts(), throwable.getClass().getSimpleName(),
               throwable.getMessage()));
+          streamProcessor.failedProcessorException(throwable);
+          streamProcessor.retryAttemptsFinished(true);
           return Flowable.error(throwable);
         }
 

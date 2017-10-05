@@ -8,4 +8,8 @@ interface StreamProcessorManaged {
 
   boolean running();
 
+  void retryAttemptsFinished(boolean completed);
+
+  void failedProcessorException(Throwable t);
+
 }
