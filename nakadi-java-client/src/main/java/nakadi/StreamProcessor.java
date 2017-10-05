@@ -35,7 +35,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
   private static final String X_NAKADI_STREAM_ID = "X-Nakadi-StreamId";
   private static final int DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS = 90;
-  private static final int DEFAULT_BACKPRESSURE_BUFFER_SIZE = 8000;
+  static final int DEFAULT_BACKPRESSURE_BUFFER_SIZE = 128;
   private static final int START_AWAIT_TIMEOUT_SECONDS = 63;
   private static final TimeUnit START_AWAIT_TIMEOUT_UNIT = TimeUnit.SECONDS;
   private final NakadiClient client;
@@ -52,6 +52,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final AtomicBoolean retryAttemptsFinished = new AtomicBoolean(false);
   private final CountDownLatch startLatch;
   private final StreamProcessorRequestFactory streamProcessorRequestFactory;
+  private final int batchBufferCount;
   private volatile Throwable failedProcessorException;
   private StreamBatchRecordSubscriber subscriber;
   private final ExecutorService monoIoExecutor = Executors.newSingleThreadExecutor(
@@ -79,6 +80,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
     this.maxRetryDelay = StreamConnectionRetryFlowable.DEFAULT_MAX_DELAY_SECONDS;
     this.maxRetryAttempts = StreamConnectionRetryFlowable.DEFAULT_MAX_ATTEMPTS;
+    this.batchBufferCount = StreamProcessor.DEFAULT_BACKPRESSURE_BUFFER_SIZE;
     startLatch = new CountDownLatch(1);
     this.streamProcessorRequestFactory = streamProcessorRequestFactory;
   }
@@ -91,6 +93,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.jsonBatchSupport = new JsonBatchSupport(client.jsonSupport());
     this.maxRetryDelay = streamConfiguration.maxRetryDelaySeconds();
     this.maxRetryAttempts = streamConfiguration.maxRetryAttempts();
+    this.batchBufferCount = streamConfiguration.batchBufferCount();
     startLatch = new CountDownLatch(1);
     this.streamProcessorRequestFactory = builder.streamProcessorRequestFactory;
   }
@@ -271,6 +274,8 @@ public class StreamProcessor implements StreamProcessorManaged {
     logger.info(
         "op=processor_configure_half_open, batch_flush_timeout={}, grace_period={}, kick_after={}{}",
         batchFlushTimeoutSeconds, halfOpenGrace, halfOpenKick, halfOpenUnit.name().toLowerCase());
+    logger.info(
+        "op=processor_configure_batch_buffer, batch_buffer_size={}", onBackPressureBufferSize());
 
     // monoIoScheduler: okhttp needs to be closed on the same thread that opened it; using a
     // single thread scheduler allows that to happen whereas the default/io/compute schedulers
@@ -302,8 +307,7 @@ public class StreamProcessor implements StreamProcessorManaged {
         // retries handle issues like network failures and 409 conflicts
         .retryWhen(buildStreamConnectionRetryFlowable())
         // restarts handle when the server closes the connection (eg checkpointing fell behind)
-        .compose(buildRestartHandler())
-        .onBackpressureBuffer(DEFAULT_BACKPRESSURE_BUFFER_SIZE, true, true);
+        .compose(buildRestartHandler());
 
     return Flowable.defer(() -> flowable);
   }
@@ -320,7 +324,7 @@ public class StreamProcessor implements StreamProcessorManaged {
       final BufferedReader br = new BufferedReader(response.responseBody().asReader());
       return Flowable.fromIterable(br.lines()::iterator)
           .doOnError(throwable -> ResponseSupport.closeQuietly(response))
-          .onBackpressureBuffer(DEFAULT_BACKPRESSURE_BUFFER_SIZE, true, true)
+          .onBackpressureBuffer(onBackPressureBufferSize())
           .map(r -> lineToStreamBatchRecord(r, literal, response, sc));
     };
   }
@@ -451,6 +455,10 @@ public class StreamProcessor implements StreamProcessorManaged {
       failedProcessorException = e;
       stopStreaming();
     }
+  }
+
+  private int onBackPressureBufferSize() {
+    return batchBufferCount;
   }
 
   @VisibleForTesting

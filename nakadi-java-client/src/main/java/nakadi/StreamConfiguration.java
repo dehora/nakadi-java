@@ -39,6 +39,7 @@ public class StreamConfiguration {
   private long maxRetryDelay = StreamConnectionRetryFlowable.DEFAULT_MAX_DELAY_SECONDS;
   private long minRetryDelay = StreamConnectionRetryFlowable.DEFAULT_MIN_DELAY_SECONDS;
   private int maxRetryAttempts = StreamConnectionRetryFlowable.DEFAULT_MAX_ATTEMPTS;
+  private int batchBufferCount = StreamProcessor.DEFAULT_BACKPRESSURE_BUFFER_SIZE;
 
   public String eventTypeName() {
     return topic;
@@ -298,6 +299,22 @@ public class StreamConfiguration {
     return this;
   }
 
+  /**
+   * Set the number of event batches that can be buffered by the client while waiting for
+   * the StreamObserver to process them. The default is 128, and subject to change.
+   *
+   * @param eventBufferSize the number of event batches to buffer
+   * @return this
+   */
+  public StreamConfiguration batchBufferCount(int eventBufferSize) {
+    this.batchBufferCount = eventBufferSize;
+    return this;
+  }
+
+  public int batchBufferCount() {
+    return batchBufferCount;
+  }
+
   boolean isSubscriptionStream() {
     return this.subscriptionId() != null;
   }
@@ -308,7 +325,7 @@ public class StreamConfiguration {
 
   @Override public int hashCode() {
     return Objects.hash(batchLimit, streamLimit, batchFlushTimeout, streamTimeout,
-        streamKeepAliveLimit, cursors, connectTimeout, readTimeout);
+        streamKeepAliveLimit, cursors, connectTimeout, readTimeout, batchBufferCount);
   }
 
   @Override public boolean equals(Object o) {
@@ -322,6 +339,7 @@ public class StreamConfiguration {
         streamKeepAliveLimit == that.streamKeepAliveLimit &&
         connectTimeout == that.connectTimeout &&
         readTimeout == that.readTimeout &&
+        batchBufferCount == that.batchBufferCount &&
         Objects.equals(cursors, that.cursors);
   }
 
@@ -334,6 +352,7 @@ public class StreamConfiguration {
         ", cursors=" + cursors +
         ", connectTimeoutMillis=" + connectTimeout +
         ", readTimeoutMillis=" + readTimeout +
+        ", batchBufferCount=" + batchBufferCount +
         '}';
   }
 }
