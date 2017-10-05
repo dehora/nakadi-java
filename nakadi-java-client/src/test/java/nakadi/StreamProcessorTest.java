@@ -99,7 +99,6 @@ public class StreamProcessorTest {
     assertFalse(processor.running());
     assertTrue(processor.stopped());
 
-    assertFalse(processor.failedProcessorException().isPresent());
   }
 
   @Test
@@ -216,6 +215,9 @@ public class StreamProcessorTest {
     while (processor.running()) {
       Thread.sleep(100L);
     }
+
+    // todo: workaround for timing problem running on circleci
+    Thread.sleep(3000L);
 
     assertFalse(processor.running());
     assertTrue(processor.stopped());

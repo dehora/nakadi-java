@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
 import io.reactivex.Scheduler;
+import io.reactivex.exceptions.UndeliverableException;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
@@ -48,6 +49,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final AtomicBoolean started = new AtomicBoolean(false);
   private final AtomicBoolean stopped = new AtomicBoolean(false);
   private final AtomicBoolean stopping = new AtomicBoolean(false);
+  private final AtomicBoolean retryAttemptsFinished = new AtomicBoolean(false);
   private final CountDownLatch startLatch;
   private final StreamProcessorRequestFactory streamProcessorRequestFactory;
   private volatile Throwable failedProcessorException;
@@ -65,6 +67,7 @@ public class StreamProcessor implements StreamProcessorManaged {
               (t, e) -> handleUncaught(t, e, "stream_processor_err_compute"))
           .build());
   private final Scheduler monoComputeScheduler = Schedulers.from(monoComputeExecutor);
+
 
   @VisibleForTesting
   @SuppressWarnings("unused") StreamProcessor(NakadiClient client,
@@ -170,6 +173,14 @@ public class StreamProcessor implements StreamProcessorManaged {
     return Optional.ofNullable(failedProcessorException);
   }
 
+  @Override public void retryAttemptsFinished(boolean completed) {
+    this.retryAttemptsFinished.getAndSet(completed);
+  }
+
+  public void failedProcessorException(Throwable failedProcessorException) {
+    this.failedProcessorException = failedProcessorException;
+  }
+
   boolean stopped() {
     return stopped.get();
   }
@@ -199,11 +210,19 @@ public class StreamProcessor implements StreamProcessorManaged {
   }
 
   private void stopStreaming() {
+
     stopping.getAndSet(true);
+
+    if (this.failedProcessorException != null) {
+      logger.warn("op=stream_processor_stop msg=failed_processor_exception_detected type={} err={}",
+          this.failedProcessorException.getClass().getSimpleName(),
+          this.failedProcessorException.getMessage());
+    }
+
     subscriber.dispose();
-    logger.debug("stream_processor op=stopping_executor name=monoIoScheduler");
+    logger.debug("op=stream_processor_stop msg=stopping_executor name=monoIoScheduler");
     ExecutorServiceSupport.shutdown(monoIoExecutor);
-    logger.debug("stream_processor op=stopping_executor name=monoComputeScheduler");
+    logger.debug("op=stream_processor_stop msg=stopping_executor name=monoComputeScheduler");
     ExecutorServiceSupport.shutdown(monoComputeExecutor);
     stopped.getAndSet(true);
   }
@@ -265,7 +284,20 @@ public class StreamProcessor implements StreamProcessorManaged {
         .unsubscribeOn(monoIoScheduler)
         .doOnSubscribe(subscription -> streamObserver.onStart())
         .doOnComplete(streamObserver::onCompleted)
-        .doOnCancel(streamObserver::onStop)
+        .doOnCancel(() -> {
+          if (retryAttemptsFinished.get()) {
+
+            logger.info("op=stop_processor msg=stopping_after_stream_retry_finished");
+
+            // stopping here is a brute force, but more effective at resource/thread cleanup
+            // than throwing an exception to the error handler, which from this callsite will
+            // land in setupRxErrorHandler's RxJavaPlugins.setErrorHandler.
+            stopStreaming();
+
+          } else {
+            streamObserver.onStop();
+          }
+        })
         .timeout(halfOpenKick, halfOpenUnit)
         // retries handle issues like network failures and 409 conflicts
         .retryWhen(buildStreamConnectionRetryFlowable())
@@ -360,29 +392,38 @@ public class StreamProcessor implements StreamProcessorManaged {
   private void setupRxErrorHandler() {
     RxJavaPlugins.setErrorHandler(
         t -> {
-          if (t instanceof java.util.concurrent.RejectedExecutionException) {
+
+          Throwable t0 = t;
+
+          if (t instanceof UndeliverableException) {
+            t0 = t.getCause();
+          }
+
+          if(this.failedProcessorException == null) {
+            this.failedProcessorException = t0;
+          }
+
+          if (t0 instanceof java.util.concurrent.RejectedExecutionException) {
              // can happen with a processor stop and another start if the old one is interrupted
-            logger.warn("op=unhandled_rejected_execution action=continue {}", t.getMessage());
+            logger.warn("op=unhandled_rejected_execution action=continue {}", t0.getMessage());
           } else {
-            if (t instanceof NonRetryableNakadiException) {
+            if (t0 instanceof NonRetryableNakadiException) {
               logger.error(String.format(
                   "op=unhandled_non_retryable_exception action=stopping type=NonRetryableNakadiException %s ",
-                  ((NonRetryableNakadiException) t).problem()), t);
-
+                  ((NonRetryableNakadiException) t0).problem()), t0);
               stopStreaming();
 
-            } else if (t instanceof Error) {
+            } else if (t0 instanceof Error) {
               logger.error(String.format(
                   "op=unhandled_error action=stopping type=NonRetryableNakadiException %s ",
-                  t.getMessage()), t);
+                  t.getMessage()), t0);
 
               stopStreaming();
 
             } else {
               logger.error(
                   String.format("unhandled_unknown_exception action=stopping type=%s %s",
-                      t.getClass().getSimpleName(), t.getMessage()),
-                  t);
+                      t0.getClass().getSimpleName(), t0.getMessage()), t0);
 
               stopStreaming();
             }
