@@ -73,8 +73,7 @@ class ExceptionSupport {
       return false;
     }
 
-    logger.info(String.format("retryable_exception_consumer %s %s",
-        e.getClass(), e.getMessage()), e);
+    logger.info(String.format("retryable_exception_consumer %s %s", e.getClass(), e.getMessage()));
     return true;
   }
 
