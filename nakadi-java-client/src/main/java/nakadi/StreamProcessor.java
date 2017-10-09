@@ -368,7 +368,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   private Predicate<Long> stopRepeatingPredicate() {
     return attemptCount -> {
 
-      if (streamConfiguration.streamLimit() != StreamConfiguration.DEFAULT_STREAM_TIMEOUT) {
+      if (streamConfiguration.streamLimit() != StreamConfiguration.DEFAULT_STREAM_LIMIT) {
         logger.debug(
             "op=repeater msg=will not continue to restart, request for a bounded number of events detected stream_limit={} restarts={}",
             streamConfiguration.streamLimit(), attemptCount);
