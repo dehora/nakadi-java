@@ -68,7 +68,7 @@ public class StreamProcessor implements StreamProcessorManaged {
               (t, e) -> handleUncaught(t, e, "stream_processor_err_compute"))
           .build());
   private final Scheduler monoComputeScheduler = Schedulers.from(monoComputeExecutor);
-
+  private volatile StreamObserver streamObserver;
 
   @VisibleForTesting
   @SuppressWarnings("unused") StreamProcessor(NakadiClient client,
@@ -222,6 +222,10 @@ public class StreamProcessor implements StreamProcessorManaged {
           this.failedProcessorException.getMessage());
     }
 
+    if(streamObserver != null) {
+      streamObserver.onStop();
+    }
+
     subscriber.dispose();
     logger.debug("op=stream_processor_stop msg=stopping_executor name=monoIoScheduler");
     ExecutorServiceSupport.shutdown(monoIoExecutor);
@@ -233,6 +237,7 @@ public class StreamProcessor implements StreamProcessorManaged {
   private <T> void stream(StreamConfiguration sc, StreamObserverProvider<T> provider) {
 
     final StreamObserver<T> observer = provider.createStreamObserver();
+    streamObserver = observer;
     final TypeLiteral<T> literal = provider.typeLiteral();
     final Flowable<StreamBatchRecord<T>> observable = this.buildObservable(observer, sc, literal);
 
@@ -299,8 +304,6 @@ public class StreamProcessor implements StreamProcessorManaged {
             // land in setupRxErrorHandler's RxJavaPlugins.setErrorHandler.
             stopStreaming();
 
-          } else {
-            streamObserver.onStop();
           }
         })
         .timeout(halfOpenKick, halfOpenUnit)
