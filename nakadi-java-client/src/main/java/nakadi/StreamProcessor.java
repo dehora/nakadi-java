@@ -303,7 +303,7 @@ public class StreamProcessor implements StreamProcessorManaged {
           streamObserver.onCompleted();
           if (successfulResponseAndCustomStreamTimeout()) {
             logger.info(
-                "op=stop_processor msg=stopping_assuming_server_closed_ok_stream_due_to_stream_timeout stream_timeout={}  server_response={}",
+                "op=stop_processor_on_complete msg=stopping_assuming_server_closed_ok_stream_due_to_stream_timeout stream_timeout={}  server_response={}",
                 streamConfiguration.streamTimeoutSeconds(), this.currentStreamResponseCode);
             stopStreaming();
           }
@@ -319,6 +319,15 @@ public class StreamProcessor implements StreamProcessorManaged {
             stopStreaming();
 
           }
+
+          if (successfulResponseAndCustomStreamTimeout()) {
+            logger.info(
+                "op=stop_processor_on_cancel msg=stopping_assuming_server_closed_ok_stream_due_to_stream_timeout stream_timeout={}  server_response={}",
+                streamConfiguration.streamTimeoutSeconds(), this.currentStreamResponseCode);
+            streamObserver.onCompleted();
+            stopStreaming();
+          }
+
         })
         .timeout(halfOpenKick, halfOpenUnit)
         // retries handle issues like network failures and 409 conflicts
