@@ -69,6 +69,7 @@ public class StreamProcessor implements StreamProcessorManaged {
           .build());
   private final Scheduler monoComputeScheduler = Schedulers.from(monoComputeExecutor);
   private volatile StreamObserver streamObserver;
+  private volatile int currentStreamResponseCode;
 
   @VisibleForTesting
   @SuppressWarnings("unused") StreamProcessor(NakadiClient client,
@@ -184,6 +185,11 @@ public class StreamProcessor implements StreamProcessorManaged {
     this.failedProcessorException = failedProcessorException;
   }
 
+  StreamProcessor currentStreamResponseCode(int currentStreamResponseCode) {
+    this.currentStreamResponseCode = currentStreamResponseCode;
+    return this;
+  }
+
   boolean stopped() {
     return stopped.get();
   }
@@ -293,7 +299,15 @@ public class StreamProcessor implements StreamProcessorManaged {
         .subscribeOn(monoIoScheduler)
         .unsubscribeOn(monoIoScheduler)
         .doOnSubscribe(subscription -> streamObserver.onStart())
-        .doOnComplete(streamObserver::onCompleted)
+        .doOnComplete( () -> {
+          streamObserver.onCompleted();
+          if (successfulResponseAndCustomStreamTimeout()) {
+            logger.info(
+                "op=stop_processor msg=stopping_assuming_server_closed_ok_stream_due_to_stream_timeout stream_timeout={}  server_response={}",
+                streamConfiguration.streamTimeoutSeconds(), this.currentStreamResponseCode);
+            stopStreaming();
+          }
+        })
         .doOnCancel(() -> {
           if (retryAttemptsFinished.get()) {
 
@@ -313,6 +327,10 @@ public class StreamProcessor implements StreamProcessorManaged {
         .compose(buildRestartHandler());
 
     return Flowable.defer(() -> flowable);
+  }
+
+  private boolean successfulResponseAndCustomStreamTimeout() {
+    return currentStreamResponseCode == 200 && hasCustomStreamTimeout();
   }
 
   @SuppressWarnings("WeakerAccess") @VisibleForTesting
@@ -379,6 +397,10 @@ public class StreamProcessor implements StreamProcessorManaged {
 
       return false;
     };
+  }
+
+  private boolean hasCustomStreamTimeout() {
+    return streamConfiguration.streamTimeoutSeconds() != StreamConfiguration.DEFAULT_STREAM_TIMEOUT;
   }
 
   private <T> StreamBatchRecord<T> lineToStreamBatchRecord(String line,

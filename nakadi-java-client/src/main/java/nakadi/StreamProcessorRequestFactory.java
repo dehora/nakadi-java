@@ -28,6 +28,9 @@ class StreamProcessorRequestFactory {
         url);
 
     final Response response = requestStreamConnection(url, options, buildResource(sc));
+
+    streamProcessor.currentStreamResponseCode(response.statusCode());
+
     logger.info("stream_connection_open step=opened {} {}", response.hashCode(), response);
 
     return response;
