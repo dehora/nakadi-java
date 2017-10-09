@@ -27,12 +27,17 @@ public interface StreamObserver<T> {
   void onStart();
 
   /**
-   * Called after the stream either cannot be recovered and retried, or has completed.
+   * Called after the stream either cannot be recovered and retried, or has been stopped.
    */
   void onStop();
 
   /**
    * Notifies the Observer that the {@link StreamProcessorManaged} has finished sending batches.
+   *
+   * <p>
+   *  This signals the end of a stream. which happens when a processor was configured to handle a
+   *  fixed number of items. Typically Nakadi streams are considered infinite.
+   *</p>
    *
    * <p>Once the {@link StreamProcessorManaged} calls this method, it will not call
    * {@link #onNext}. </p>
