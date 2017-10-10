@@ -63,11 +63,11 @@ public class SubscriptionOffsetCheckpointer {
 
       if (ccr.items().isEmpty()) {
         // 204; the cursor was moved forward, the server doesn't return data
-        logger.info("subscription_checkpoint server_accepted_updated_cursor {}",
+        logger.debug("subscription_checkpoint server_accepted_updated_cursor {}",
             cursorTrackingKey(context));
       } else {
         // 200; the cursor was older or equal to what's there, server sends back a non-empty array.
-        logger.info("subscription_checkpoint server_ok_indicated_stale_cursor {}", ccr);
+        logger.debug("subscription_checkpoint server_ok_indicated_stale_cursor {}", ccr);
       }
     } catch (RateLimitException e) {
       /*
@@ -94,7 +94,7 @@ public class SubscriptionOffsetCheckpointer {
     } catch (NetworkException e) {
       client.metricCollector().mark(MetricCollector.Meter.sessionCheckpointNetworkException, 1);
       if (suppressNetworkException) {
-        logger.info("suppressed_network_checkpoint_err {}", e.getMessage());
+        logger.info("suppressed_network_checkpoint_err {} {}", cursorTrackingKey(context), e.getMessage());
       } else {
         throw e;
       }
