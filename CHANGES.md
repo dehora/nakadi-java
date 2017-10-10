@@ -1,5 +1,12 @@
 ### Changes
 
+### 0.9.15.b1
+
+This is a beta release.
+
+- Removes custom buffering from stream processor. [#294](https://github.com/dehora/nakadi-java/issues/294)
+- Tidies stream processor logging and reduces allocations.
+
 ### 0.9.14
 
 - Stops the processor after a successful response with a stream timeout.[#291](https://github.com/dehora/nakadi-java/issues/291)
