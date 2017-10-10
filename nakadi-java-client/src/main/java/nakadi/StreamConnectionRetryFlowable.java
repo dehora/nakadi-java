@@ -75,10 +75,10 @@ public class StreamConnectionRetryFlowable implements
           return Flowable.error(throwable);
         }
 
-        logger.info(String.format(
-            "stream_retry_will_sleep sleep=%s attempt=%d/%d thread=%s error=%s",
-            delay, backoff.workingAttempts(), backoff.maxAttempts(),
-            Thread.currentThread().getName(), throwable.getMessage()));
+        logger.info("stream_retry_will_sleep sleep={} attempt={}/{} thread={} error={}",
+            delay, backoff.workingAttempts(), backoff.maxAttempts(), Thread.currentThread().getName(),
+            throwable.getMessage());
+
 
         metricCollector.mark(MetricCollector.Meter.consumerRetry);
 
