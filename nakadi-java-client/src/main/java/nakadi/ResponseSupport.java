@@ -44,9 +44,9 @@ class ResponseSupport {
     final String tName = Thread.currentThread().getName();
     boolean closed = false;
     try {
-      logger.debug("response_close_ask thread={}", tName);
+      logger.trace("response_close_ask thread={}", tName);
       closeable.close();
-      logger.debug("response_close_ok thread={}", tName);
+      logger.trace("response_close_ok thread={}", tName);
       closed = true;
     } catch (Exception e) {
       logger.error("response_close_error problem closing on {} {}", e.getClass().getName(),
