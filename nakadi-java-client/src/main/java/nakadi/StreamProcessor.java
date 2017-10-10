@@ -247,11 +247,6 @@ public class StreamProcessor implements StreamProcessorManaged {
     final TypeLiteral<T> literal = provider.typeLiteral();
     final Flowable<StreamBatchRecord<T>> observable = this.buildObservable(observer, sc, literal);
 
-    // Do processing on monoComputeScheduler; if the monoIoScheduler (or any shared
-    // single thread executor) is used, the pipeline can lock up as the thread is dominated by
-    // io and never frees to process batches. monoComputeScheduler is a single thread executor
-    // to make things easier to reason about for now wrt to ordering/sequential batch processing
-    // (but the regular computation scheduler could work as well maybe).
     Optional<Integer> maybeBuffering = observer.requestBuffer();
     if (maybeBuffering.isPresent()) {
       logger.info("op=create_subscriber type=buffering buffer={} config={}", sc);
@@ -288,7 +283,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     logger.info(
         "op=processor_configure_batch_buffer, batch_buffer_size={}", onBackPressureBufferSize());
 
-    // monoIoScheduler: okhttp needs to be closed on the same thread that opened it; using a
+    // mono scheduler: okhttp needs to be closed on the same thread that opened it; using a
     // single thread scheduler allows that to happen whereas the default/io/compute schedulers
     // all use multiple threads which can cause resource leaks: http://bit.ly/2fe4UZH
     final Flowable<StreamBatchRecord<T>> flowable = Flowable.using(
