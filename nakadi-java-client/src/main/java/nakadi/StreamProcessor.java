@@ -354,7 +354,6 @@ public class StreamProcessor implements StreamProcessorManaged {
       final BufferedReader br = new BufferedReader(response.responseBody().asReader());
       return Flowable.fromIterable(br.lines()::iterator)
           .doOnError(throwable -> ResponseSupport.closeQuietly(response))
-          .onBackpressureBuffer(onBackPressureBufferSize())
           .map(r -> lineToStreamBatchRecord(r, literal, response, sc));
     };
   }
