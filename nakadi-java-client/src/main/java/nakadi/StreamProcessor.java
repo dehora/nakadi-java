@@ -246,17 +246,12 @@ public class StreamProcessor implements StreamProcessorManaged {
     streamObserver = observer;
     final TypeLiteral<T> literal = provider.typeLiteral();
     final Flowable<StreamBatchRecord<T>> observable = this.buildObservable(observer, sc, literal);
-
-    // Do processing on monoComputeScheduler; if the monoIoScheduler (or any shared
-    // single thread executor) is used, the pipeline can lock up as the thread is dominated by
-    // io and never frees to process batches. monoComputeScheduler is a single thread executor
-    // to make things easier to reason about for now wrt to ordering/sequential batch processing
-    // (but the regular computation scheduler could work as well maybe).
     Optional<Integer> maybeBuffering = observer.requestBuffer();
     if (maybeBuffering.isPresent()) {
       logger.info("op=create_subscriber type=buffering buffer={} config={}", sc);
 
-      observable.observeOn(monoComputeScheduler)
+      observable
+          //.observeOn(monoComputeScheduler)
           // If the stream observer wants buffering set that up; it will see discrete
           // batches but the rx observer wrapping around it will be given buffered lists.
           .buffer(maybeBuffering.get())
@@ -265,7 +260,9 @@ public class StreamProcessor implements StreamProcessorManaged {
     } else {
       logger.info("op=create_subscriber type=regular config={}", sc);
       subscriber = new StreamBatchRecordSubscriber<>(observer, client.metricCollector());
-      observable.observeOn(monoComputeScheduler)
+      observable
+          .observeOn(monoComputeScheduler)
+          //.onBackpressureBuffer(onBackPressureBufferSize(), false, true)
           .subscribeWith(new StreamBatchRecordSubscriber<>(observer, client.metricCollector()));
     }
   }
@@ -296,8 +293,8 @@ public class StreamProcessor implements StreamProcessorManaged {
         streamConsumerFactory(typeLiteral, streamConfiguration),
         httpResponseDispose()
     )
-        .subscribeOn(monoIoScheduler)
-        .unsubscribeOn(monoIoScheduler)
+        .subscribeOn(monoComputeScheduler)
+        .unsubscribeOn(monoComputeScheduler)
         .doOnSubscribe(subscription -> streamObserver.onStart())
         .doOnComplete( () -> {
           streamObserver.onCompleted();
@@ -354,7 +351,7 @@ public class StreamProcessor implements StreamProcessorManaged {
       final BufferedReader br = new BufferedReader(response.responseBody().asReader());
       return Flowable.fromIterable(br.lines()::iterator)
           .doOnError(throwable -> ResponseSupport.closeQuietly(response))
-          .onBackpressureBuffer(onBackPressureBufferSize())
+          //.onBackpressureBuffer(20, false, true)
           .map(r -> lineToStreamBatchRecord(r, literal, response, sc));
     };
   }
@@ -415,13 +412,13 @@ public class StreamProcessor implements StreamProcessorManaged {
   private <T> StreamBatchRecord<T> lineToStreamBatchRecord(String line,
       TypeLiteral<T> typeLiteral, Response response, StreamConfiguration sc) {
 
-    logger.debug("op=line_to_batch line={}, res={}", line, response);
-
     if (sc.isSubscriptionStream()) {
       String sessionId = response.headers().get(X_NAKADI_STREAM_ID).get(0);
+      logger.debug("op=line_to_batch sessionId={} line={}, res={}", sessionId, line, response);
       return jsonBatchSupport.lineToSubscriptionStreamBatchRecord(
           line, typeLiteral.type(), streamOffsetObserver(), sessionId, sc.subscriptionId());
     } else {
+      logger.debug("op=line_to_batch line={}, res={}", line, response);
       return jsonBatchSupport.lineToEventStreamBatchRecord(
           line, typeLiteral.type(), streamOffsetObserver());
     }
