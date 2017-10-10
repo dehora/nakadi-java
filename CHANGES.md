@@ -1,5 +1,10 @@
 ### Changes
 
+### 0.9.14
+
+- Stops the processor after a successful response with a stream timeout.[#291](https://github.com/dehora/nakadi-java/issues/291)
+- Calls StreamObserver.onStop only on termination. [#289](https://github.com/dehora/nakadi-java/issues/289)
+
 ### 0.9.13
 
 - Lowers default batch buffer and allows setting by configuration. [#256](https://github.com/dehora/nakadi-java/issues/256)
