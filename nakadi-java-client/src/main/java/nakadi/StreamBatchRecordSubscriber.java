@@ -38,7 +38,6 @@ class StreamBatchRecordSubscriber<T> extends ResourceSubscriber<StreamBatchRecor
     }
 
     try {
-      logger.debug("StreamBatchRecordSubscriber.onNext");
       if (!record.streamBatch().isEmpty()) {
         metricCollector.mark(MetricCollector.Meter.receivedBatch, 1);
         metricCollector.mark(MetricCollector.Meter.received, record.streamBatch().events().size());
