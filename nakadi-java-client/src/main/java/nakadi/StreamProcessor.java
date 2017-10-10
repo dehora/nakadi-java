@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 public class StreamProcessor implements StreamProcessorManaged {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
-  private static final String X_NAKADI_STREAM_ID = "X-Nakadi-StreamId";
+  static final String X_NAKADI_STREAM_ID = "X-Nakadi-StreamId";
   private static final int DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS = 90;
   static final int DEFAULT_BACKPRESSURE_BUFFER_SIZE = 128;
   private static final int START_AWAIT_TIMEOUT_SECONDS = 63;
