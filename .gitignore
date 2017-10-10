@@ -22,3 +22,5 @@ target/
 */**/out
 
 */**/*z*.pem
+
+logback-test.xml
