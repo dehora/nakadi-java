@@ -307,6 +307,10 @@ public class StreamConfiguration {
    * @return this
    */
   public StreamConfiguration batchBufferCount(int eventBufferSize) {
+    if(eventBufferSize <= 0) {
+      throw new IllegalArgumentException(
+          "Please provide a batch buffer count greater than 0, received: " + eventBufferSize);
+    }
     this.batchBufferCount = eventBufferSize;
     return this;
   }
