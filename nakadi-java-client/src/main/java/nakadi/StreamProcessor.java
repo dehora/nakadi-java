@@ -415,13 +415,13 @@ public class StreamProcessor implements StreamProcessorManaged {
   private <T> StreamBatchRecord<T> lineToStreamBatchRecord(String line,
       TypeLiteral<T> typeLiteral, Response response, StreamConfiguration sc) {
 
-    logger.debug("op=line_to_batch line={}, res={}", line, response);
-
     if (sc.isSubscriptionStream()) {
       String sessionId = response.headers().get(X_NAKADI_STREAM_ID).get(0);
+      logger.debug("op=line_to_batch x_nakadi_stream_id={} line={}, response={}", sessionId, line, response);
       return jsonBatchSupport.lineToSubscriptionStreamBatchRecord(
           line, typeLiteral.type(), streamOffsetObserver(), sessionId, sc.subscriptionId());
     } else {
+      logger.debug("op=line_to_batch line={}, response={}", line, response);
       return jsonBatchSupport.lineToEventStreamBatchRecord(
           line, typeLiteral.type(), streamOffsetObserver());
     }
