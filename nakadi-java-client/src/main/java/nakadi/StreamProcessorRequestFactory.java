@@ -23,15 +23,14 @@ class StreamProcessorRequestFactory {
   Response onCall(StreamConfiguration sc, StreamProcessor streamProcessor) throws Exception {
     final String url = StreamResourceSupport.buildStreamUrl(client.baseURI(), sc);
     ResourceOptions options = StreamResourceSupport.buildResourceOptions(client, sc);
-    logger.info("stream_connection_open step=details mode={} url={}",
-        sc.isEventTypeStream() ? "eventStream" : "subscriptionStream",
-        url);
+    final String mode = sc.isEventTypeStream() ? "eventStream" : "subscriptionStream";
+    logger.debug("stream_connection_open step=request mode={} url={}", mode, url);
 
     final Response response = requestStreamConnection(url, options, buildResource(sc));
 
     streamProcessor.currentStreamResponseCode(response.statusCode());
 
-    logger.info("stream_connection_open step=opened {} {}", response.hashCode(), response);
+    logger.info("stream_connection_open step=response hash={} response={} x_nakadi_stream_id={} ", response.hashCode(), response, response.headers().get(StreamProcessor.X_NAKADI_STREAM_ID));
 
     return response;
   }
