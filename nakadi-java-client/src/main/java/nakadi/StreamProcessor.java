@@ -437,7 +437,7 @@ public class StreamProcessor implements StreamProcessorManaged {
 
           if (t0 instanceof java.util.concurrent.RejectedExecutionException) {
              // can happen with a processor stop and another start if the old one is interrupted
-            logger.warn("op=unhandled_rejected_execution action=continue {}", t0.getMessage());
+            logger.debug("op=unhandled_rejected_execution action=continue {}", t0.getMessage());
           } else {
             if (t0 instanceof NonRetryableNakadiException) {
               logger.error(String.format(
