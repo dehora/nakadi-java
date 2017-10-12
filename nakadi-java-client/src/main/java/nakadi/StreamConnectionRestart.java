@@ -48,15 +48,14 @@ class StreamConnectionRestart {
     return upstream -> upstream.repeatWhen(
         flowable -> flowable.zipWith(
             Flowable.range(1, maxRestarts),
-            (obj, count) -> {
-              logger.info("stream_repeater_requested {} restarts={}", obj == null ? "" : obj,
-                  count);
-              return count;
-            }
+            (obj, count) -> count
         ).flatMap(
             attemptCount -> {
-              logger.info("stream_repeater_delay  delay={} {}, restarts={}",
-                  restartDelay, restartDelayUnit.toString().toLowerCase(), attemptCount);
+              if(logger.isDebugEnabled()) {
+                logger.debug("stream_repeater_delay delay={} {}, restarts={} max_restarts={}",
+                    restartDelay, restartDelayUnit.toString().toLowerCase(), attemptCount,
+                    maxRestarts);
+              }
               return Flowable.timer(restartDelay, restartDelayUnit);
             }
         ).takeUntil(
