@@ -120,7 +120,7 @@ public class StreamProcessor implements StreamProcessorManaged {
    * @see #stop()
    */
   public void start() throws IllegalStateException {
-    if (stopped() || stopping()) {
+    if (inShutdown()) {
       throw new IllegalStateException("processor has already been stopped and cannot be restarted");
     }
 
@@ -145,8 +145,15 @@ public class StreamProcessor implements StreamProcessorManaged {
    */
   public void stop() {
 
+    if(inShutdown()) {
+      logger.debug("stream_processor op=stop msg=stopping_processor_already_requested_short_circuiting");
+      return;
+    } else {
+      logger.info("stream_processor op=stop msg=stopping_processor_requested");
+    }
+
     if(startLatch.getCount() == 1L) {
-      logger.warn("stop called before start completed");
+      logger.warn("stream_processor stop called before start completed");
     }
 
     if (started.getAndSet(false)) {
@@ -200,6 +207,10 @@ public class StreamProcessor implements StreamProcessorManaged {
 
   private boolean stopping() {
     return stopped.get() || stopping.get();
+  }
+
+  private boolean inShutdown() {
+    return stopped() || stopping();
   }
 
   private void startStreaming() {
@@ -278,10 +289,8 @@ public class StreamProcessor implements StreamProcessorManaged {
     long batchFlushTimeoutSeconds = this.streamConfiguration.batchFlushTimeoutSeconds();
     long halfOpenKick = halfOpenUnit.toSeconds(batchFlushTimeoutSeconds + halfOpenGrace);
     logger.info(
-        "op=processor_configure_half_open, batch_flush_timeout={}, grace_period={}, kick_after={}{}",
+        "op=processor_configure, batch_flush_timeout={}, grace_period={}, kick_after={}{}",
         batchFlushTimeoutSeconds, halfOpenGrace, halfOpenKick, halfOpenUnit.name().toLowerCase());
-    logger.info(
-        "op=processor_configure_batch_buffer, batch_buffer_size={}", onBackPressureBufferSize());
 
     // mono scheduler: okhttp needs to be closed on the same thread that opened it; using a
     // single thread scheduler allows that to happen whereas the default/io/compute schedulers
@@ -293,7 +302,13 @@ public class StreamProcessor implements StreamProcessorManaged {
     )
         .subscribeOn(monoIoScheduler)
         .unsubscribeOn(monoIoScheduler)
-        .doOnSubscribe(subscription -> streamObserver.onStart())
+        .doOnSubscribe((subscription) -> {
+          if (inShutdown()) {
+            logger.trace("stream_retry_not_resubscribing msg=stream processor is stopped");
+            return;
+          }
+          streamObserver.onStart();
+        })
         .doOnComplete( () -> {
           streamObserver.onCompleted();
           if (successfulResponseAndCustomStreamTimeout()) {
