@@ -174,7 +174,7 @@ class OkHttpResource implements Resource {
         // this can happen if
         // a) the policy is a no-op policy always returning finished
         // b) it's being reused across requests, likely a client bug
-        logger.warn("no_retry_cowardly refusing to used finished retry policy {}", retryPolicy);
+        logger.warn("no_retry_cowardly refusing to compose with finished retry policy {}", retryPolicy);
         metricCollector.mark(retrySkipFinished);
       } else {
         return observable.compose(buildRetry(retryPolicy));
