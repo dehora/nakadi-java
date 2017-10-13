@@ -2,6 +2,8 @@
 
 ### 0.9.15.b2
 
+This is a beta release.
+
 - Adds a guard clause to avoid calling onStart when processor is stopping.
 - Removes logging noise. 
 
