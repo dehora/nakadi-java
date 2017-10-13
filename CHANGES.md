@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.9.15
+
+- promotes 0.9.15.b2 to 0.9.15
+
 ### 0.9.15.b2
 
 This is a beta release.
