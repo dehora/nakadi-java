@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.9.16
+
+- Makes SubscriptionEventTypeStatsCollection constructor visible for testing.
+
 ### 0.9.15
 
 - promotes 0.9.15.b2 to 0.9.15
