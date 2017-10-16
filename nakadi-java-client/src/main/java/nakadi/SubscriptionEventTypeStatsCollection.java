@@ -12,6 +12,13 @@ public class SubscriptionEventTypeStatsCollection
 
   private final SubscriptionResourceReal subscriptionResource;
 
+  public SubscriptionEventTypeStatsCollection(List<SubscriptionEventTypeStats> items,
+      List<ResourceLink> links, NakadiClient client,
+      SubscriptionResourceReal subscriptionResource) {
+    super(items, links, client);
+    this.subscriptionResource = subscriptionResource;
+  }
+
   SubscriptionEventTypeStatsCollection(List<SubscriptionEventTypeStats> items,
       List<ResourceLink> links, SubscriptionResourceReal subscriptionResource, NakadiClient client) {
     super(items, links, client);
