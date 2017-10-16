@@ -159,7 +159,7 @@ public class StreamProcessor implements StreamProcessorManaged {
    * @return true if running, false if not.
    */
   public boolean running() {
-    return !stopping() && !stopped() & started();
+    return !stopping() && !stopped() && started();
   }
 
   /**
