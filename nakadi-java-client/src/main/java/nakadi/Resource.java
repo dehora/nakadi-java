@@ -24,6 +24,11 @@ interface Resource {
    */
   Resource readTimeout(long timeout, TimeUnit unit);
 
+  /**
+   * Sets the write timeout for connections. If 0, no timeout.
+   */
+  Resource writeTimeout(long timeout, TimeUnit unit);
+
   Resource retryPolicy(RetryPolicy retryPolicy);
 
   /**
