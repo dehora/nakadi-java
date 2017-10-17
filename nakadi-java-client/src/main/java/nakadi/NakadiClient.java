@@ -107,12 +107,14 @@ public class NakadiClient {
     private MetricCollector metricCollector;
     private long connectTimeout;
     private long readTimeout;
+    private long writeTimeout;
     private boolean enableHttpLogging;
     private String certificatePath;
 
     Builder() {
       connectTimeout = 20_000;
       readTimeout = 20_000;
+      writeTimeout = 10_000;
     }
 
     /**
@@ -154,7 +156,8 @@ public class NakadiClient {
     private ResourceProvider buildResourceProvider() {
       OkHttpClient.Builder builder = new OkHttpClient.Builder()
           .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
-          .readTimeout(readTimeout, TimeUnit.MILLISECONDS);
+          .readTimeout(readTimeout, TimeUnit.MILLISECONDS)
+          .writeTimeout(writeTimeout, TimeUnit.MILLISECONDS);
 
       if (certificatePath != null) {
         new SecuritySupport(certificatePath).applySslSocketFactory(builder);
@@ -210,6 +213,19 @@ public class NakadiClient {
      */
     public Builder readTimeout(long timeout, TimeUnit unit) {
       readTimeout = unit.toMillis(timeout);
+      return this;
+    }
+
+    /**
+     * Optionally set the default write timeout for connections. If 0, no timeout, otherwise
+     * values must be between 1 and {@link Integer#MAX_VALUE}. The default is 10s.
+     * <p>
+     * The write timeout may be independently per request set via a
+     * {@link Resource#writeTimeout(long, TimeUnit)}, otherwise requests default to this setting.
+     * </p>
+     */
+    public Builder writeTimeout(long timeout, TimeUnit unit) {
+      writeTimeout = unit.toMillis(timeout);
       return this;
     }
 

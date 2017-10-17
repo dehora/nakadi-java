@@ -28,8 +28,10 @@ class OkHttpResource implements Resource {
   private final MetricCollector metricCollector;
   private long connectTimeout = 0;
   private long readTimeout = 0;
+  private long writeTimeout = 0;
   private volatile boolean hasPerRequestConnectTimeout;
   private volatile boolean hasPerRequestReadTimeout;
+  private volatile boolean hasPerRequestWriteTimeout;
   private volatile RetryPolicy retryPolicy;
   private volatile Response response;
 
@@ -53,6 +55,13 @@ class OkHttpResource implements Resource {
     NakadiException.throwNonNull(unit, "Please provide a time unit");
     this.readTimeout = unit.toMillis(timeout);
     hasPerRequestReadTimeout = true;
+    return this;
+  }
+
+  @Override public Resource writeTimeout(long timeout, TimeUnit unit) {
+    NakadiException.throwNonNull(unit, "Please provide a time unit");
+    this.writeTimeout = unit.toMillis(timeout);
+    hasPerRequestWriteTimeout = true;
     return this;
   }
 
@@ -223,7 +232,7 @@ class OkHttpResource implements Resource {
 
   private okhttp3.Response okHttpCall(Request.Builder builder) throws IOException {
 
-    if (hasPerRequestReadTimeout || hasPerRequestConnectTimeout) {
+    if (hasPerRequestReadTimeout || hasPerRequestConnectTimeout || hasPerRequestWriteTimeout) {
 
       final OkHttpClient.Builder clientBuilder = okHttpClient.newBuilder();
       if (hasPerRequestReadTimeout) {
@@ -232,6 +241,10 @@ class OkHttpResource implements Resource {
 
       if (hasPerRequestConnectTimeout) {
         clientBuilder.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS);
+      }
+
+      if (hasPerRequestConnectTimeout) {
+        clientBuilder.writeTimeout(writeTimeout, TimeUnit.MILLISECONDS);
       }
 
       return clientBuilder.build().newCall(builder.build()).execute();
