@@ -1,5 +1,12 @@
 ### Changes
 
+### 0.9.17.b1
+
+This is a beta release.
+
+- Allows the request write timeout to be set. [#307](https://github.com/zalando-incubator/nakadi-java/pull/307)
+- Fixes stop conjunction logic in StreamProcessor [#304](https://github.com/zalando-incubator/nakadi-java/pull/304), @PetrGlad
+
 ### 0.9.16
 
 - Makes SubscriptionEventTypeStatsCollection constructor visible for testing.
