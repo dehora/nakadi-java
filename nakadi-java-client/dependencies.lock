@@ -2,7 +2,7 @@
     "compile": {
         "com.google.code.gson:gson": {
             "locked": "2.8.0",
-            "requested": "2.+"
+            "requested": "2.8.0"
         },
         "com.google.guava:guava": {
             "locked": "19.0",
@@ -10,15 +10,15 @@
         },
         "com.squareup.okhttp3:logging-interceptor": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
-            "requested": "2.+"
+            "requested": "2.0.9"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
@@ -28,7 +28,7 @@
     "compileClasspath": {
         "com.google.code.gson:gson": {
             "locked": "2.8.0",
-            "requested": "2.+"
+            "requested": "2.8.0"
         },
         "com.google.guava:guava": {
             "locked": "19.0",
@@ -36,15 +36,15 @@
         },
         "com.squareup.okhttp3:logging-interceptor": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
-            "requested": "2.+"
+            "requested": "2.0.9"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
@@ -54,7 +54,7 @@
     "compileOnly": {
         "com.google.code.gson:gson": {
             "locked": "2.8.0",
-            "requested": "2.+"
+            "requested": "2.8.0"
         },
         "com.google.guava:guava": {
             "locked": "19.0",
@@ -62,15 +62,15 @@
         },
         "com.squareup.okhttp3:logging-interceptor": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
-            "requested": "2.+"
+            "requested": "2.0.9"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
@@ -80,7 +80,7 @@
     "default": {
         "com.google.code.gson:gson": {
             "locked": "2.8.0",
-            "requested": "2.+"
+            "requested": "2.8.0"
         },
         "com.google.guava:guava": {
             "locked": "19.0",
@@ -88,15 +88,15 @@
         },
         "com.squareup.okhttp3:logging-interceptor": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
-            "requested": "2.+"
+            "requested": "2.0.9"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
@@ -106,7 +106,7 @@
     "runtime": {
         "com.google.code.gson:gson": {
             "locked": "2.8.0",
-            "requested": "2.+"
+            "requested": "2.8.0"
         },
         "com.google.guava:guava": {
             "locked": "19.0",
@@ -114,15 +114,15 @@
         },
         "com.squareup.okhttp3:logging-interceptor": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
-            "requested": "2.+"
+            "requested": "2.0.9"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.25",
@@ -140,7 +140,7 @@
         },
         "com.google.code.gson:gson": {
             "locked": "2.8.0",
-            "requested": "2.+"
+            "requested": "2.8.0"
         },
         "com.google.guava:guava": {
             "locked": "19.0",
@@ -148,19 +148,19 @@
         },
         "com.squareup.okhttp3:logging-interceptor": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:mockwebserver": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
-            "requested": "2.+"
+            "requested": "2.0.9"
         },
         "junit:junit": {
             "locked": "4.12",
@@ -186,7 +186,7 @@
         },
         "com.google.code.gson:gson": {
             "locked": "2.8.0",
-            "requested": "2.+"
+            "requested": "2.8.0"
         },
         "com.google.guava:guava": {
             "locked": "19.0",
@@ -194,19 +194,19 @@
         },
         "com.squareup.okhttp3:logging-interceptor": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:mockwebserver": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
-            "requested": "2.+"
+            "requested": "2.0.9"
         },
         "junit:junit": {
             "locked": "4.12",
@@ -232,7 +232,7 @@
         },
         "com.google.code.gson:gson": {
             "locked": "2.8.0",
-            "requested": "2.+"
+            "requested": "2.8.0"
         },
         "com.google.guava:guava": {
             "locked": "19.0",
@@ -240,19 +240,19 @@
         },
         "com.squareup.okhttp3:logging-interceptor": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:mockwebserver": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
-            "requested": "2.+"
+            "requested": "2.0.9"
         },
         "junit:junit": {
             "locked": "4.12",
@@ -278,7 +278,7 @@
         },
         "com.google.code.gson:gson": {
             "locked": "2.8.0",
-            "requested": "2.+"
+            "requested": "2.8.0"
         },
         "com.google.guava:guava": {
             "locked": "19.0",
@@ -286,19 +286,19 @@
         },
         "com.squareup.okhttp3:logging-interceptor": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:mockwebserver": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.7.0",
-            "requested": "3.+"
+            "requested": "3.7.0"
         },
         "io.reactivex.rxjava2:rxjava": {
             "locked": "2.0.9",
-            "requested": "2.+"
+            "requested": "2.0.9"
         },
         "junit:junit": {
             "locked": "4.12",
