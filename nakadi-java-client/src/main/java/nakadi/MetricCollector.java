@@ -89,6 +89,17 @@ public interface MetricCollector {
     sessionCheckpointNetworkException("nakadi.java.client.event.sessionCheckpointNetworkException"),
 
     /**
+     * Each time the server returns 200 for a stale checkpoint request.
+     */
+    sessionCheckpointOkIndicatedStaleCursor(
+        "nakadi.java.client.event.sessionCheckpointOkIndicatedStaleCursor"),
+
+    /**
+     * Each time the server returns 204 for an accepted checkpoint request.
+     */
+    sessionCheckpointAcceptedCursor("nakadi.java.client.event.sessionCheckpointAcceptedCursor"),
+
+    /**
      * Each time an unknown error response is seen.
      */
     httpUnknown("nakadi.java.client.http.error"),
