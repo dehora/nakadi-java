@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.9.17.b2
+
+This is a beta release.
+
+- Allows a consumer to see the checkpoint response result from the server.
+
 ### 0.9.17.b1
 
 This is a beta release.
