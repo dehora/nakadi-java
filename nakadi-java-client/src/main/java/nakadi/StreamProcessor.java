@@ -520,7 +520,7 @@ public class StreamProcessor implements StreamProcessorManaged {
 
     private NakadiClient client;
     private StreamObserverProvider streamObserverProvider;
-    private SubscriptionOffsetCheckpointer checkpointer;
+    private Checkpointer checkpointer;
     private StreamOffsetObserver streamOffsetObserver;
     private StreamConfiguration streamConfiguration;
     private StreamProcessorRequestFactory streamProcessorRequestFactory;
@@ -599,7 +599,7 @@ public class StreamProcessor implements StreamProcessorManaged {
     }
 
     @Unstable
-    public Builder checkpointer(SubscriptionOffsetCheckpointer checkpointer) {
+    public Builder checkpointer(Checkpointer checkpointer) {
       this.checkpointer = checkpointer;
       return this;
     }

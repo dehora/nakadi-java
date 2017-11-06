@@ -8,9 +8,9 @@ class SubscriptionOffsetObserver implements StreamOffsetObserver {
 
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
-  private final SubscriptionOffsetCheckpointer checkpointer;
+  private final Checkpointer checkpointer;
 
-  public SubscriptionOffsetObserver(SubscriptionOffsetCheckpointer checkpointer) {
+  public SubscriptionOffsetObserver(Checkpointer checkpointer) {
     this.checkpointer = checkpointer;
   }
 
@@ -29,7 +29,7 @@ class SubscriptionOffsetObserver implements StreamOffsetObserver {
   }
 
   @VisibleForTesting
-  SubscriptionOffsetCheckpointer checkpointer() {
+  Checkpointer checkpointer() {
     return checkpointer;
   }
 }
