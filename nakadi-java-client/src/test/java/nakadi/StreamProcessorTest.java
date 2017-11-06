@@ -909,10 +909,13 @@ public class StreamProcessorTest {
         .build();
 
     assertTrue(sp1.streamOffsetObserver() instanceof SubscriptionOffsetObserver);
+    final SubscriptionOffsetObserver subscriptionOffsetObserver =
+        (SubscriptionOffsetObserver) sp1.streamOffsetObserver();
     assertEquals(checkpointer,
-        ((SubscriptionOffsetObserver) sp1.streamOffsetObserver()).checkpointer());
-    assertEquals(true, ((SubscriptionOffsetObserver) sp1.streamOffsetObserver()).checkpointer()
-        .suppressInvalidSessionException());
+        subscriptionOffsetObserver.checkpointer());
+    assertEquals(true,
+        ((SubscriptionOffsetCheckpointer) subscriptionOffsetObserver.checkpointer())
+            .suppressInvalidSessionException());
 
     final StreamProcessor sp2 = StreamProcessor.newBuilder(client)
         .streamConfiguration(new StreamConfiguration().subscriptionId("s1"))
@@ -939,8 +942,10 @@ public class StreamProcessorTest {
         (SubscriptionOffsetObserver) sp1.streamOffsetObserver();
 
     assertTrue(null != observer1.checkpointer());
-    assertEquals(true,  observer1.checkpointer().suppressInvalidSessionException());
-    assertEquals(true,  observer1.checkpointer().suppressNetworkException());
+    assertEquals(true,
+        ((SubscriptionOffsetCheckpointer) observer1.checkpointer()).suppressInvalidSessionException());
+    assertEquals(true,
+        ((SubscriptionOffsetCheckpointer) observer1.checkpointer()).suppressNetworkException());
 
     SubscriptionOffsetCheckpointer checkpointer2 = new SubscriptionOffsetCheckpointer(client);
     final StreamProcessor sp2 = StreamProcessor.newBuilder(client)
@@ -954,8 +959,10 @@ public class StreamProcessorTest {
         (SubscriptionOffsetObserver) sp2.streamOffsetObserver();
 
     assertTrue(null != observer2.checkpointer());
-    assertEquals(false,  observer2.checkpointer().suppressInvalidSessionException());
-    assertEquals(false,  observer2.checkpointer().suppressNetworkException());
+    assertEquals(false,
+        ((SubscriptionOffsetCheckpointer) observer2.checkpointer()).suppressInvalidSessionException());
+    assertEquals(false,
+        ((SubscriptionOffsetCheckpointer) observer2.checkpointer()).suppressNetworkException());
   }
 
   @Test
