@@ -1,0 +1,13 @@
+{
+  "items": [
+    {
+      "cursor": {
+        "event_type": "woo",
+        "cursor_token": "0-cursor_token",
+        "partition": "0",
+        "offset": "4"
+      },
+      "result": "outdated"
+    }
+  ]
+}

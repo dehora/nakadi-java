@@ -4,11 +4,14 @@ import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.function.BiConsumer;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -36,6 +39,55 @@ public class SubscriptionOffsetCheckpointerTest {
       server.shutdown();
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  @Test
+  public void consumer() throws InvalidException {
+
+    try {
+      before();
+
+      Cursor cursor = new Cursor("p", "o", "e");
+      final HashMap<String, String> context = Maps.newHashMap();
+      context.put(StreamResourceSupport.X_NAKADI_STREAM_ID, "aa");
+      context.put(StreamResourceSupport.SUBSCRIPTION_ID, "bb");
+      StreamCursorContext streamCursorContext = new StreamCursorContextReal(cursor, context);
+
+      final boolean[] expectEmpty = {false};
+
+      final BiConsumer<CursorCommitResultCollection, StreamCursorContext> consumerEmpty =
+          (ccr, streamCursorContext1) -> {
+
+            expectEmpty[0] = ccr.items().isEmpty();
+          };
+
+      SubscriptionOffsetCheckpointer checkpointerEmpty =
+          new SubscriptionOffsetCheckpointer(client).withCursorCommitResultConsumer(consumerEmpty);
+
+      server.enqueue(new MockResponse().setResponseCode(204));
+      checkpointerEmpty.checkpoint(streamCursorContext);
+      assertTrue("expected to see an empty CursorCommitResultCollection for a 204", expectEmpty[0]);
+
+
+      final boolean[] expectNotEmpty = {true};
+      final BiConsumer<CursorCommitResultCollection, StreamCursorContext> consumerNotEmpty =
+          (ccr, streamCursorContext1) -> {
+
+            expectNotEmpty[0] = ccr.items().isEmpty();
+          };
+
+      SubscriptionOffsetCheckpointer checkpointerNotEmpty =
+          new SubscriptionOffsetCheckpointer(client).withCursorCommitResultConsumer(consumerNotEmpty);
+
+      final String json = TestSupport.load("cursor-commit-result-1.json");
+      server.enqueue(new MockResponse().setResponseCode(200).setBody(json));
+
+      checkpointerNotEmpty.checkpoint(streamCursorContext);
+      assertFalse("expected to see a non-empty CursorCommitResultCollection for a 200", expectNotEmpty[0]);
+
+    } finally {
+      after();
     }
   }
 
