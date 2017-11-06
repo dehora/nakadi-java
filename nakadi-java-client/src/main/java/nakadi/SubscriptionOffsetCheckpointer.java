@@ -6,8 +6,6 @@ import java.util.Objects;
 public class SubscriptionOffsetCheckpointer implements Checkpointer {
 
   private final NakadiClient client;
-  private volatile boolean suppressInvalidSessionException;
-  private volatile boolean suppressNetworkException;
 
   private SubscriptionObservableResultCheckpointer delegate;
 
@@ -19,7 +17,8 @@ public class SubscriptionOffsetCheckpointer implements Checkpointer {
          object's default contract, which is unsuppressed.
           */
         .suppressNetworkException(false)
-        .suppressInvalidSessionException(false);
+        .suppressInvalidSessionException(false)
+    ;
   }
 
   /**
@@ -31,7 +30,7 @@ public class SubscriptionOffsetCheckpointer implements Checkpointer {
    */
   public SubscriptionOffsetCheckpointer suppressInvalidSessionException(
       boolean suppressInvalidSessions) {
-    this.suppressInvalidSessionException = suppressInvalidSessions;
+    delegate.suppressInvalidSessionException(suppressInvalidSessions);
     return this;
   }
 
@@ -43,7 +42,7 @@ public class SubscriptionOffsetCheckpointer implements Checkpointer {
    * @return this
    */
   public SubscriptionOffsetCheckpointer suppressNetworkException(boolean suppressNetworkException) {
-    this.suppressNetworkException = suppressNetworkException;
+    delegate.suppressNetworkException(suppressNetworkException);
     return this;
   }
 
@@ -60,38 +59,33 @@ public class SubscriptionOffsetCheckpointer implements Checkpointer {
   @VisibleForTesting
   CursorCommitResultCollection checkpointInner(
       StreamCursorContext context, SubscriptionResource resource) {
-    return resource.checkpoint(context.context(), context.cursor());
+    return delegate.checkpointInner(context, resource);
   }
 
   @VisibleForTesting
   boolean suppressInvalidSessionException() {
-    return suppressInvalidSessionException;
+    return delegate.suppressInvalidSessionException();
   }
 
   @VisibleForTesting
   boolean suppressNetworkException() {
-    return suppressNetworkException;
+    return delegate.suppressNetworkException();
   }
 
   @Override public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     SubscriptionOffsetCheckpointer that = (SubscriptionOffsetCheckpointer) o;
-    return suppressInvalidSessionException == that.suppressInvalidSessionException &&
-        suppressNetworkException == that.suppressNetworkException &&
-        Objects.equals(client, that.client) &&
+    return Objects.equals(client, that.client) &&
         Objects.equals(delegate, that.delegate);
   }
 
   @Override public int hashCode() {
-    return Objects.hash(client, suppressInvalidSessionException, suppressNetworkException,
-        delegate);
+    return Objects.hash(client, delegate);
   }
 
   @Override public String toString() {
     return "SubscriptionOffsetCheckpointer{" + "client=" + client +
-        ", suppressInvalidSessionException=" + suppressInvalidSessionException +
-        ", suppressNetworkException=" + suppressNetworkException +
         ", delegate=" + delegate +
         '}';
   }
