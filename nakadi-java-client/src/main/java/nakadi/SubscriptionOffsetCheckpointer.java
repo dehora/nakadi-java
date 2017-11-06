@@ -1,6 +1,7 @@
 package nakadi;
 
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,9 +13,51 @@ public class SubscriptionOffsetCheckpointer {
   private final NakadiClient client;
   private volatile boolean suppressInvalidSessionException;
   private volatile boolean suppressNetworkException;
+  private BiConsumer<CursorCommitResultCollection, StreamCursorContext> resultCollectionConsumer;
 
   public SubscriptionOffsetCheckpointer(NakadiClient client) {
     this.client = client;
+    resultCollectionConsumer = (ccr, context) -> {
+      if (ccr.items().isEmpty()) {
+        // 204; the cursor was moved forward, the server doesn't return data
+        logger.debug("subscription_checkpoint server_accepted_updated_cursor {}",
+            cursorTrackingKey(context));
+      } else {
+        // 200; the cursor was older or equal to what's there, server sends back a non-empty array.
+        logger.warn("subscription_checkpoint server_ok_indicated_stale_cursor {}", ccr);
+      }
+    };
+  }
+
+  /**
+   * Allows a consumer to see the underlying response results from the server as a
+   * {@link CursorCommitResultCollection} along with the initiating
+   * {@link StreamCursorContext} for the batch.
+   * <p>
+   *  If the {@link CursorCommitResultCollection#items()} is empty this indicates the server
+   *  accepted the request and moved the checkpoint forward. If the
+   *  {@link CursorCommitResultCollection#items()} is non-empty this means one or more of the
+   *  cursors sent the server was stale, which is strongly indicative of a processing problem.
+   * </p>
+   * <p>
+   *  Exceptions thrown due to server issues or where the session id is stale (422 response code)
+   *  will result in this consumer not being invoked. Exceptions thrown by this consumer are
+   *  handled the same way as the configured {@link SubscriptionOffsetObserver}.
+   * <p>
+   *  Note that the consumer call will block this object's {@link #checkpoint} request and
+   *  contributes to the overall batch processing time.
+   * </p>
+   *
+   * @param resultCollectionConsumer a consumer that accepts the server's
+   * {@link CursorCommitResultCollection} result and the batch's {@link StreamCursorContext}.
+   * @return this
+   */
+  public SubscriptionOffsetCheckpointer withCursorCommitResultConsumer(
+      BiConsumer<CursorCommitResultCollection, StreamCursorContext> resultCollectionConsumer) {
+    NakadiException.throwNonNull(resultCollectionConsumer,
+        "Please provide a non-null result consumer");
+    this.resultCollectionConsumer = resultCollectionConsumer;
+    return this;
   }
 
   /**
@@ -62,13 +105,15 @@ public class SubscriptionOffsetCheckpointer {
       final CursorCommitResultCollection ccr = checkpointInner(context, resource);
 
       if (ccr.items().isEmpty()) {
-        // 204; the cursor was moved forward, the server doesn't return data
-        logger.debug("subscription_checkpoint server_accepted_updated_cursor {}",
-            cursorTrackingKey(context));
+        client.metricCollector()
+            .mark(MetricCollector.Meter.sessionCheckpointAcceptedCursor, 1);
       } else {
-        // 200; the cursor was older or equal to what's there, server sends back a non-empty array.
-        logger.debug("subscription_checkpoint server_ok_indicated_stale_cursor {}", ccr);
+        client.metricCollector()
+            .mark(MetricCollector.Meter.sessionCheckpointOkIndicatedStaleCursor, 1);
       }
+
+      resultCollectionConsumer.accept(ccr, context);
+
     } catch (RateLimitException e) {
       /*
        * todo: we need to handle this, rethrow for now
