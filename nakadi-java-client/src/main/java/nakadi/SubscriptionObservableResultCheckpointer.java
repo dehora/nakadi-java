@@ -83,6 +83,13 @@ public class SubscriptionObservableResultCheckpointer implements Checkpointer {
 
     try {
       final CursorCommitResultCollection ccr = checkpointInner(context, resource);
+
+      if (ccr.items().isEmpty()) {
+        client.metricCollector().mark(MetricCollector.Meter.sessionCheckpointAcceptedCursor, 1);
+      } else {
+        client.metricCollector().mark(MetricCollector.Meter.sessionCheckpointOkIndicatedStaleCursor, 1);
+      }
+
       resultCollectionConsumer.accept(ccr, context);
     } catch (RateLimitException e) {
       /*
