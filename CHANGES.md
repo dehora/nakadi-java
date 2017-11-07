@@ -1,5 +1,13 @@
 ### Changes
 
+### 0.9.17
+
+This promotes 0.9.17.b1 and 0.9.17.b2.
+
+- Allows a consumer to see the checkpoint response result from the server.
+- Allows the request write timeout to be set. [#307](https://github.com/zalando-incubator/nakadi-java/pull/307)
+- Fixes stop conjunction logic in StreamProcessor [#304](https://github.com/zalando-incubator/nakadi-java/pull/304), @PetrGlad
+
 ### 0.9.17.b2
 
 This is a beta release.
