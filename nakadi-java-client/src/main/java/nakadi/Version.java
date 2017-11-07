@@ -2,5 +2,5 @@ package nakadi;
 
 public class Version {
 
-  public static final String VERSION = "0.9.17.b2";
+  public static final String VERSION = "0.9.17";
 }
