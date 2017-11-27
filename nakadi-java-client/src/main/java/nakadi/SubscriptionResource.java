@@ -33,7 +33,7 @@ public interface SubscriptionResource {
    * @return the response result
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
@@ -50,7 +50,7 @@ public interface SubscriptionResource {
    * @return the subscription result
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
@@ -67,7 +67,7 @@ public interface SubscriptionResource {
    * @return the subscription result
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws NotFoundException for a 404
@@ -84,7 +84,7 @@ public interface SubscriptionResource {
    * @return the subscription result or {@link Optional#empty()}
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws NakadiException for a general exception
@@ -99,7 +99,7 @@ public interface SubscriptionResource {
    * @return a list that will automatically page when iterated.
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws NotFoundException for a 404
@@ -115,7 +115,7 @@ public interface SubscriptionResource {
    * @return a list that will automatically page when iterated.
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws NotFoundException for a 404
@@ -132,7 +132,7 @@ public interface SubscriptionResource {
    * @return the response
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws NotFoundException for a 404
@@ -150,7 +150,7 @@ public interface SubscriptionResource {
    * @return the result
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws NotFoundException for a 404
@@ -169,7 +169,7 @@ public interface SubscriptionResource {
    * @return this
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
@@ -186,7 +186,7 @@ public interface SubscriptionResource {
    * @return the response as a collection of cursors
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws NotFoundException for a 404
@@ -203,7 +203,7 @@ public interface SubscriptionResource {
    * @return the response as a collection of cursors
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws InvalidException for a 422
    * @throws RateLimitException for a 429
    * @throws NotFoundException for a 404
