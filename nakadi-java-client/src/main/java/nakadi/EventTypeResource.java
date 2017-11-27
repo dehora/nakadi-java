@@ -33,7 +33,7 @@ public interface EventTypeResource {
    * @return a http response
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
    * @throws NakadiException for a general exception
@@ -47,7 +47,7 @@ public interface EventTypeResource {
    *
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
    * @throws NotFoundException for a 404
@@ -64,7 +64,7 @@ public interface EventTypeResource {
    * @return the event type
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
    * @throws NotFoundException for a 404
@@ -81,7 +81,7 @@ public interface EventTypeResource {
    * @return the event type
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
    * @throws NakadiException for a general exception
@@ -103,7 +103,7 @@ public interface EventTypeResource {
    * @return a collection of event types
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
    * @throws NotFoundException for a 404
@@ -119,7 +119,7 @@ public interface EventTypeResource {
    * @param eventTypeName the event type
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
    * @throws NotFoundException for a 404
@@ -136,7 +136,7 @@ public interface EventTypeResource {
    * @param partitionId the partition
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
    * @throws NotFoundException for a 404
@@ -154,7 +154,7 @@ public interface EventTypeResource {
    * @param params the query parameters
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
    * @throws NotFoundException for a 404
@@ -169,7 +169,7 @@ public interface EventTypeResource {
    * @return the event type schemas for the event type.
    * @throws AuthorizationException unauthorised
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
    * @throws NotFoundException for a 404

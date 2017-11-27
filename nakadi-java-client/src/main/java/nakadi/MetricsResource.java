@@ -31,7 +31,7 @@ public class MetricsResource {
    *
    * @return server metrics.
    * @throws ClientException for a 400 or generic client error
-   * @throws ServerException for a 400 or generic client error
+   * @throws ServerException for a 5xx or generic server error
    * @throws RateLimitException for a 429
    * @throws ConflictException for a 409
    * @throws NotFoundException for a 404
