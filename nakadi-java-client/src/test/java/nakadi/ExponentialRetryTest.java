@@ -20,7 +20,7 @@ public class ExponentialRetryTest {
 
     while(true) {
       long l = exponentialRetry.nextBackoffMillis();
-      if(l == -1) {
+      if(l == RetryPolicy.STOP) {
         break;
       }
       Thread.sleep(l);
@@ -36,7 +36,7 @@ public class ExponentialRetryTest {
 
     while(true) {
       long l = exponentialRetry.nextBackoffMillis();
-      if(l == -1) {
+      if(l == RetryPolicy.STOP) {
         break;
       }
       Thread.sleep(l);
@@ -58,7 +58,7 @@ public class ExponentialRetryTest {
 
     while(true) {
       long l = exponentialRetry.nextBackoffMillis();
-      if(l == -1) {
+      if(l == RetryPolicy.STOP) {
         break;
       }
       Thread.sleep(l);
@@ -75,7 +75,7 @@ public class ExponentialRetryTest {
 
     while(true) {
       long l = exponentialRetry.nextBackoffMillis();
-      if(l == -1) {
+      if(l == RetryPolicy.STOP) {
         break;
       }
       Thread.sleep(l);
