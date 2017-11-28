@@ -57,6 +57,21 @@ public class ExponentialRetryTest {
     validateRetriesExceededState(exponentialRetry);
   }
 
+  @Test
+  public void workingTimeCalculation() {
+    ExponentialRetry exponentialRetry = ExponentialRetry.newBuilder()
+            .maxAttempts(1000)
+            .maxInterval(100, TimeUnit.MILLISECONDS)
+            .maxTime(110, TimeUnit.MILLISECONDS)
+            .build();
+    exponentialRetry.nextBackOffMillis(1);
+    exponentialRetry.nextBackOffMillis(100);
+    exponentialRetry.nextBackOffMillis(101);
+    assertFalse(exponentialRetry.isFinished());
+    exponentialRetry.nextBackOffMillis(110);
+    assertTrue(exponentialRetry.isFinished());
+  }
+
   private void validateRetriesExceededState(ExponentialRetry exponentialRetry) {
     assertTrue(exponentialRetry.workingTime < exponentialRetry.maxTime);
     assertTrue(exponentialRetry.workingAttempts >= exponentialRetry.maxAttempts);

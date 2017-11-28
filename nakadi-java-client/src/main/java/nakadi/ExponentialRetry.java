@@ -48,11 +48,14 @@ public class ExponentialRetry implements RetryPolicy {
   }
 
   public long nextBackoffMillis() {
+    return nextBackOffMillis(System.currentTimeMillis());
+  }
 
-    if (startTime == 0L) {
-      startTime = System.currentTimeMillis();
+  long nextBackOffMillis(long nowMillis) {
+    if (this.startTime == 0L) {
+      this.startTime = nowMillis;
     } else {
-      workingTime += (System.currentTimeMillis() - startTime);
+      workingTime += (nowMillis - this.startTime);
     }
 
     if (isFinished()) {
