@@ -18,7 +18,6 @@ public class ExponentialRetry implements RetryPolicy {
   long workingAttempts = 1;
   long maxTime;
   long workingTime = 0L;
-  TimeUnit unit;
   private long workingInterval;
   private volatile long startTime = 0L;
   private float percentOfMaxIntervalForJitter;
@@ -28,7 +27,6 @@ public class ExponentialRetry implements RetryPolicy {
     this.maxInterval = builder.maxInterval;
     this.workingInterval = initialInterval;
     this.maxAttempts = builder.maxAttempts;
-    this.unit = builder.unit;
     this.maxTime = builder.maxTime;
     this.percentOfMaxIntervalForJitter = builder.percentOfMaxIntervalForJitter;
   }
@@ -61,11 +59,11 @@ public class ExponentialRetry implements RetryPolicy {
       return STOP;
     }
 
-    workingInterval = unit.toMillis(workingInterval) * (workingAttempts * workingAttempts);
+    workingInterval = workingInterval * (workingAttempts * workingAttempts);
     workingAttempts++;
 
     if (workingInterval <= 0) {
-      workingInterval = unit.toMillis(maxInterval);
+      workingInterval = maxInterval;
     }
 
     if (initialInterval != workingInterval) {
@@ -100,13 +98,10 @@ public class ExponentialRetry implements RetryPolicy {
         ", maxInterval=" + maxInterval +
         ", maxAttempts=" + maxAttempts +
         ", workingAttempts=" + workingAttempts +
-        ", unit=" + unit +
         '}';
   }
 
   public static class Builder {
-
-    private final TimeUnit unit = TimeUnit.MILLISECONDS;
     public float percentOfMaxIntervalForJitter = PERCENT_OF_MAX_INTERVAL_AS_JITTER;
     private long initialInterval = DEFAULT_INITIAL_INTERVAL_MILLIS;
     private long maxInterval = DEFAULT_MAX_INTERVAL_MILLIS;
