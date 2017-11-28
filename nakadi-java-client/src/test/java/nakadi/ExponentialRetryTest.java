@@ -64,7 +64,9 @@ public class ExponentialRetryTest {
             .maxTime(110, TimeUnit.MILLISECONDS)
             .build();
     exponentialRetry.nextBackOffMillis(1);
+    assertFalse(exponentialRetry.isFinished());
     exponentialRetry.nextBackOffMillis(100);
+    assertFalse(exponentialRetry.isFinished());
     exponentialRetry.nextBackOffMillis(101);
     assertFalse(exponentialRetry.isFinished());
     exponentialRetry.nextBackOffMillis(111);
