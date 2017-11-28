@@ -31,7 +31,7 @@ public class ExponentialRetryTest {
   }
 
   private void validateTimeoutState(ExponentialRetry exponentialRetry) {
-    assertTrue(exponentialRetry.lastBackoff >= exponentialRetry.maxTime);
+    assertTrue(exponentialRetry.workingTime() >= exponentialRetry.maxTime);
     assertTrue(exponentialRetry.workingAttempts < exponentialRetry.maxAttempts);
   }
 
@@ -74,7 +74,7 @@ public class ExponentialRetryTest {
   }
 
   private void validateRetriesExceededState(ExponentialRetry exponentialRetry) {
-    assertTrue(exponentialRetry.lastBackoff < exponentialRetry.maxTime);
+    assertTrue(exponentialRetry.workingTime() < exponentialRetry.maxTime);
     assertTrue(exponentialRetry.workingAttempts >= exponentialRetry.maxAttempts);
   }
 

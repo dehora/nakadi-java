@@ -17,7 +17,7 @@ public class ExponentialRetry implements RetryPolicy {
   int maxAttempts;
   long workingAttempts = 1;
   long maxTime;
-  long lastBackoff = 0L;
+  private long lastBackoff = 0L;
   private long workingInterval;
   private volatile long startTime = 0L;
   private float percentOfMaxIntervalForJitter;
@@ -43,8 +43,12 @@ public class ExponentialRetry implements RetryPolicy {
     return maxInterval;
   }
 
+  long workingTime() {
+    return lastBackoff - startTime;
+  }
+
   public boolean isFinished() {
-    return workingAttempts >= maxAttempts || (lastBackoff - startTime) >= maxTime;
+    return workingAttempts >= maxAttempts || workingTime() >= maxTime;
   }
 
   public long nextBackoffMillis() {
