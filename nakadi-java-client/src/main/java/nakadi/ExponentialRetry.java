@@ -115,7 +115,7 @@ public class ExponentialRetry implements RetryPolicy {
       NakadiException.throwNonNull(unit, "Please provide a TimeUnit");
       this.initialInterval = unit.toMillis(initialInterval);
       if (this.initialInterval < INITIAL_INTERVAL_MIN_AS_MILLIS) {
-        NakadiException.throwNonNull(null, "Please provide an initial value of at least "
+        throw new IllegalArgumentException("Please provide an initial value of at least "
             + INITIAL_INTERVAL_MIN_AS_MILLIS
             + " millis");
       }
@@ -126,7 +126,7 @@ public class ExponentialRetry implements RetryPolicy {
       NakadiException.throwNonNull(unit, "Please provide a TimeUnit");
       this.maxInterval = unit.toMillis(maxInterval);
       if (this.maxInterval < MAX_INTERVAL_MIN_AS_MILLIS) {
-        NakadiException.throwNonNull(null, "Please provide a max interval value of at least "
+        throw new IllegalArgumentException("Please provide a max interval value of at least "
             + MAX_INTERVAL_MIN_AS_MILLIS
             + " millis");
       }
