@@ -241,7 +241,7 @@ public class EventResourceRealTest {
 
     BusinessEventMapped<BusinessPayload> event =
         new BusinessEventMapped<BusinessPayload>()
-            .metadata(new EventMetadata())
+            .metadata(EventMetadata.newPreparedEventMetadata())
             .data(bp);
 
     try {
@@ -420,7 +420,7 @@ public class EventResourceRealTest {
 
     BusinessEventMapped<Map<String, Object>> be = new BusinessEventMapped<>();
     EventMetadata em = new EventMetadata();
-    em.eid("eid1");
+    em.eid("eid1").withFlowId().withOccurredAt();
     Map<String, Object> uemap = Maps.newHashMap();
     uemap.put("a", 1);
     uemap.put("b", 22.0001);
