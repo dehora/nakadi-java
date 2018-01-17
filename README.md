@@ -370,8 +370,10 @@ You can send one or more events to the server:
 ```java
 EventResource resource = client.resources().events();
  
-// nb: EventMetadata sets defaults for eid, occurred at and flow id fields
-EventMetadata em = new EventMetadata();
+// nb: EventMetadata.newPreparedEventMetadata sets defaults for eid, occurred at and flow id fields
+EventMetadata em = EventMetadata.newPreparedEventMetadata();
+
+EventMetadata em1 = new EventMetadata();
   .eid(UUID.randomUUID().toString())
   .occurredAt(OffsetDateTime.now())
   .flowId("decafbad");
@@ -389,13 +391,13 @@ Response response = resource.send("priority-requisitions", dce);
 // send a batch of two events
  
 DataChangeEvent<PriorityRequisition> dce1 = new DataChangeEvent<PriorityRequisition>()
-  .metadata(new EventMetadata())
+  .metadata(EventMetadata.newPreparedEventMetadata())
   .op(DataChangeEvent.Op.C)
   .dataType("priority-requisitions")
   .data(new PriorityRequisition("23"));
  
 DataChangeEvent<PriorityRequisition> dce2 = new DataChangeEvent<PriorityRequisition>()
-  .metadata(new EventMetadata())
+  .metadata(EventMetadata.newPreparedEventMetadata())
   .op(DataChangeEvent.Op.C)
   .dataType("priority-requisitions")
   .data(new PriorityRequisition("24"));
