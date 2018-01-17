@@ -19,10 +19,47 @@ public class EventMetadata {
   private String partition;
   private String version;
 
+  /**
+   * Create a new EventMetadata prepared with values for eid, occurred at, and flow id.
+   * @return an EventMetadata
+   */
+  public static EventMetadata newPreparedEventMetadata() {
+    return new EventMetadata().withEid().withFlowId().withOccurredAt();
+  }
+
+  /**
+   * Create a new EventMetadata.
+   * <p>
+   *   The object is <b>not</b> prepared with any values, such eid, occurred at, and flow id. To
+   *   create an EventMetadata with prepared values use {@link #newPreparedEventMetadata()}
+   * </p>
+   * @return an EventMetadata
+   */
   public EventMetadata() {
-    this.flowId = ResourceSupport.nextFlowId();
-    this.eid = ResourceSupport.nextEid();
-    this.occurredAt = OffsetDateTime.now();
+  }
+
+  /**
+   * Set an event identifier on this metadata.
+   * @return this
+   */
+  public EventMetadata withEid() {
+    return newEid();
+  }
+
+  /**
+   * Set an occurred at time on this metadata.
+   * @return this
+   */
+  public EventMetadata withOccurredAt() {
+    return newOccurredAt();
+  }
+
+  /**
+   * Set a flow id on this metadata.
+   * @return this
+   */
+  public EventMetadata withFlowId() {
+    return newFlowId();
   }
 
   /**
