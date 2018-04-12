@@ -40,6 +40,18 @@ public class StreamProcessor implements StreamProcessorManaged {
   private static final int DEFAULT_HALF_OPEN_CONNECTION_GRACE_SECONDS = 90;
   private static final int DEFAULT_BUFFER_SIZE = 16000;
 
+
+  @VisibleForTesting
+  static void handleBubbledIoException(Logger logger, Thread t, Throwable e) {
+    if(e instanceof java.util.concurrent.RejectedExecutionException) {
+      logger.debug("stream_processor_err_io_rejected {}, {}", t, e.getMessage(), e);
+    } else if(e.getCause() != null && e.getCause().getClass().getSimpleName().endsWith("UndeliverableException")) {
+      logger.debug("stream_processor_err_io_undeliverable {}, {}", t, e.getMessage(), e);
+    } else {
+      logger.error("stream_processor_err_io {}, {}", t, e.getMessage(), e);
+    }
+  }
+
   private final NakadiClient client;
   private final StreamConfiguration streamConfiguration;
   private final StreamObserverProvider streamObserverProvider;
@@ -54,8 +66,10 @@ public class StreamProcessor implements StreamProcessorManaged {
   private final ExecutorService monoIoExecutor = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder()
           .setUncaughtExceptionHandler(
-              (t, e) -> logger.error("stream_processor_err_io {}, {}", t, e.getMessage(), e))
+              (t, e) -> handleBubbledIoException(logger, t, e))
           .setNameFormat("nakadi-java-io-%d").build());
+
+
   private final ExecutorService monoComputeExecutor = Executors.newSingleThreadExecutor(
       new ThreadFactoryBuilder()
           .setUncaughtExceptionHandler(
