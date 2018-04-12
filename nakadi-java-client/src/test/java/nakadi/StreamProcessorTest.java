@@ -1,11 +1,17 @@
 package nakadi;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
 import com.google.common.collect.Maps;
+import io.reactivex.exceptions.UndeliverableException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.RejectedExecutionException;
 import junit.framework.TestCase;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
@@ -16,13 +22,18 @@ import okio.BufferedSink;
 import okio.GzipSink;
 import okio.Okio;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -458,6 +469,45 @@ public class StreamProcessorTest {
     // because I'm wicked and I'm lazy. todo: replace with a latch or something more certain
     Thread.sleep(1200);
     verify(observer, times(1)).onNext(streamCursorContext);
+  }
+
+  @Test
+  public void testLogSquelch() {
+
+    Appender mockAppender = mock(Appender.class);
+
+    final ch.qos.logback.classic.Logger loggerImpl =
+        (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
+    loggerImpl.addAppender(mockAppender);
+    loggerImpl.setLevel(Level.INFO);
+
+    final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
+    assertFalse(logger.isDebugEnabled());
+
+    // expect to squelch a RejectedExecutionException
+    RejectedExecutionException e1 = new RejectedExecutionException("e1");
+    StreamProcessor.handleBubbledIoException(logger, Thread.currentThread(), e1);
+
+    // expect to squelch a RejectedExecutionException with a cause of UndeliverableException
+    RejectedExecutionException e2 = new RejectedExecutionException(new UndeliverableException(new Exception("e2")));
+    StreamProcessor.handleBubbledIoException(logger, Thread.currentThread(), e2);
+
+    // expect to squelch a cause of UndeliverableException
+    Exception e3 = new Exception(new UndeliverableException(new Exception("e2")));
+    StreamProcessor.handleBubbledIoException(logger, Thread.currentThread(), e3);
+
+    // expect to log this
+    final Exception e4 = new Exception("e4");
+    StreamProcessor.handleBubbledIoException(logger, Thread.currentThread(), e4);
+
+    ArgumentCaptor<Appender> argumentCaptor = ArgumentCaptor.forClass(Appender.class);
+    verify(mockAppender, times(1)).doAppend(argumentCaptor.capture());
+
+    final List<Appender> allValues = argumentCaptor.getAllValues();
+    assertEquals(1, allValues.size());
+
+    final LoggingEvent loggingEvent = (LoggingEvent) allValues.get(0);
+    assertTrue(loggingEvent.getFormattedMessage().contains("stream_processor_err_io Thread"));
   }
 
   private Buffer gzip(String data) throws IOException {
