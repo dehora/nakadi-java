@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.8.5.1
+
+2018/04/12: This is patch release forked from 0.8.5
+
+- Suppresses logging of some unhandled exceptions from StreamProcessor.
+
 ### 0.8.5
 
 - Adds support for cursor reset API.
