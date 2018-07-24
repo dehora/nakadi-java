@@ -10,6 +10,7 @@
     "type": "json_schema",
     "schema": "{ \"properties\": { \"order_number\": { \"type\": \"string\" } } }"
   },
+  "cleanup_policy": "delete",
   "authorization": {
     "admins": [{"data_type": "*", "value": "a"}],
     "readers": [{"data_type": "*", "value": "r"}],

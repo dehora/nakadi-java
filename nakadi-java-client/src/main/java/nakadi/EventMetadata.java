@@ -18,6 +18,7 @@ public class EventMetadata {
   private String flowId;
   private String partition;
   private String version;
+  private String partitionCompactionKey;
 
   /**
    * Create a new EventMetadata prepared with values for eid, occurred at, and flow id.
@@ -82,6 +83,24 @@ public class EventMetadata {
 
   EventMetadata newEid() {
     this.eid = ResourceSupport.nextEid();
+    return this;
+  }
+
+  /**
+   * @return the event partition compaction key
+   */
+  public String partitionCompactionKey() {
+    return this.partitionCompactionKey;
+  }
+
+  /**
+   * Set the event partition compaction key
+   *
+   * @param partitionCompactionKey is the string used for compaction of events
+   * @return this
+   */
+  public EventMetadata partitionCompactionKey(String partitionCompactionKey) {
+    this.partitionCompactionKey = partitionCompactionKey;
     return this;
   }
 

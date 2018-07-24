@@ -16,6 +16,8 @@ public class EventType {
   public static final String ENRICHMENT_METADATA = "metadata_enrichment";
   public static final String PARTITION_RANDOM = "random";
   public static final String PARTITION_HASH = "hash";
+  public static final String DELETE = "delete";
+  public static final String COMPACT = "compact";
   private static final List<String> SENTINEL_EMPTY_SCOPES =
       Collections.unmodifiableList(Lists.newArrayList());
   private final List<String> enrichmentStrategies = new ArrayList<>();
@@ -29,6 +31,7 @@ public class EventType {
   private EventTypeOptions options;
   private String compatibilityMode;
   private EventTypeAuthorization authorization;
+  private String cleanupPolicy;
   private OffsetDateTime createdAt;
   private OffsetDateTime updatedAt;
 
@@ -316,6 +319,24 @@ public class EventType {
    */
   public EventType authorization(EventTypeAuthorization authorization) {
     this.authorization = authorization;
+    return this;
+  }
+
+  /**
+   * @return the cleanup policy for this event type
+   */
+  public String cleanupPolicy() {
+    return this.cleanupPolicy;
+  }
+
+  /**
+   * Set the cleanup policy for this event type
+   *
+   * @param cleanupPolicy for this event type
+   * @return this
+   */
+  public EventType cleanupPolicy(String cleanupPolicy) {
+    this.cleanupPolicy = cleanupPolicy;
     return this;
   }
 
