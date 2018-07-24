@@ -11,7 +11,8 @@
         "event_type": "et-1",
         "partition": "0",
         "received_at": "2016-10-26T18:12:20.712Z",
-        "flow_id": "Nt0oU70k3UCNp2NKugrIF0QU"
+        "flow_id": "Nt0oU70k3UCNp2NKugrIF0QU",
+        "partition_compaction_key": "a-compaction-key"
       },
       "id": "1",
       "foo": "2",

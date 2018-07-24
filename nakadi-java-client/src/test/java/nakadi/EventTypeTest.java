@@ -89,6 +89,7 @@ public class EventTypeTest {
     assertEquals(EventType.Category.business, eventType.category());
     assertEquals(Lists.newArrayList("metadata_enrichment"), eventType.enrichmentStrategies());
     assertEquals("random", eventType.partitionStrategy());
+    assertEquals("delete", eventType.cleanupPolicy());
     assertNotNull(eventType.partitionKeyFields());
     assertNotNull(eventType.enrichmentStrategies());
     assertNull(eventType.eventTypeStatistics());

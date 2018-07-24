@@ -24,6 +24,7 @@ public class EventMetadataTest {
     assertNull(eventMetadata.eid());
     assertNull(eventMetadata.occurredAt());
     assertNull(eventMetadata.flowId());
+    assertNull(eventMetadata.partitionCompactionKey());
   }
 
 }

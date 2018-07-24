@@ -111,6 +111,7 @@ public class JsonBatchSupportTest {
     assertEquals("0", metadata.partition());
     assertEquals("2016-10-26T18:12:20.712Z", metadata.receivedAt().toString());
     assertEquals("Nt0oU70k3UCNp2NKugrIF0QU", metadata.flowId());
+    assertEquals("a-compaction-key", metadata.partitionCompactionKey());
 
     UndefinedPayload data = event.data();
     assertEquals("1", data.id);
