@@ -94,6 +94,7 @@ public class EventTypeTest {
     assertNotNull(eventType.enrichmentStrategies());
     assertNull(eventType.eventTypeStatistics());
     assertNull(eventType.options());
+    assertEquals("delete", eventType.cleanupPolicy());
     final EventTypeAuthorization authorization = eventType.authorization();
     assertNotNull(authorization);
     assertNotNull(authorization.admins());
@@ -108,7 +109,6 @@ public class EventTypeTest {
     assertEquals(1, authorization.writers().size());
     assertEquals(AuthorizationAttribute.WILDCARD, authorization.writers().get(0).dataType());
     assertEquals("w", authorization.writers().get(0).value());
-
   }
 
   @Test
@@ -133,6 +133,7 @@ public class EventTypeTest {
     assertNotNull(eventType2.enrichmentStrategies());
     assertNull(eventType2.eventTypeStatistics());
     assertNull(eventType2.options());
+    assertEquals("delete", eventType2.cleanupPolicy());
     final EventTypeAuthorization authorization = eventType2.authorization();
     assertNotNull(authorization);
     assertNotNull(authorization.admins());
