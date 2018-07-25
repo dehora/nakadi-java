@@ -24,7 +24,19 @@ public class EventMetadataTest {
     assertNull(eventMetadata.eid());
     assertNull(eventMetadata.occurredAt());
     assertNull(eventMetadata.flowId());
+  }
+
+  @Test
+  public void testNewEventMetadataCompaction() {
+    final EventMetadata eventMetadata = new EventMetadata();
     assertNull(eventMetadata.partitionCompactionKey());
+    eventMetadata.partitionCompactionKey("123");
+    assertEquals("123", eventMetadata.partitionCompactionKey());
+
+    final EventMetadata preparedEventMetadata = EventMetadata.newPreparedEventMetadata();
+    assertNull(preparedEventMetadata.partitionCompactionKey());
+    preparedEventMetadata.partitionCompactionKey("1234");
+    assertEquals("1234", preparedEventMetadata.partitionCompactionKey());
   }
 
 }

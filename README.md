@@ -1,7 +1,7 @@
 
 **Status**
 
-- Build: [![CircleCI](https://circleci.com/gh/zalando-incubator/nakadi-java.svg?style=svg)](https://circleci.com/gh/zalando-incubator/nakadi-java)
+- Build: [![CircleCI](https://circleci.com/gh/dehora/nakadi-java.svg?style=svg)](https://circleci.com/gh/dehora/nakadi-java)
 - Release Download: [ ![Download](https://api.bintray.com/packages/dehora/maven/nakadi-java-client/images/download.svg) ](https://bintray.com/dehora/maven/nakadi-java-client/_latestVersion)
 - Source Release: [0.9.17](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.9.17)
 - Contact: [maintainers](https://github.com/zalando-incubator/nakadi-java/blob/master/MAINTAINERS)
@@ -337,6 +337,7 @@ EventType requisitions = new EventType()
   .partitionStrategy(EventType.PARTITION_HASH)
   .enrichmentStrategy(EventType.ENRICHMENT_METADATA)
   .partitionKeyFields("id")
+  .cleanupPolicy("delete")
   .schema(new EventTypeSchema().schema(
       "{ \"properties\": { \"id\": { \"type\": \"string\" } } }"));
 Response response = eventTypes.create(requisitions);
@@ -407,6 +408,27 @@ list.add(dce1);
 list.add(dce2);
  
 Response batch = resource.send("priority-requisitions", list);
+``` 
+
+### Compacting Events
+
+Events can be sent with compaction information by setting their metadata. 
+This is required when the `cleanup_policy` of event type is set to `compact`. 
+
+```java
+// create metadata with compaction information for an event
+
+EventMetadata compacted = EventMetadata.newPreparedEventMetadata()
+  .partitionCompactionKey("329ed3d2-8366-11e8-adc0-fa7ae01bbebc");
+
+PriorityRequisition pr = new PriorityRequisition("23");
+DataChangeEvent<PriorityRequisition> dce = new DataChangeEvent<PriorityRequisition>()
+  .metadata(compacted)
+  .op(DataChangeEvent.Op.C)
+  .dataType("priority-requisitions")
+  .data(pr);
+ 
+Response response = resource.send("priority-requisitions", dce);
 ```
 
 ### Subscriptions
