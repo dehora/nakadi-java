@@ -1,5 +1,10 @@
 ### Changes
 
+
+### 0.10.0
+
+- Adds support for creating log compacted event types. [#329](https://github.com/dehora/nakadi-java/pull/328)
+
 ### 0.9.17
 
 This promotes 0.9.17.b1 and 0.9.17.b2.
