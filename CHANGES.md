@@ -1,5 +1,8 @@
 ### Changes
 
+### 0.11.0
+
+- Strips trailing '/' from arg supplied to UriBuilder.builder. [#330](https://github.com/dehora/nakadi-java/pull/330)
 
 ### 0.10.0
 
