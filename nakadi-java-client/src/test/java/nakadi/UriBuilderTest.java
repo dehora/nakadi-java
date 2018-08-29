@@ -7,6 +7,15 @@ import static org.junit.Assert.assertEquals;
 public class UriBuilderTest {
 
   @Test
+  public void buildPathBaseURIWithTrailingSlash() {
+    assertEquals("http://example.org/event-types/one",
+        UriBuilder.builder("http://example.org/")
+            .path("event-types")
+            .path("one")
+            .buildString());
+  }
+
+  @Test
   public void buildPath() {
     assertEquals("http://example.org/event-types/one",
         UriBuilder.builder("http://example.org")
