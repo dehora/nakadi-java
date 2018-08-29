@@ -52,7 +52,15 @@ class UriBuilder {
   }
 
   public static UriBuilder builder(String uri) {
-    return new UriBuilder(uri);
+    return new UriBuilder(rmTrailingSlash(uri));
+  }
+
+  private static String rmTrailingSlash(String uri) {
+    if (uri.endsWith("/")) {
+      return uri.substring(0, uri.length() - 1);
+    }
+
+    return uri;
   }
 
   public static UriBuilder builder(URI uri) {
