@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.9.17.1
+
+- Backport from [0.11.0](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.11.0). Strips trailing '/' from arg supplied to UriBuilder.builder. [#330](https://github.com/dehora/nakadi-java/pull/330)
+
 ### 0.9.17
 
 This promotes 0.9.17.b1 and 0.9.17.b2.
