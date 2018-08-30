@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.8.5.2
+
+- Backport from [0.11.0](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.11.0). Strips trailing '/' from arg supplied to UriBuilder.builder. [#330](https://github.com/dehora/nakadi-java/pull/330)
+
 ### 0.8.5.1
 
 2018/04/12: This is patch release forked from 0.8.5
