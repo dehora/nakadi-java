@@ -79,6 +79,65 @@ public class EventResourceRealTest {
   }
 
   @Test
+  public void spanCtxBusinessIsSentToServerMapped() throws Exception {
+
+    NakadiClient client = spy(NakadiClient.newBuilder()
+        .baseURI("http://localhost:" + MOCK_SERVER_PORT)
+        .build());
+
+    EventResource resource = client.resources().events();
+    BusinessPayload bp = new BusinessPayload("22", "A", "B");
+
+    final EventMetadata metadata = EventMetadata.newPreparedEventMetadata();
+    final Map<String, String> ctx = Maps.newHashMap();
+    final String spanKey = "ot-tracer-spanid";
+    final String spanId = "span_01ghst6jv93yj9p8r9ezrh33m1";
+    final String traceKey = "ot-tracer-traceid";
+    final String traceId = "trc_01cvst6jv93yj9p8r9ezrh3em0";
+    final String baggageKey = "ot-baggage-foo";
+    final String fooKey = "bar";
+    ctx.put(spanKey, spanId);
+    ctx.put(traceKey, traceId);
+    ctx.put(baggageKey, fooKey);
+    metadata.spanCtx(ctx);
+
+    BusinessEventMapped<BusinessPayload> event =
+        new BusinessEventMapped<BusinessPayload>().metadata(metadata).data(bp);
+
+
+    try {
+      before();
+
+      server.enqueue(new MockResponse().setResponseCode(200));
+      resource.send("be-1-100", event);
+      RecordedRequest request = server.takeRequest();
+
+      assertEquals("POST /event-types/be-1-100/events HTTP/1.1", request.getRequestLine());
+
+      String body = request.getBody().readUtf8();
+
+      Type U_TYPE = new TypeToken<List<Map<String, Object>>>() {}.getType();
+
+      List<Map<String, Object>> sent = json.fromJson(body, U_TYPE);
+      assertEquals(1, sent.size());
+
+      Map<String, Object> businessAsMap = sent.get(0);
+      final Map meta = (Map) businessAsMap.get("metadata");
+      assertTrue(meta.containsKey("span_ctx"));
+
+      @SuppressWarnings("unchecked")
+      final Map<String, String> spanCtx = (Map<String, String>) meta.get("span_ctx");
+
+      assertEquals(spanCtx.get(spanKey), spanId);
+      assertEquals(spanCtx.get(traceKey), traceId);
+      assertEquals(spanCtx.get(baggageKey), fooKey);
+
+    } finally {
+      after();
+    }
+  }
+
+  @Test
   public void returnedWithABatchItemResponseFor422And207() throws Exception {
     NakadiClient client = spy(NakadiClient.newBuilder()
         .baseURI("http://localhost:" + MOCK_SERVER_PORT)

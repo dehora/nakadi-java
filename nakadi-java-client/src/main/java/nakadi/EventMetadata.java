@@ -3,6 +3,7 @@ package nakadi;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -19,6 +20,7 @@ public class EventMetadata {
   private String partition;
   private String version;
   private String partitionCompactionKey;
+  private Map<String, String> spanCtx;
 
   /**
    * Create a new EventMetadata prepared with values for eid, occurred at, and flow id.
@@ -218,6 +220,24 @@ public class EventMetadata {
   }
 
   /**
+   * @return a map representing the tracing span context. The return value may be null.
+   */
+  public Map<String, String> spanCtx() {
+    return spanCtx;
+  }
+
+  /**
+   * Set the span context for the event.
+   *
+   * @param spanCtx a map representing the tracing span context
+   * @return this
+   */
+  public EventMetadata spanCtx(Map<String, String> spanCtx) {
+    this.spanCtx = spanCtx;
+    return this;
+  }
+
+  /**
    * The version of the schema used to validate this event.
    *
    * @return the version.
@@ -229,7 +249,7 @@ public class EventMetadata {
 
   @Override public int hashCode() {
     return Objects.hash(eid, eventType, occurredAt, receivedAt, parentEids, flowId, partition,
-        version);
+        version, spanCtx);
   }
 
   @Override public boolean equals(Object o) {
@@ -243,6 +263,7 @@ public class EventMetadata {
         Objects.equals(parentEids, that.parentEids) &&
         Objects.equals(flowId, that.flowId) &&
         Objects.equals(partition, that.partition) &&
+        Objects.equals(spanCtx, that.spanCtx) &&
         Objects.equals(version, that.version);
   }
 
@@ -255,6 +276,7 @@ public class EventMetadata {
         ", flowId='" + flowId + '\'' +
         ", partition='" + partition + '\'' +
         ", version='" + version + '\'' +
+        ", spanCtx='" + spanCtx + '\'' +
         '}';
   }
 }

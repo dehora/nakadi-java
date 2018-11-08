@@ -17,6 +17,51 @@ public class JsonBatchSupportTest {
   private final String undefinedLine = TestSupport.load("undefined-event-batch-1.json");
   private final String businessLine = TestSupport.load("business-event-batch-1.json");
   private final String dataLine = TestSupport.load("data-change-event-batch-1.json");
+  private final String spanCtxDataLine = TestSupport.load("data-change-event-batch-span-ctx.json");
+  private final String spanCtxBusinessLine = TestSupport.load("business-event-batch-span-ctx.json");
+
+
+  @Test
+  public void testBusinessEventCanMarshalASpan() {
+
+    TypeLiteral<BusinessEventMapped<ID>> eventType =
+        new TypeLiteral<BusinessEventMapped<ID>>() {
+        };
+
+    StreamBatchRecord<BusinessEventMapped<ID>> sbr =
+        support.lineToEventStreamBatchRecord(spanCtxBusinessLine, eventType.type(),
+            new LoggingStreamOffsetObserver());
+
+    BusinessEventMapped<ID> event = sbr.streamBatch().events().get(0);
+
+    final Map<String, String> spanCtx = event.metadata().spanCtx();
+
+    assertEquals(spanCtx.get("ot-tracer-spanid"), "span_01cvssvfcm346zn4nn6c7xmc49");
+    assertEquals(spanCtx.get("ot-tracer-traceid"), "trc_01cvsskn8542fh1zmxc6018vb4");
+    assertEquals(spanCtx.get("ot-baggage-one"), "two");
+    assertEquals(spanCtx.get("ot-tag-three"), "four");
+    assertEquals(spanCtx.get("ot-childof"), "span_01cvsszwkkees9ag0szyg9t4tw");
+  }
+
+  @Test
+  public void testDataChangeEventCanMarshalASpan() {
+
+    TypeLiteral<DataChangeEvent<ID>> eventType =
+        new TypeLiteral<DataChangeEvent<ID>>() {
+        };
+
+    StreamBatchRecord<DataChangeEvent<ID>> sbr =
+        support.lineToEventStreamBatchRecord(spanCtxDataLine, eventType.type(),
+            new LoggingStreamOffsetObserver());
+
+    DataChangeEvent<ID> event = sbr.streamBatch().events().get(0);
+
+    final Map<String, String> spanCtx = event.metadata().spanCtx();
+
+    assertEquals(spanCtx.get("ot-tracer-spanid"), "span_01ghst6jv93yj9p8r9ezrh33m1");
+    assertEquals(spanCtx.get("ot-tracer-traceid"), "trc_01cvst6jv93yj9p8r9ezrh3em0");
+    assertEquals(spanCtx.get("ot-baggage-foo"), "bar");
+  }
 
   @Test
   public void testUndefinedMarshalNotParameterized() {
