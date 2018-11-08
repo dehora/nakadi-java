@@ -1,5 +1,10 @@
 ### Changes
 
+### 0.12.0
+
+- Adds support for propagating tracing spans. [#336](https://github.com/dehora/nakadi-java/issues/336)
+
+
 ### 0.11.0
 
 - Strips trailing '/' from arg supplied to UriBuilder.builder. [#330](https://github.com/dehora/nakadi-java/pull/330)
