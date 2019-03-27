@@ -3,12 +3,8 @@ package nakadi;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Represents an API subscription.
@@ -27,6 +23,7 @@ public class Subscription {
   private List<String> eventTypes = new ArrayList<>();
   private OffsetDateTime createdAt;
   private List<Cursor> initialCursors;
+  private SubscriptionAuthorization authorization;
 
   /**
    * @return the subscription id
@@ -179,6 +176,15 @@ public class Subscription {
     return this;
   }
 
+  public SubscriptionAuthorization authorization() {
+    return authorization;
+  }
+
+  public Subscription authorization(SubscriptionAuthorization authorization) {
+    this.authorization = authorization;
+    return this;
+  }
+
   private List<Cursor> prepareCursors(List<Cursor> cursors) {
     // copy and strip out any session ids
     return Cursor.prepareRequiringEventType(cursors);
@@ -211,6 +217,7 @@ public class Subscription {
         ", readFrom='" + readFrom + '\'' +
         ", eventTypes=" + eventTypes +
         ", createdAt=" + createdAt +
+        ", authorization='" + authorization + '\'' +
         '}';
   }
 }
