@@ -1,0 +1,30 @@
+
+version: 2
+
+jobs:
+
+  build:
+
+    docker:
+      - image: circleci/openjdk:8-jdk-browsers
+
+    environment:
+      JVM_OPTS: -Xmx1G
+      TERM: dumb
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - gradle-repo-v1-{{ .Branch }}-{{ checksum "dependencies.lock" }}
+            - gradle-repo-v1-{{ .Branch }}-
+            - gradle-repo-v1-
+
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: gradle-repo-v1-{{ .Branch }}-{{ checksum "dependencies.lock" }}
+
+      - run: ./wgradle clean test
+
