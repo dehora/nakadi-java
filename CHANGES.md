@@ -1,5 +1,10 @@
 ### Changes
 
+### 0.13.0
+
+- Adds circleci 2 configuration.
+- Adds support for sending authorizations with subscriptions. @lmontrieux 
+
 ### 0.12.0
 
 - Adds support for propagating tracing spans. [#336](https://github.com/dehora/nakadi-java/issues/336)
