@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 
+import static junit.framework.TestCase.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -51,6 +52,28 @@ public class SubscriptionResourceRealTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Test
+  public void subscriptionAuthorization() {
+
+    SubscriptionAuthorization sa = new SubscriptionAuthorization();
+    sa.admin(new AuthorizationAttribute().dataType(AuthorizationAttribute.WILDCARD).value("myadmin"));
+
+    Subscription create = new Subscription()
+        .authorization(sa)
+        .consumerGroup("cg-" + System.currentTimeMillis() / 100000)
+        .eventType("evt")
+        .readFrom("begin")
+        .owningApplication("app");
+
+    GsonSupport gsonSupport = new GsonSupport();
+    String json = gsonSupport.toJson(create);
+
+    assertTrue(json.contains("\"authorization\":"));
+    assertTrue(json.contains("\"admins\":"));
+    assertTrue(json.contains("\"data_type\":"));
+    assertTrue(json.contains("myadmin"));
   }
 
   @Test
