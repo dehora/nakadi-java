@@ -375,10 +375,10 @@ EventResource resource = client.resources().events();
 EventMetadata em = EventMetadata.newPreparedEventMetadata();
 
 // you can send flowids as strings and tracing spans as Map<String, String> 
-EventMetadata em1 = new EventMetadata();
+EventMetadata em1 = new EventMetadata()
   .eid(UUID.randomUUID().toString())
   .occurredAt(OffsetDateTime.now())
-  .spanCtx(tracingSpan);
+  .spanCtx(tracingSpan)
   .flowId("decafbad");
   
 // create our domain event inside a typesafe DataChangeEvent  
