@@ -736,7 +736,7 @@ dependencies {
 Add jcenter to `resolvers` in `build.sbt`:
 
 ```scala
-resolvers += "jcenter" at "http://jcenter.bintray.com"
+resolvers += Resolver.jcenterRepo
 ```
 
 and add the project to `libraryDependencies` in `build.sbt`:
