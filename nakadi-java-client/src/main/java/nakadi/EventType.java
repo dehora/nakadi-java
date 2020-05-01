@@ -32,6 +32,7 @@ public class EventType {
   private String compatibilityMode;
   private EventTypeAuthorization authorization;
   private String cleanupPolicy;
+  private String audience;
   private OffsetDateTime createdAt;
   private OffsetDateTime updatedAt;
 
@@ -340,6 +341,24 @@ public class EventType {
     return this;
   }
 
+  /**
+   * @return the audience for this event type
+   */
+  public String audience() {
+    return this.audience;
+  }
+
+  /**
+   * Set the audience for this event type
+   *
+   * @param audience for this event type
+   * @return this
+   */
+  public EventType audience(String audience) {
+    this.audience = audience;
+    return this;
+  }
+
   @Override public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
@@ -355,6 +374,7 @@ public class EventType {
         Objects.equals(options, eventType.options) &&
         Objects.equals(compatibilityMode, eventType.compatibilityMode) &&
         Objects.equals(authorization, eventType.authorization) &&
+        Objects.equals(audience, eventType.audience) &&
         Objects.equals(createdAt, eventType.createdAt) &&
         Objects.equals(updatedAt, eventType.updatedAt);
   }
@@ -371,6 +391,7 @@ public class EventType {
         ", options=" + options +
         ", compatibilityMode='" + compatibilityMode + '\'' +
         ", authorization=" + authorization +
+        ", audience=" + audience +
         ", createdAt=" + createdAt +
         ", updatedAt=" + updatedAt +
         '}';

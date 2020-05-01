@@ -15,5 +15,6 @@
     "admins": [{"data_type": "*", "value": "a"}],
     "readers": [{"data_type": "*", "value": "r"}],
     "writers": [{"data_type": "*", "value": "w"}]
-  }
+  },
+  "audience": "component-internal"
 }
