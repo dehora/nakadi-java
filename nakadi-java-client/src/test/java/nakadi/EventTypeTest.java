@@ -95,6 +95,7 @@ public class EventTypeTest {
     assertNull(eventType.eventTypeStatistics());
     assertNull(eventType.options());
     assertEquals("delete", eventType.cleanupPolicy());
+    assertEquals("component-internal", eventType.audience());
     final EventTypeAuthorization authorization = eventType.authorization();
     assertNotNull(authorization);
     assertNotNull(authorization.admins());
@@ -134,6 +135,7 @@ public class EventTypeTest {
     assertNull(eventType2.eventTypeStatistics());
     assertNull(eventType2.options());
     assertEquals("delete", eventType2.cleanupPolicy());
+    assertEquals("component-internal", eventType2.audience());
     final EventTypeAuthorization authorization = eventType2.authorization();
     assertNotNull(authorization);
     assertNotNull(authorization.admins());
