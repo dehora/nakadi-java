@@ -19,6 +19,7 @@ public class StreamConfiguration {
   static final int DEFAULT_STREAM_LIMIT = 0;
   static final int DEFAULT_BATCH_FLUSH_TIMEOUT = 30;
   static final int DEFAULT_STREAM_TIMEOUT = 0;
+  static final int DEFAULT_COMMIT_TIMEOUT = 60;
   static final int DEFAULT_STREAM_KEEPALIVE_COUNT = 0;
   static final int DEFAULT_MAX_UNCOMMITTED_EVENTS = 10;
   private final Map<String, String> requestHeaders = new HashMap<>();
@@ -27,6 +28,7 @@ public class StreamConfiguration {
   private int streamLimit = DEFAULT_STREAM_LIMIT;
   private long batchFlushTimeout = DEFAULT_BATCH_FLUSH_TIMEOUT;
   private long streamTimeout = DEFAULT_STREAM_TIMEOUT;
+  private long commitTimeout = DEFAULT_COMMIT_TIMEOUT;
   private int streamKeepAliveLimit = DEFAULT_STREAM_KEEPALIVE_COUNT;
   private List<Cursor> cursors;
   private String topic;
@@ -166,6 +168,23 @@ public class StreamConfiguration {
    */
   public StreamConfiguration streamTimeout(long streamTimeout, TimeUnit unit) {
     this.streamTimeout = unit.toSeconds(streamTimeout);
+    return this;
+  }
+
+  public long commitTimeoutSeconds() {
+    return commitTimeout;
+  }
+
+  /**
+   * Set the maximum time (in seconds) that nakadi will be waiting for commit after sending a
+   * batch to a client. In case if commit does not come within this timeout, nakadi will
+   * initialize stream termination, no new data will be sent. Partitions from this stream
+   * will be assigned to other streams.
+   *
+   * Setting commit_timeout to 0 is equal to setting it to the maximum allowed value - 60.
+   */
+  public StreamConfiguration commitTimeout(long commitTimeout, TimeUnit unit) {
+    this.commitTimeout = unit.toSeconds(commitTimeout);
     return this;
   }
 

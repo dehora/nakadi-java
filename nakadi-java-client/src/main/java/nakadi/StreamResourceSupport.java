@@ -15,6 +15,7 @@ class StreamResourceSupport {
   private static final String PARAM_STREAM_LIMIT = "stream_limit";
   private static final String PARAM_BATCH_FLUSH_TIMEOUT = "batch_flush_timeout";
   private static final String PARAM_STREAM_TIMEOUT = "stream_timeout";
+  private static final String PARAM_COMMIT_TIMEOUT = "commit_timeout";
   private static final String PARAM_STREAM_KEEP_ALIVE_LIMIT = "stream_keep_alive_limit";
   private static final String PARAM_MAX_UNCOMMITTED_EVENTS = "max_uncommitted_events";
   private static final String PATH_EVENT_TYPES = "event-types";
@@ -76,6 +77,7 @@ class StreamResourceSupport {
    * <li>batch_flush_timeout: {@link StreamConfiguration#batchFlushTimeoutSeconds()}</li>
    * <li>stream_timeout: {@link StreamConfiguration#streamTimeoutSeconds()}</li>
    * <li>stream_keep_alive_limit: {@link StreamConfiguration#streamKeepAliveLimit()}</li>
+   * <li>commit_timeout: {@link StreamConfiguration#commitTimeoutSeconds()}</li>
    * </ul>
    *
    * Only values not matching the defaults are set.
@@ -101,6 +103,10 @@ class StreamResourceSupport {
 
     if (sc.streamKeepAliveLimit() != StreamConfiguration.DEFAULT_STREAM_KEEPALIVE_COUNT) {
       uriBuilder.query(PARAM_STREAM_KEEP_ALIVE_LIMIT, "" + sc.streamKeepAliveLimit());
+    }
+
+    if (sc.commitTimeoutSeconds() != StreamConfiguration.DEFAULT_COMMIT_TIMEOUT) {
+      uriBuilder.query(PARAM_COMMIT_TIMEOUT, "" + sc.commitTimeoutSeconds());
     }
 
     return uriBuilder;
