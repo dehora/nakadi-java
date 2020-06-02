@@ -1,5 +1,12 @@
 ### Changes
 
+### 0.14.0
+
+- Fix instructions for bintray jcenter. @jjst 
+- Adds `commit_timeout` parameter to stream configuration. @sauliusm
+- Adds 'audience' field to EventType model. @iav0207
+- Fixes documentation example. @adyach
+
 ### 0.13.0
 
 - Adds circleci 2 configuration.

@@ -10,8 +10,6 @@ import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//import okhttp3.logging.HttpLoggingInterceptor;
-
 /**
  * A client which can be used to work with the server. Clients must be created via a builder.
  * Once built, callers can access the server via the resources available from the
