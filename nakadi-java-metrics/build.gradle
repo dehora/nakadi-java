@@ -10,6 +10,7 @@ buildscript {
 dependencies {
   compile project(':nakadi-java-client')
   compile 'io.dropwizard:dropwizard-metrics:1.0.3'
+  compile 'io.micrometer:micrometer-core:1.5.1'
 
   testCompile project.libs.junit
 }
@@ -29,12 +30,12 @@ bintray {
     repo = 'maven'
     userOrg = 'dehora'
     name = 'nakadi-java-metrics'
-    desc = 'Dropwizard metric collector for nakadi-java'
+    desc = 'Metric collectors for nakadi-java'
     websiteUrl = 'https://zalando-incubator.github.io/nakadi-java/'
     issueTrackerUrl = 'https://github.com/zalando-incubator/nakadi-java/issues'
     vcsUrl = 'https://github.com/zalando-incubator/nakadi-java.git'
     licenses = ['MIT']
-    labels = ['nakadi', 'java', 'api', 'metrics', 'dropwizard']
+    labels = ['nakadi', 'java', 'api', 'metrics', 'dropwizard', 'micrometer']
     publicDownloadNumbers = true
 
     //noinspection GroovyAssignabilityCheck
