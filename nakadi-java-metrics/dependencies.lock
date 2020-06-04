@@ -28,6 +28,10 @@
             "locked": "1.0.3",
             "requested": "1.0.3"
         },
+        "io.micrometer:micrometer-core": {
+            "locked": "1.5.1",
+            "requested": "1.5.1"
+        },
         "io.reactivex.rxjava2:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
@@ -72,6 +76,10 @@
         "io.dropwizard:dropwizard-metrics": {
             "locked": "1.0.3",
             "requested": "1.0.3"
+        },
+        "io.micrometer:micrometer-core": {
+            "locked": "1.5.1",
+            "requested": "1.5.1"
         },
         "io.reactivex.rxjava2:rxjava": {
             "firstLevelTransitive": [
@@ -118,6 +126,10 @@
             "locked": "1.0.3",
             "requested": "1.0.3"
         },
+        "io.micrometer:micrometer-core": {
+            "locked": "1.5.1",
+            "requested": "1.5.1"
+        },
         "io.reactivex.rxjava2:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
@@ -162,6 +174,10 @@
         "io.dropwizard:dropwizard-metrics": {
             "locked": "1.0.3",
             "requested": "1.0.3"
+        },
+        "io.micrometer:micrometer-core": {
+            "locked": "1.5.1",
+            "requested": "1.5.1"
         },
         "io.reactivex.rxjava2:rxjava": {
             "firstLevelTransitive": [
@@ -208,6 +224,10 @@
             "locked": "1.0.3",
             "requested": "1.0.3"
         },
+        "io.micrometer:micrometer-core": {
+            "locked": "1.5.1",
+            "requested": "1.5.1"
+        },
         "io.reactivex.rxjava2:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
@@ -252,6 +272,10 @@
         "io.dropwizard:dropwizard-metrics": {
             "locked": "1.0.3",
             "requested": "1.0.3"
+        },
+        "io.micrometer:micrometer-core": {
+            "locked": "1.5.1",
+            "requested": "1.5.1"
         },
         "io.reactivex.rxjava2:rxjava": {
             "firstLevelTransitive": [
@@ -302,6 +326,10 @@
             "locked": "1.0.3",
             "requested": "1.0.3"
         },
+        "io.micrometer:micrometer-core": {
+            "locked": "1.5.1",
+            "requested": "1.5.1"
+        },
         "io.reactivex.rxjava2:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
@@ -351,6 +379,10 @@
             "locked": "1.0.3",
             "requested": "1.0.3"
         },
+        "io.micrometer:micrometer-core": {
+            "locked": "1.5.1",
+            "requested": "1.5.1"
+        },
         "io.reactivex.rxjava2:rxjava": {
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
@@ -399,6 +431,10 @@
         "io.dropwizard:dropwizard-metrics": {
             "locked": "1.0.3",
             "requested": "1.0.3"
+        },
+        "io.micrometer:micrometer-core": {
+            "locked": "1.5.1",
+            "requested": "1.5.1"
         },
         "io.reactivex.rxjava2:rxjava": {
             "firstLevelTransitive": [
