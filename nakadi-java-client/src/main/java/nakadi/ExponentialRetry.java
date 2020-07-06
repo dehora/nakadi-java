@@ -17,8 +17,7 @@ public class ExponentialRetry implements RetryPolicy {
   int maxAttempts;
   long workingAttempts = 1;
   long maxTime;
-  long workingTime = 0L;
-  TimeUnit unit;
+  private long lastBackoff = 0L;
   private long workingInterval;
   private volatile long startTime = 0L;
   private float percentOfMaxIntervalForJitter;
@@ -28,7 +27,6 @@ public class ExponentialRetry implements RetryPolicy {
     this.maxInterval = builder.maxInterval;
     this.workingInterval = initialInterval;
     this.maxAttempts = builder.maxAttempts;
-    this.unit = builder.unit;
     this.maxTime = builder.maxTime;
     this.percentOfMaxIntervalForJitter = builder.percentOfMaxIntervalForJitter;
   }
@@ -45,27 +43,33 @@ public class ExponentialRetry implements RetryPolicy {
     return maxInterval;
   }
 
+  long workingTime() {
+    return lastBackoff - startTime;
+  }
+
   public boolean isFinished() {
-    return workingAttempts >= maxAttempts || workingTime >= maxTime;
+    return workingAttempts >= maxAttempts || workingTime() >= maxTime;
   }
 
   public long nextBackoffMillis() {
+    return nextBackOffMillis(System.currentTimeMillis());
+  }
 
+  long nextBackOffMillis(long nowMillis) {
     if (startTime == 0L) {
-      startTime = System.currentTimeMillis();
-    } else {
-      workingTime += (System.currentTimeMillis() - startTime);
+      startTime = nowMillis;
     }
+    lastBackoff = nowMillis;
 
     if (isFinished()) {
       return STOP;
     }
 
-    workingInterval = unit.toMillis(workingInterval) * (workingAttempts * workingAttempts);
+    workingInterval = workingInterval * (workingAttempts * workingAttempts);
     workingAttempts++;
 
     if (workingInterval <= 0) {
-      workingInterval = unit.toMillis(maxInterval);
+      workingInterval = maxInterval;
     }
 
     if (initialInterval != workingInterval) {
@@ -100,13 +104,10 @@ public class ExponentialRetry implements RetryPolicy {
         ", maxInterval=" + maxInterval +
         ", maxAttempts=" + maxAttempts +
         ", workingAttempts=" + workingAttempts +
-        ", unit=" + unit +
         '}';
   }
 
   public static class Builder {
-
-    private final TimeUnit unit = TimeUnit.MILLISECONDS;
     public float percentOfMaxIntervalForJitter = PERCENT_OF_MAX_INTERVAL_AS_JITTER;
     private long initialInterval = DEFAULT_INITIAL_INTERVAL_MILLIS;
     private long maxInterval = DEFAULT_MAX_INTERVAL_MILLIS;
@@ -120,7 +121,7 @@ public class ExponentialRetry implements RetryPolicy {
       NakadiException.throwNonNull(unit, "Please provide a TimeUnit");
       this.initialInterval = unit.toMillis(initialInterval);
       if (this.initialInterval < INITIAL_INTERVAL_MIN_AS_MILLIS) {
-        NakadiException.throwNonNull(null, "Please provide an initial value of at least "
+        throw new IllegalArgumentException("Please provide an initial value of at least "
             + INITIAL_INTERVAL_MIN_AS_MILLIS
             + " millis");
       }
@@ -131,7 +132,7 @@ public class ExponentialRetry implements RetryPolicy {
       NakadiException.throwNonNull(unit, "Please provide a TimeUnit");
       this.maxInterval = unit.toMillis(maxInterval);
       if (this.maxInterval < MAX_INTERVAL_MIN_AS_MILLIS) {
-        NakadiException.throwNonNull(null, "Please provide a max interval value of at least "
+        throw new IllegalArgumentException("Please provide a max interval value of at least "
             + MAX_INTERVAL_MIN_AS_MILLIS
             + " millis");
       }
