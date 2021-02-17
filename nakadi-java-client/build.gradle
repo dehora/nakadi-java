@@ -70,6 +70,7 @@ shadowJar {
   exclude 'META-INF/maven/com.google.guava/**'
   exclude 'META-INF/maven/com.squareup.okhttp3/**'
   exclude 'META-INF/maven/com.squareup.okio/**'
+  exclude 'META-INF/maven/org.slf4j/**'
   exclude 'rxjava.properties'
 }
 
