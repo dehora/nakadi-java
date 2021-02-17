@@ -24,3 +24,5 @@ target/
 */**/*z*.pem
 
 logback-test.xml
+
+.java-version
