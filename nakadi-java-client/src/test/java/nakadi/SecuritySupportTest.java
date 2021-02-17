@@ -8,6 +8,7 @@ import java.util.Set;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509TrustManager;
 import okhttp3.*;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -22,27 +23,6 @@ public class SecuritySupportTest {
 
   @Rule
   public TemporaryFolder folder = new TemporaryFolder();
-
-  @Test
-  public void build() {
-    OkHttpClient.Builder builder = new OkHttpClient.Builder();
-    SecuritySupport securitySupport = new SecuritySupport("classpath:certs");
-
-    try {
-      securitySupport.applySslSocketFactory(builder);
-      OkHttpClient build = builder.build();
-
-      // 2016-11-12: using the X3 cert, fails unless it's installed
-      Request request = new Request.Builder()
-          .url("https://helloworld.letsencrypt.org")
-          .get()
-          .build();
-
-      okhttp3.Response execute = build.newCall(request).execute();
-    } catch (Exception e) {
-      fail("expected custom letsencrypt install to succeed " +e.getMessage());
-    }
-  }
 
   @Test
   public void createOne() throws IOException {
