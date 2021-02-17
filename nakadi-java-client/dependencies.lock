@@ -21,8 +21,8 @@
             "requested": "2.0.9"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "compileClasspath": {
@@ -47,8 +47,8 @@
             "requested": "2.0.9"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "compileOnly": {
@@ -73,8 +73,8 @@
             "requested": "2.0.9"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "default": {
@@ -99,8 +99,8 @@
             "requested": "2.0.9"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "runtime": {
@@ -125,8 +125,8 @@
             "requested": "2.0.9"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "testCompile": {
@@ -163,7 +163,7 @@
             "requested": "2.0.9"
         },
         "junit:junit": {
-            "locked": "4.12",
+            "locked": "4.13.2",
             "requested": "4.+"
         },
         "org.mockito:mockito-core": {
@@ -171,8 +171,8 @@
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "testCompileClasspath": {
@@ -209,7 +209,7 @@
             "requested": "2.0.9"
         },
         "junit:junit": {
-            "locked": "4.12",
+            "locked": "4.13.2",
             "requested": "4.+"
         },
         "org.mockito:mockito-core": {
@@ -217,8 +217,8 @@
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "testCompileOnly": {
@@ -255,7 +255,7 @@
             "requested": "2.0.9"
         },
         "junit:junit": {
-            "locked": "4.12",
+            "locked": "4.13.2",
             "requested": "4.+"
         },
         "org.mockito:mockito-core": {
@@ -263,8 +263,8 @@
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "testRuntime": {
@@ -301,7 +301,7 @@
             "requested": "2.0.9"
         },
         "junit:junit": {
-            "locked": "4.12",
+            "locked": "4.13.2",
             "requested": "4.+"
         },
         "org.mockito:mockito-core": {
@@ -309,8 +309,8 @@
             "requested": "1.+"
         },
         "org.slf4j:slf4j-api": {
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     }
 }
