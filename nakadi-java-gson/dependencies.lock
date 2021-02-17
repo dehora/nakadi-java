@@ -38,8 +38,8 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "compileClasspath": {
@@ -81,8 +81,8 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "compileOnly": {
@@ -124,8 +124,8 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "default": {
@@ -167,8 +167,8 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "runtime": {
@@ -210,8 +210,8 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "testCompile": {
@@ -255,7 +255,7 @@
             "locked": "2.0.9"
         },
         "junit:junit": {
-            "locked": "4.12",
+            "locked": "4.13.2",
             "requested": "4.+"
         },
         "net.dehora.nakadi:nakadi-java-client": {
@@ -265,8 +265,8 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "testCompileClasspath": {
@@ -310,7 +310,7 @@
             "locked": "2.0.9"
         },
         "junit:junit": {
-            "locked": "4.12",
+            "locked": "4.13.2",
             "requested": "4.+"
         },
         "net.dehora.nakadi:nakadi-java-client": {
@@ -320,8 +320,8 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "testCompileOnly": {
@@ -365,7 +365,7 @@
             "locked": "2.0.9"
         },
         "junit:junit": {
-            "locked": "4.12",
+            "locked": "4.13.2",
             "requested": "4.+"
         },
         "net.dehora.nakadi:nakadi-java-client": {
@@ -375,8 +375,8 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     },
     "testRuntime": {
@@ -420,7 +420,7 @@
             "locked": "2.0.9"
         },
         "junit:junit": {
-            "locked": "4.12",
+            "locked": "4.13.2",
             "requested": "4.+"
         },
         "net.dehora.nakadi:nakadi-java-client": {
@@ -430,8 +430,8 @@
             "firstLevelTransitive": [
                 "net.dehora.nakadi:nakadi-java-client"
             ],
-            "locked": "1.7.25",
-            "requested": "[1.7.+, 1.7.99)"
+            "locked": "1.8.0-beta2",
+            "requested": "1.8.0-beta2"
         }
     }
 }
