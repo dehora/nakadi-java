@@ -1,5 +1,11 @@
 ### Changes
 
+### 0.15.0
+
+- Removes legacy cert test [#359](https://github.com/dehora/nakadi-java/pull/359)
+- Excludes unnecessary SLF4J metadata [#359](https://github.com/dehora/nakadi-java/pull/359)
+- Add micrometer metrics collector [#353](https://github.com/dehora/nakadi-java/issues/353). @buzzlighty
+
 ### 0.14.0
 
 - Fix instructions for bintray jcenter. @jjst 
