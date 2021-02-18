@@ -105,7 +105,7 @@ bintray {
   key = project.hasProperty('bintray_key') ? project.property('bintray_key') :
     System.getenv('BINTRAY_KEY')
 
-  publications = ['shadowedJar'] // use our publishing setup from above
+  publications = ['shadow'] // use our publishing setup from above
   dryRun = false
   publish = true
 
