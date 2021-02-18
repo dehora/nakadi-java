@@ -7,7 +7,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.3'
     classpath 'org.apache.ant:ant:1.9.7' // resolve shadow and nebula deps
     classpath "com.netflix.nebula:nebula-publishing-plugin:4.9.1"
     classpath "com.netflix.nebula:nebula-project-plugin:3.3.0"
