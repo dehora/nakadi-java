@@ -81,8 +81,8 @@ shadowJar {
 */
 publishing {
   publications {
-    shadowedJar(MavenPublication) {
-      from components.shadow
+    shadow(MavenPublication) { publication ->
+      project.shadow.component(publication)
       groupId project.group
       artifactId = project.name
       version = project.version
