@@ -6,7 +6,7 @@ class ProblemSupport {
 
   static Problem toProblem(Response response, JsonSupport jsonSupport) {
     final String raw = response.responseBody().asString();
-    Problem problem = jsonSupport.fromJson(raw, Problem.class);
+    Problem problem = deserializeProblem(response.statusCode(), raw, jsonSupport);
 
     if (problem == null) {
       problem = Problem.noProblemo("no problem sent back from server", "", response.statusCode());
@@ -27,6 +27,14 @@ class ProblemSupport {
         .orElse(Problem.noProblemo("no problem sent back from server", "", response.statusCode()));
 
     return problem;
+  }
+
+  static Problem deserializeProblem(int statusCode, String body, JsonSupport jsonSupport) {
+    try {
+      return jsonSupport.fromJson(body, Problem.class);
+    } catch(Exception e) {
+      return Problem.rawProblem(statusCode, body, e.getMessage());
+    }
   }
 
   static <T> T throwProblem(int code, Problem problem, MetricCollector metricCollector) {

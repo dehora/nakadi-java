@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -28,6 +30,18 @@ public class ProblemSupportTest {
     assertEquals("token_assumed_unauthorized", problem.title());
     // check we map the 400 onto 401
     assertEquals(401, problem.status());
+  }
+
+  @Test
+  public void toProblemForNakadi357() {
+
+    // test fix for https://github.com/dehora/nakadi-java/issues/357
+
+    Response response = buildReponse("non-json-payload", 400);
+    Problem problem = ProblemSupport.toProblem(response, jsonSupport);
+    assertEquals("non-json-payload", problem.title());
+    assertEquals(400, problem.status());
+    assertEquals(Optional.of("java.lang.IllegalStateException: Expected BEGIN_OBJECT but was STRING at line 1 column 1 path $"), problem.detail());
   }
 
   private Response buildReponse(String json, int code) {

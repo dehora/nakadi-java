@@ -145,6 +145,24 @@ public class Problem {
         .type(OBSERVER_TYPE);
   }
 
+  /**
+   * Quick way to create a Problem object that indicates a server responded with an error but the message could not be converted to a Problem
+   * object automatically; typically this happens when a server responds with a non-json payload.
+   *
+   * @param statusCode the HTTP status code of the server's response
+   * @param body the HTTP body of the server's response
+   * @param errorDetail details about why it failed to convert the server's response to a Problem object
+   * @return a Problem object with a status of {@param statusCode} and a type of "about:contract_retryable"
+   */
+  public static Problem rawProblem(int statusCode, String body, String errorDetail) {
+    return new Problem()
+            .title(body)
+            .detail(errorDetail)
+            .data(SENTINEL_MAP)
+            .status(statusCode)
+            .type(CONTRACT_RETRYABLE_TYPE);
+  }
+
   public String toMessage() {
     if (message != null) {
       return message;
