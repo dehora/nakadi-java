@@ -1,3 +1,4 @@
+apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
   implementation project.libs.guava
@@ -37,15 +38,17 @@ sourceJar {
 * Shade our dependencies; rx, gson, guava and okhttp3 have no transitive
 * dependencies to cascade into
 */
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+
+task relocateShadowJar(type: ConfigureShadowRelocation) {
+  target = tasks.shadowJar
+  prefix = "nakadi.shadow"
+}
+
+tasks.shadowJar.dependsOn tasks.relocateShadowJar
+
 shadowJar {
-  relocate "com.google.gson", "nakadi.shadow.com.google.gson"
-  relocate "com.google.common", "nakadi.shadow.com.google.common"
-  relocate "com.google.thirdparty", "nakadi.shadow.com.google.thirdparty"
-  relocate "rx", "nakadi.shadow.rx"
-  relocate "io.reactivex", "nakadi.shadow.io.reactivex"
-  relocate "org.reactivestreams", "nakadi.shadow.org.reactivestreams"
-  relocate "okhttp3", "nakadi.shadow.okhttp3"
-  relocate "okio", "nakadi.shadow.okio"
   classifier = '' // remove the default all suffix to name it like a regular lib jar
   exclude 'net/dehora/nakadi/client/spike/**'
   exclude 'org/slf4j/**'
@@ -57,9 +60,37 @@ shadowJar {
   exclude 'rxjava.properties'
 }
 
-/*
-* Give the bintray task our shadow jar via `shadowedJar`. This has all its dependencies embedded and
-* shaded. We have to add the source and javadoc artifacts as well.
-*/
+publishing {
+  publications {
+    shadow(MavenPublication) { publication ->
+      project.shadow.component(publication)
 
+      artifact(sourceJar) {
+      }
 
+      artifact(javadocJar) {
+      }
+
+      pom {
+
+        url = 'https://github.com/dehora/nakadi-java'
+
+        description = 'Client driver for Nakadi'
+
+        licenses {
+          license {
+            name = 'MIT License'
+          }
+        }
+
+        scm {
+          url = 'git@github.com:dehora/nakadi-java.git'
+        }
+      }
+    }
+  }
+}
+
+signing {
+  sign publishing.publications.shadow
+}
