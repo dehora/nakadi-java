@@ -1,20 +1,14 @@
-buildscript {
-  repositories {
-    mavenCentral()
-    mavenLocal()
-    jcenter()
-  }
-}
 
 
 dependencies {
-  compile project(':nakadi-java-client')
-  compile project.libs.gson
-  compile project.libs.slf4j
+  implementation project(':nakadi-java-client')
+  implementation project.libs.guava
+  implementation project.libs.gson
+  implementation project.libs.slf4j
 
-  testCompile project.libs.logback_core
-  testCompile project.libs.logback_classic
-  testCompile project.libs.junit
+  testImplementation project.libs.logback_core
+  testImplementation project.libs.logback_classic
+  testImplementation project.libs.junit
 }
 
 sourceSets {
@@ -24,45 +18,3 @@ sourceSets {
     }
   }
 }
-
-
-bintray {
-  // verbose to let these eval to empty when not being used; `project.property` isn't lazy
-  user = project.hasProperty('bintray_user') ? project.property('bintray_user') :
-    System.getenv('BINTRAY_USER')
-  key = project.hasProperty('bintray_key') ? project.property('bintray_key') :
-    System.getenv('BINTRAY_KEY')
-
-  publications = ['nebula'] // use our publishing setup from above
-  dryRun = false
-  publish = true
-
-  pkg {
-    repo = 'maven'
-    userOrg = 'dehora'
-    name = 'nakadi-java-gson'
-    desc = 'Gson provider for nakadi-java'
-    websiteUrl = 'https://zalando-incubator.github.io/nakadi-java/'
-    issueTrackerUrl = 'https://github.com/zalando-incubator/nakadi-java/issues'
-    vcsUrl = 'https://github.com/zalando-incubator/nakadi-java.git'
-    licenses = ['MIT']
-    labels = ['nakadi', 'java', 'api', 'gson']
-    publicDownloadNumbers = true
-
-    //noinspection GroovyAssignabilityCheck
-    version {
-      name = project.version
-      vcsTag = project.version
-      attributes = [:]
-      gpg {
-        //noinspection GroovyAssignabilityCheck
-        sign = true
-        passphrase = project.hasProperty('bintray_gpg_passphrase') ?
-          project.property('bintray_gpg_passphrase') : System.getenv('BINTRAY_GPG_PASSPHRASE')
-      }
-    }
-  }
-}
-
-
-

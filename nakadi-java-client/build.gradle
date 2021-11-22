@@ -1,29 +1,17 @@
-buildscript {
-  repositories {
-    mavenCentral()
-    mavenLocal()
-    jcenter()
-  }
-}
-
-apply plugin: "application"
-apply plugin: "com.github.johnrengelman.shadow"
 
 dependencies {
-  compile project.libs.guava
-  compile project.libs.gson
-  compile project.libs.okhttp3
-  compile project.libs.okhttp3log
-  compile project.libs.rxjava2
-  compile project.libs.slf4j
+  implementation project.libs.guava
+  implementation project.libs.gson
+  implementation project.libs.okhttp3
+  implementation project.libs.okhttp3log
+  implementation project.libs.rxjava2
+  implementation project.libs.slf4j
 
-  testCompile project.libs.junit
-  testCompile project.libs.slf4j
-  testCompile project.libs.logback_core
-  testCompile project.libs.logback_classic
-  testCompile project.libs.mockito_core
-  testCompile project.libs.okhttp3mockwebserver
-
+  testImplementation project.libs.junit
+  testImplementation project.libs.logback_core
+  testImplementation project.libs.logback_classic
+  testImplementation project.libs.mockito_core
+  testImplementation project.libs.okhttp3mockwebserver
 }
 
 sourceSets {
@@ -33,12 +21,6 @@ sourceSets {
     }
   }
 }
-
-/*
-* shadowJar needs `mainClassName` to complete
-*/
-//noinspection GroovyUnusedAssignment
-mainClassName = "nakadi.NakadiClientMain"
 
 /*
 * Don't publish spike classes for source or java doc
@@ -79,59 +61,5 @@ shadowJar {
 * Give the bintray task our shadow jar via `shadowedJar`. This has all its dependencies embedded and
 * shaded. We have to add the source and javadoc artifacts as well.
 */
-publishing {
-  publications {
-    shadow(MavenPublication) { publication ->
-      project.shadow.component(publication)
-      groupId project.group
-      artifactId = project.name
-      version = project.version
 
-      artifact(sourceJar) {
-      }
-      artifact(javadocJar) {
-      }
-    }
-  }
-}
 
-/*
- * nebula/bintray gets stuck sometimes; `gradle --stop; gradle clean` can help
-*/
-bintray {
-  // verbose to let these eval to empty when not being used; `project.property` isn't lazy
-  user = project.hasProperty('bintray_user') ? project.property('bintray_user') :
-    System.getenv('BINTRAY_USER')
-  key = project.hasProperty('bintray_key') ? project.property('bintray_key') :
-    System.getenv('BINTRAY_KEY')
-
-  publications = ['shadow'] // use our publishing setup from above
-  dryRun = false
-  publish = true
-
-  pkg {
-    repo = 'maven'
-    userOrg = 'dehora'
-    name = 'nakadi-java-client'
-    desc = 'Java driver for the Nakadi API'
-    websiteUrl = 'https://zalando-incubator.github.io/nakadi-java/'
-    issueTrackerUrl = 'https://github.com/zalando-incubator/nakadi-java/issues'
-    vcsUrl = 'https://github.com/zalando-incubator/nakadi-java.git'
-    licenses = ['MIT']
-    labels = ['nakadi', 'java', 'api']
-    publicDownloadNumbers = true
-
-    //noinspection GroovyAssignabilityCheck
-    version {
-      name = project.version
-      vcsTag = project.version
-      attributes = [:]
-      gpg {
-        //noinspection GroovyAssignabilityCheck
-        sign = true
-        passphrase = project.hasProperty('bintray_gpg_passphrase') ?
-          project.property('bintray_gpg_passphrase') : System.getenv('BINTRAY_GPG_PASSPHRASE')
-      }
-    }
-  }
-}
