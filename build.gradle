@@ -1,16 +1,12 @@
 plugins {
   id 'java'
   id 'idea'
-  id 'com.github.johnrengelman.shadow' version '7.1.0'
-  id 'nebula.project' version '9.2.1'
-  id 'nebula.dependency-lock' version "12.1.5"
-  id 'nebula.maven-publish' version '18.1.0'
+  id 'signing'
+  id 'maven-publish'
   id 'nebula.javadoc-jar' version '18.1.0'
   id 'nebula.source-jar' version '18.1.0'
-  id 'nebula.maven-shadow-publish' version '18.1.0'
-  id 'nebula.gradle-git-scm' version '5.0.0'
-  id 'nebula.nebula-bintray' version '8.5.0'
-  id 'nebula.release' version '16.0.0'
+  id 'com.github.johnrengelman.shadow' version '7.1.0'
+  id 'nebula.dependency-lock' version "12.1.5"
 }
 
 apply plugin: 'nebula.dependency-lock'
@@ -31,20 +27,35 @@ allprojects {
 
   apply plugin: 'java'
   apply plugin: 'idea'
-  apply plugin: 'com.github.johnrengelman.shadow'
-  apply plugin: 'nebula.project'
-  apply plugin: 'nebula.dependency-lock'
-  apply plugin: 'nebula.maven-publish'
+  apply plugin: 'signing'
+  apply plugin: 'maven-publish'
   apply plugin: 'nebula.javadoc-jar'
   apply plugin: 'nebula.source-jar'
-  apply plugin: "nebula.nebula-bintray"
-  apply plugin: "nebula.gradle-git-scm"
-  apply plugin: 'nebula.release'
+  apply plugin: 'nebula.dependency-lock'
 
   idea {
     module {
       downloadSources = true
       downloadJavadoc = true
+    }
+  }
+
+  publishing {
+    repositories {
+      maven {
+
+        def releasesRepoUrl = 'https://oss.sonatype.org/content/repositories/releases/'
+        def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+
+        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+        ext.sonatypeUsername = project.properties.ossrhUsername
+        ext.sonatypePassword = project.properties.ossrhPassword
+        credentials {
+          username sonatypeUsername
+          password sonatypePassword
+        }
+      }
     }
   }
 }

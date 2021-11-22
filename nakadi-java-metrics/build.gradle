@@ -1,13 +1,56 @@
 
-
-
 dependencies {
-  implementation project(':nakadi-java-client')
+  implementation project(path: ':nakadi-java-client', configuration: 'shadow')
   implementation 'io.dropwizard:dropwizard-metrics:1.0.3'
   implementation 'io.micrometer:micrometer-core:1.5.1'
 
   testImplementation project.libs.junit
 }
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+
+      artifact(jar) {
+      }
+
+      artifact(sourceJar) {
+      }
+
+      artifact(javadocJar) {
+      }
+
+      pom.withXml {
+
+        asNode().with {
+          appendNode('url', 'https://github.com/dehora/nakadi-java')
+          appendNode('description', 'Client driver metrics support')
+          appendNode('scm').with {
+            appendNode('url', 'git@github.com:dehora/nakadi-java.git')
+          }
+          appendNode('licenses').with {
+            appendNode('license').with {
+              appendNode('name', 'MIT License')
+            }
+          }
+        }
+
+        def dependenciesNode = asNode().appendNode('dependencies')
+        configurations.implementation.allDependencies.each {
+          def dependencyNode = dependenciesNode.appendNode('dependency')
+          dependencyNode.appendNode('groupId', it.group)
+          dependencyNode.appendNode('artifactId', it.name)
+          dependencyNode.appendNode('version', it.version)
+        }
+      }
+    }
+  }
+}
+
+signing {
+  sign publishing.publications.mavenJava
+}
+
 
 
 
