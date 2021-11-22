@@ -1,57 +1,14 @@
-buildscript {
-  repositories {
-    mavenCentral()
-    mavenLocal()
-    jcenter()
-  }
-}
+
 
 
 dependencies {
-  compile project(':nakadi-java-client')
-  compile 'io.dropwizard:dropwizard-metrics:1.0.3'
-  compile 'io.micrometer:micrometer-core:1.5.1'
+  implementation project(':nakadi-java-client')
+  implementation 'io.dropwizard:dropwizard-metrics:1.0.3'
+  implementation 'io.micrometer:micrometer-core:1.5.1'
 
-  testCompile project.libs.junit
+  testImplementation project.libs.junit
 }
 
-bintray {
-  // verbose to let these eval to empty when not being used; `project.property` isn't lazy
-  user = project.hasProperty('bintray_user') ? project.property('bintray_user') :
-    System.getenv('BINTRAY_USER')
-  key = project.hasProperty('bintray_key') ? project.property('bintray_key') :
-    System.getenv('BINTRAY_KEY')
-
-  publications = ['nebula'] // use our publishing setup from above
-  dryRun = false
-  publish = true
-
-  pkg {
-    repo = 'maven'
-    userOrg = 'dehora'
-    name = 'nakadi-java-metrics'
-    desc = 'Metric collectors for nakadi-java'
-    websiteUrl = 'https://zalando-incubator.github.io/nakadi-java/'
-    issueTrackerUrl = 'https://github.com/zalando-incubator/nakadi-java/issues'
-    vcsUrl = 'https://github.com/zalando-incubator/nakadi-java.git'
-    licenses = ['MIT']
-    labels = ['nakadi', 'java', 'api', 'metrics', 'dropwizard', 'micrometer']
-    publicDownloadNumbers = true
-
-    //noinspection GroovyAssignabilityCheck
-    version {
-      name = project.version
-      vcsTag = project.version
-      attributes = [:]
-      gpg {
-        //noinspection GroovyAssignabilityCheck
-        sign = true
-        passphrase = project.hasProperty('bintray_gpg_passphrase') ?
-          project.property('bintray_gpg_passphrase') : System.getenv('BINTRAY_GPG_PASSPHRASE')
-      }
-    }
-  }
-}
 
 
 
