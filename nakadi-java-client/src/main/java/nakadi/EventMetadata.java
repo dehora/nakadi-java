@@ -36,7 +36,6 @@ public class EventMetadata {
    *   The object is <b>not</b> prepared with any values, such eid, occurred at, and flow id. To
    *   create an EventMetadata with prepared values use {@link #newPreparedEventMetadata()}
    * </p>
-   * @return an EventMetadata
    */
   public EventMetadata() {
   }
