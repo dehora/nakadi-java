@@ -2,8 +2,7 @@
 **Status**
 
 - Build: [![CircleCI](https://circleci.com/gh/dehora/nakadi-java.svg?style=svg)](https://circleci.com/gh/dehora/nakadi-java)
-- Release Download: [ ![Download](https://api.bintray.com/packages/dehora/maven/nakadi-java-client/images/download.svg) ](https://bintray.com/dehora/maven/nakadi-java-client/_latestVersion)
-- Source Release: [0.15.0](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.15.0)
+- Source Release: [0.16.0](https://github.com/zalando-incubator/nakadi-java/releases/tag/0.16.0)
 - Contact: [maintainers](https://github.com/zalando-incubator/nakadi-java/blob/master/MAINTAINERS)
 
 
@@ -693,13 +692,17 @@ returned as as map within the `Metrics` object.
 
 ### Maven
 
-Add jcenter to the repositories element in `pom.xml` or `settings.xml`:
+Add sonatype to the repositories element in `pom.xml` or `settings.xml` to access snapshots:
 
 ```xml
 <repositories>
   <repository>
-    <id>jcenter</id>
-    <url>http://jcenter.bintray.com</url>
+    <id>sonatype-nexus-snapshots</id>
+    <name>sonatype-nexus-snapshots</name>
+    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
   </repository>
 </repositories>
 ```  
@@ -710,16 +713,26 @@ and add the project declaration to `pom.xml`:
 <dependency>
   <groupId>net.dehora.nakadi</groupId>
   <artifactId>nakadi-java-client</artifactId>
-  <version>0.15.0</version>
+  <version>0.16.0</version>
 </dependency>
 ```
 ### Gradle
 
-Add jcenter to the `repositories` block:
+Add sonatype to the `repositories` block for snapshots:
 
 ```groovy
 repositories {
- jcenter()
+  maven {
+    url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+  }
+}
+```
+
+```kotlin
+repositories {
+  maven {
+    url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+  }
 }
 ```
 
@@ -727,22 +740,28 @@ and add the project to the `dependencies` block in `build.gradle`:
 
 ```groovy
 dependencies {
-  compile 'net.dehora.nakadi:nakadi-java-client:0.15.0'
+  implementation 'net.dehora.nakadi:nakadi-java-client:0.16.0'
+}  
+```
+
+```kotlin
+dependencies {
+  implementation("net.dehora.nakadi:nakadi-java-client:0.16.0")
 }  
 ```
 
 ### SBT
 
-Add jcenter to `resolvers` in `build.sbt`:
+Add sontaype to `resolvers` in `build.sbt` to access snapshots:
 
 ```scala
-resolvers += Resolver.jcenterRepo
+resolvers += Opts.resolver.sonatypeSnapshots
 ```
 
 and add the project to `libraryDependencies` in `build.sbt`:
 
 ```scala
-libraryDependencies += "net.dehora.nakadi" % "nakadi-java-client" % "0.15.0"
+libraryDependencies += "net.dehora.nakadi" % "nakadi-java-client" % "0.16.0"
 ```
 
 
