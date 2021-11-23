@@ -34,15 +34,19 @@ publishing {
 
       pom.withXml {
 
+        def _name = project.name.toString()
+
         asNode().with {
           appendNode('url', 'https://github.com/dehora/nakadi-java')
-          appendNode('description', 'Client driver gson support')
+          appendNode('name', _name)
+          appendNode('description', 'Client driver support')
           appendNode('scm').with {
             appendNode('url', 'git@github.com:dehora/nakadi-java.git')
           }
           appendNode('licenses').with {
             appendNode('license').with {
               appendNode('name', 'MIT License')
+              appendNode('url', 'https://mit-license.org/')
             }
           }
         }
@@ -54,6 +58,12 @@ publishing {
           dependencyNode.appendNode('artifactId', it.name)
           dependencyNode.appendNode('version', it.version)
         }
+
+        def developersNode = asNode().appendNode('developers')
+        def developerNode = developersNode.appendNode('developer')
+        developerNode.appendNode('id', developerId)
+        developerNode.appendNode('email', developerEmail)
+        developerNode.appendNode('name', developerName)
       }
     }
   }

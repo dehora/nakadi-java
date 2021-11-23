@@ -44,10 +44,10 @@ allprojects {
     repositories {
       maven {
 
-        def releasesRepoUrl = 'https://oss.sonatype.org/content/repositories/releases/'
+        def stagingRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
         def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
 
-        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : stagingRepoUrl
 
         ext.sonatypeUsername = project.properties.ossrhUsername
         ext.sonatypePassword = project.properties.ossrhPassword

@@ -31,3 +31,9 @@ libs += [
   logback_classic: "ch.qos.logback:logback-classic:$versions.logback",
   mockito_core: "org.mockito:mockito-core:$versions.mockito"
 ]
+
+ext {
+  developerId = 'dehora'
+  developerEmail = 'bill@dehora.net'
+  developerName = 'Bill de hÓra'
+}
