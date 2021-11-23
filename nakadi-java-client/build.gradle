@@ -73,17 +73,28 @@ publishing {
 
         url = 'https://github.com/dehora/nakadi-java'
 
+        name = project.name
+
         description = 'Client driver for Nakadi'
 
         licenses {
           license {
             name = 'MIT License'
+            url = 'https://mit-license.org/'
           }
         }
 
         scm {
           url = 'git@github.com:dehora/nakadi-java.git'
         }
+      }
+
+      pom.withXml {
+        def developersNode = asNode().appendNode('developers')
+        def developerNode = developersNode.appendNode('developer')
+        developerNode.appendNode('id', 'dehora')
+        developerNode.appendNode('email', 'bill@dehora.net')
+        developerNode.appendNode('name', 'Bill de hÓra')
       }
     }
   }
