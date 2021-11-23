@@ -5,7 +5,7 @@ ext {
 
 // uses dependency-lock syntax
 versions += [
-  guava: "19.+",
+  guava: "19.0",
   gson: "2.8.0",
   junit: "4.+",
   metrics: "3.1.0", // depends on slf4j, don't use for now
