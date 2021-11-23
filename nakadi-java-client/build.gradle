@@ -38,17 +38,15 @@ sourceJar {
 * Shade our dependencies; rx, gson, guava and okhttp3 have no transitive
 * dependencies to cascade into
 */
-
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
-
-task relocateShadowJar(type: ConfigureShadowRelocation) {
-  target = tasks.shadowJar
-  prefix = "nakadi.shadow"
-}
-
-tasks.shadowJar.dependsOn tasks.relocateShadowJar
-
 shadowJar {
+  relocate "com.google.gson", "nakadi.shadow.com.google.gson"
+  relocate "com.google.common", "nakadi.shadow.com.google.common"
+  relocate "com.google.thirdparty", "nakadi.shadow.com.google.thirdparty"
+  relocate "rx", "nakadi.shadow.rx"
+  relocate "io.reactivex", "nakadi.shadow.io.reactivex"
+  relocate "org.reactivestreams", "nakadi.shadow.org.reactivestreams"
+  relocate "okhttp3", "nakadi.shadow.okhttp3"
+  relocate "okio", "nakadi.shadow.okio"
   classifier = '' // remove the default all suffix to name it like a regular lib jar
   exclude 'net/dehora/nakadi/client/spike/**'
   exclude 'org/slf4j/**'
