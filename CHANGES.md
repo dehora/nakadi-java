@@ -1,5 +1,12 @@
 ### Changes
 
+### 0.16.0
+
+This promotes 0.15.0 to use a new build and publishing setup.
+
+- Supports publishing to sonatype and removes publishing to bintray [#363](https://github.com/dehora/nakadi-java/pull/363)
+- Upgrades build to gradle 7.3 along with upgraded build plugins
+
 ### 0.15.0
 
 - Removes legacy cert test [#359](https://github.com/dehora/nakadi-java/pull/359)
