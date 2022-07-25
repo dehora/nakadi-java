@@ -2,10 +2,7 @@ package nakadi;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +25,8 @@ public class NakadiClient {
   private final MetricCollector metricCollector;
   private final Resources resources;
   private final String certificatePath;
+  private final boolean enableGzipSendCompression;
+  private final CompressionSupport compressionSupport;
 
   private NakadiClient(Builder builder) {
     NakadiException.throwNonNull(builder.baseURI, "Please provide a base URI.");
@@ -38,6 +37,8 @@ public class NakadiClient {
     this.metricCollector = builder.metricCollector;
     this.resources = new Resources(this);
     this.certificatePath = builder.certificatePath;
+    this.enableGzipSendCompression = builder.enableGzipSendCompression;
+    this.compressionSupport = builder.compressionSupport;
   }
 
   /**
@@ -78,6 +79,13 @@ public class NakadiClient {
   }
 
   /**
+   * The {@link CompressionSupport} used by the client.
+   */
+  public CompressionSupport compressionSupport() {
+    return compressionSupport;
+  }
+
+  /**
    * The {@link MetricCollector} used by the client.
    */
   public MetricCollector metricCollector() {
@@ -86,6 +94,11 @@ public class NakadiClient {
 
   public String certificatePath() {
     return certificatePath;
+  }
+
+  // only needs to be seen by package code
+  boolean enableGzipSendCompression() {
+    return enableGzipSendCompression;
   }
 
   /**
@@ -107,6 +120,8 @@ public class NakadiClient {
     private long readTimeout;
     private long writeTimeout;
     private boolean enableHttpLogging;
+    private boolean enableGzipSendCompression;
+    private CompressionSupport compressionSupport;
     private String certificatePath;
 
     Builder() {
@@ -129,6 +144,12 @@ public class NakadiClient {
       if (jsonSupport == null) {
         jsonSupport = new GsonSupport();
       }
+
+      if (compressionSupport == null) {
+        compressionSupport = new CompressionSupportGzip();
+      }
+
+      logger.info("Loaded compression support {}", compressionSupport.getClass().getName());
 
       if (tokenProvider == null) {
         tokenProvider = new EmptyTokenProvider();
@@ -185,6 +206,16 @@ public class NakadiClient {
      */
     public Builder enableHttpLogging() {
       enableHttpLogging = true;
+      return this;
+    }
+
+    /**
+     * Turn on compression for event posting.
+     *
+     * @return this builder
+     */
+    public Builder enableGzipSendCompression() {
+      enableGzipSendCompression = true;
       return this;
     }
 

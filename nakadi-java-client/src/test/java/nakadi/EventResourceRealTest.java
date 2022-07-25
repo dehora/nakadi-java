@@ -448,7 +448,7 @@ public class EventResourceRealTest {
 
   @Test
   public void serdesDomain() {
-    EventResourceReal eventResource = new EventResourceReal(null, new GsonSupport());
+    EventResourceReal eventResource = new EventResourceReal(null, new GsonSupport(), new CompressionSupportGzip() );
 
     EventThing et = new EventThing("a", "b");
     EventRecord<EventThing> er = new EventRecord<>("topic", et);
@@ -460,7 +460,7 @@ public class EventResourceRealTest {
 
   @Test
   public void serdesUndefinedEventMapped() {
-    EventResourceReal eventResource = new EventResourceReal(null, new GsonSupport());
+    EventResourceReal eventResource = new EventResourceReal(null, new GsonSupport(), new CompressionSupportGzip() );
 
     Map<String, Object> uemap = Maps.newHashMap();
     uemap.put("a", "1");
@@ -475,7 +475,7 @@ public class EventResourceRealTest {
 
   @Test
   public void serdesBusinessEventMapped() {
-    EventResourceReal eventResource = new EventResourceReal(null, new GsonSupport());
+    EventResourceReal eventResource = new EventResourceReal(null, new GsonSupport(), new CompressionSupportGzip());
 
     BusinessEventMapped<Map<String, Object>> be = new BusinessEventMapped<>();
     EventMetadata em = new EventMetadata();

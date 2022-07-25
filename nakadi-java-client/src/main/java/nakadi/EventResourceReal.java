@@ -5,12 +5,10 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.reflect.TypeToken;
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -36,15 +34,22 @@ public class EventResourceReal implements EventResource {
   private final JsonSupport jsonSupport;
   private volatile RetryPolicy retryPolicy;
   private volatile String flowId;
+  private boolean enablePublishingCompression;
+
+  private final CompressionSupport compressionSupport;
 
   public EventResourceReal(NakadiClient client) {
-    this(client, client.jsonSupport());
+    this(client, client.jsonSupport(), client.compressionSupport());
   }
 
   @VisibleForTesting
-  EventResourceReal(NakadiClient client, JsonSupport jsonSupport) {
+  EventResourceReal(NakadiClient client, JsonSupport jsonSupport, CompressionSupport compressionSupport) {
     this.client = client;
     this.jsonSupport = jsonSupport;
+    this.compressionSupport = compressionSupport;
+    if(client != null && client.enableGzipSendCompression()) {
+      this.enablePublishingCompression = true;
+    }
   }
 
   private static Response timed(Supplier<Response> sender, NakadiClient client, int eventCount) {
@@ -115,7 +120,7 @@ public class EventResourceReal implements EventResource {
       return sendUsingSupplier(eventTypeName,
           () -> ("[" + Joiner.on(",").join(events) + "]").getBytes(Charsets.UTF_8), headers);
     } else {
-      return send(collect, headers);
+      return sendBatchOfEvents(collect, headers);
     }
   }
 
@@ -130,8 +135,18 @@ public class EventResourceReal implements EventResource {
     NakadiException.throwNonNull(headers, "Please provide some headers");
 
     if (event instanceof String) {
-      return sendUsingSupplier(eventTypeName, () -> ("[" + event + "]").getBytes(Charsets.UTF_8),
-          headers);
+
+      ContentSupplier supplier;
+
+      if(enablePublishingCompression) {
+        supplier =  supplyStringAsCompressedAndSetHeaders("[" + event + "]", headers);
+      } else {
+        supplier = () -> ("[" + event + "]").getBytes(Charsets.UTF_8);
+      }
+
+      final ContentSupplier finalSupplier = supplier;
+      return sendUsingSupplier(eventTypeName, finalSupplier, headers);
+
     } else {
       ArrayList<T> events = new ArrayList<>(1);
       Collections.addAll(events, event);
@@ -168,12 +183,22 @@ public class EventResourceReal implements EventResource {
                  1);
   }
 
-  private <T> Response send(List<EventRecord<T>> events, Map<String, Object> headers) {
+  private <T> Response sendBatchOfEvents(List<EventRecord<T>> events, Map<String, Object> headers) {
     NakadiException.throwNonNull(events, "Please provide one or more event records");
 
     String topic = events.get(0).eventType();
     List<Object> eventList =
         events.stream().map(this::mapEventRecordToSerdes).collect(Collectors.toList());
+
+    ContentSupplier supplier;
+
+    if(enablePublishingCompression) {
+      supplier =  supplyObjectAsCompressedAndSetHeaders(eventList, headers);
+    } else {
+      supplier = () -> jsonSupport.toJsonBytesCompressed(eventList);
+    }
+
+    final ContentSupplier finalSupplier = supplier;
 
     // todo: close
     return timed(() -> client.resourceProvider()
@@ -181,7 +206,8 @@ public class EventResourceReal implements EventResource {
                      .retryPolicy(retryPolicy)
                      .postEventsThrowing(
                          collectionUri(topic).buildString(),
-                         options(headers), () -> jsonSupport.toJsonBytesCompressed(eventList)),
+                         options(headers),
+                         finalSupplier),
               client,
         eventList.size());
   }
@@ -207,4 +233,28 @@ public class EventResourceReal implements EventResource {
         .path(PATH_COLLECTION);
   }
 
+  private <T> ContentSupplier supplyObjectAsCompressedAndSetHeaders(T sending, Map<String, Object> headers) {
+    final byte[] json = jsonSupport.toJsonBytesCompressed(sending);
+    return supplyBytesAsCompressedAndSetHeaders(json, headers);
+  }
+
+  private <T> ContentSupplier supplyStringAsCompressedAndSetHeaders(String sending, Map<String, Object> headers) {
+    /*
+    Minifying this successfully would require marshalling up to an object
+    and back to a string. To avoid that overhead, compress the string as is.
+     */
+    final byte[] json = sending.getBytes(Charsets.UTF_8);
+    return supplyBytesAsCompressedAndSetHeaders(json, headers);
+  }
+
+  private ContentSupplier supplyBytesAsCompressedAndSetHeaders(
+      byte[] json, Map<String, Object> headers) {
+
+    // force the compression outside the lambda to access the length
+    final byte[] compressed = compressionSupport.compress(json);
+    ContentSupplier supplier = () -> compressed;
+    headers.put("Content-Length", compressed.length);
+    headers.put("Content-Encoding", compressionSupport.name());
+    return supplier;
+  }
 }

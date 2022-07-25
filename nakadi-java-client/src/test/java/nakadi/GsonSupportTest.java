@@ -76,4 +76,32 @@ public class GsonSupportTest {
     assertSame(100, eventMapped.data().id);
     assertEquals(22.001, eventMapped.data().num, 0.0d);
   }
+
+  @Test
+  public void minifyObject() {
+    final GsonSupport gsonSupport = new GsonSupport();
+
+    final Model m = new Model();
+    m.id = 100;
+    m.num = 22.001;
+
+    String minified = gsonSupport.toJsonCompressed(m);
+    assertTrue(minified.equals("{\"id\":100,\"num\":22.001}"));
+  }
+
+  @Test
+  public void minifyString() {
+    final GsonSupport gsonSupport = new GsonSupport();
+
+    String raw = TestSupport.load("data-change-event-single-compress.json");
+    String minified = gsonSupport.toJsonCompressed(raw);
+
+    // gson doesn't minify raw strings it escapes them; note the result starts with " not {
+    assertTrue(minified.startsWith("\"{"));
+
+    // to minify cleanly we need to read the string from raw and minify the object representation
+    minified = gsonSupport.toJsonCompressed(gsonSupport.fromJson(raw, Object.class));
+    assertTrue(minified.startsWith("{\"m"));
+  }
+
 }
