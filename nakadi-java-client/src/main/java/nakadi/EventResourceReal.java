@@ -47,7 +47,7 @@ public class EventResourceReal implements EventResource {
     this.client = client;
     this.jsonSupport = jsonSupport;
     this.compressionSupport = compressionSupport;
-    if(client != null && client.enableGzipSendCompression()) {
+    if(client != null && client.enablePublishingCompression()) {
       this.enablePublishingCompression = true;
     }
   }
