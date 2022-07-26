@@ -1,13 +1,9 @@
 package nakadi;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.InetAddress;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import okhttp3.mockwebserver.MockResponse;
@@ -48,7 +44,7 @@ public class EventResourceRealCompressionTest {
 
     NakadiClient client = NakadiClient.newBuilder()
         .baseURI("http://localhost:" + MOCK_SERVER_PORT)
-        .enableGzipSendCompression()
+        .enablePublishingCompression()
         .build();
 
     CompressionSupport compressionSupport = client.compressionSupport();
@@ -101,7 +97,7 @@ public class EventResourceRealCompressionTest {
   public void sendsCompressedRawBatchEventWhenAskedTo() throws Exception {
     NakadiClient client = NakadiClient.newBuilder()
         .baseURI("http://localhost:" + MOCK_SERVER_PORT)
-        .enableGzipSendCompression()
+        .enablePublishingCompression()
         .build();
 
     CompressionSupport compressionSupport = client.compressionSupport();
@@ -134,7 +130,7 @@ public class EventResourceRealCompressionTest {
           = jsonSupport.fromJson(unzippedRequestEntity, eventTypeToken);
 
       final Map<String, Object> marshaledRequestEntity = marshaledRequestEntityList.get(0);
-      
+
       assertEquals("et-1", marshaledRequestEntity.get("data_type"));
       final Map<?, ?> metadata = (Map<?, ?>) marshaledRequestEntity.get("metadata");
       assertEquals("a2ab0b7c-ee58-48e5-b96a-d13bce73d857", metadata.get("eid"));

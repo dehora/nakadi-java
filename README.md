@@ -30,6 +30,8 @@
     - [Retries](#retries)
   - [Event Types](#event-types)
   - [Producing Events](#producing-events)
+    - [Publishing Compression](#publishing-compression)
+  - [Compacting Events](#compacting-events)
   - [Subscriptions](#subscriptions)
   - [Consuming Events](#consuming-events)
     - [Named Event Type Streaming](#named-event-type-streaming)
@@ -69,7 +71,7 @@ Nakadi-java is a client driver for the [Nakadi Event Broker](https://github.com/
 
 - Operational visibility. Error handling, stream retries, logging and instrumentation are given the same importance as functionality. 
 
-- Be easy to use. The client should be straighforward to use as is, or as an engine for higher level abstractions.
+- Be easy to use. The client should be straightforward to use as is, or as an engine for higher level abstractions.
 
 ### Background
 
@@ -410,6 +412,18 @@ list.add(dce2);
  
 Response batch = resource.send("priority-requisitions", list);
 ``` 
+
+#### Publishing Compression
+
+Event posting can be compressed by configuring the client 
+with `.enablePublishingCompression()`:
+
+```java
+NakadiClient client = NakadiClient.newBuilder()
+  .baseURI("http://localhost:9080")
+  .enablePublishingCompression()  
+  .build();
+```
 
 ### Compacting Events
 

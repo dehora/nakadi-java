@@ -25,7 +25,7 @@ public class NakadiClient {
   private final MetricCollector metricCollector;
   private final Resources resources;
   private final String certificatePath;
-  private final boolean enableGzipSendCompression;
+  private final boolean enablePublishingCompression;
   private final CompressionSupport compressionSupport;
 
   private NakadiClient(Builder builder) {
@@ -37,7 +37,7 @@ public class NakadiClient {
     this.metricCollector = builder.metricCollector;
     this.resources = new Resources(this);
     this.certificatePath = builder.certificatePath;
-    this.enableGzipSendCompression = builder.enableGzipSendCompression;
+    this.enablePublishingCompression = builder.enablePublishingCompression;
     this.compressionSupport = builder.compressionSupport;
   }
 
@@ -97,8 +97,8 @@ public class NakadiClient {
   }
 
   // only needs to be seen by package code
-  boolean enableGzipSendCompression() {
-    return enableGzipSendCompression;
+  boolean enablePublishingCompression() {
+    return enablePublishingCompression;
   }
 
   /**
@@ -120,7 +120,7 @@ public class NakadiClient {
     private long readTimeout;
     private long writeTimeout;
     private boolean enableHttpLogging;
-    private boolean enableGzipSendCompression;
+    private boolean enablePublishingCompression;
     private CompressionSupport compressionSupport;
     private String certificatePath;
 
@@ -214,8 +214,8 @@ public class NakadiClient {
      *
      * @return this builder
      */
-    public Builder enableGzipSendCompression() {
-      enableGzipSendCompression = true;
+    public Builder enablePublishingCompression() {
+      enablePublishingCompression = true;
       return this;
     }
 
