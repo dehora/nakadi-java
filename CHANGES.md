@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.17.0
+
+- Adds support for event publishing GZIP compression [#369](https://github.com/dehora/nakadi-java/pull/369)
+
 ### 0.16.0
 
 This promotes 0.15.0 to use a new build and publishing setup.
