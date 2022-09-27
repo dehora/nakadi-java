@@ -237,6 +237,17 @@ public class EventMetadata {
   }
 
   /**
+   * Set the schema version of the event.
+   *
+   * @param version schema version of the event
+   * @return this
+   */
+  public EventMetadata version(String version) {
+    this.version = version;
+    return this;
+  }
+
+  /**
    * The version of the schema used to validate this event.
    *
    * @return the version.

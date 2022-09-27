@@ -1,5 +1,7 @@
 package nakadi;
 
+import org.apache.avro.Schema;
+
 /**
  * Allows access to the API via resource classes.
  */
@@ -47,6 +49,20 @@ public class Resources {
    */
   public EventResource events() {
     return new EventResourceReal(client);
+  }
+
+  /**
+   * The resource for binary events
+   *
+   * @return a resource for working with events
+   */
+  public EventResource eventsBinary(final String eventType,
+                                    final String schemaVersion,  // TODO have a look at it again, maybe the check should be inside the method
+                                    final Schema schema) {
+    return new EventResourceReal(client,
+            client.jsonSupport(),
+            client.compressionSupport(),
+            new AvroPayloadSerializer(eventType, schemaVersion, schema));
   }
 
   /**

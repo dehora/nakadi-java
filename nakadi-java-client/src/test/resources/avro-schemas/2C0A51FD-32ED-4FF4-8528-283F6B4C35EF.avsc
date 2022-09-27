@@ -1,0 +1,15 @@
+{
+  "name": "SomeEvent",
+  "namespace": "org.zalando.nakadi.generated.avro.test",
+  "type": "record",
+  "fields": [
+    {
+      "name": "foo",
+      "type": "long"
+    },
+    {
+      "name": "foo2",
+      "type": "string"
+    }
+  ]
+}
