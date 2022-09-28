@@ -2,12 +2,9 @@ package nakadi;
 
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
-import org.apache.avro.generic.GenericDatumReader;
-import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.junit.Test;
-import org.zalando.nakadi.generated.avro.Envelope;
 import org.zalando.nakadi.generated.avro.PublishingBatch;
 import org.zalando.nakadi.generated.avro.test.SomeEvent;
 
@@ -49,7 +46,7 @@ public class EventResourceRealBinaryTest extends EventResourceRealTest {
             assertEquals(
                     "POST /event-types/2C0A51FD-32ED-4FF4-8528-283F6B4C35EF/events HTTP/1.1",
                     request.getRequestLine());
-//            assertEquals("application/avro-binary", request.getHeaders().get("Content-Type"));
+            assertEquals("application/avro-binary", request.getHeaders().get("Content-Type"));
 
             final PublishingBatch actualBatch = PublishingBatch.fromByteBuffer(
                     ByteBuffer.wrap(request.getBody().readByteArray()));

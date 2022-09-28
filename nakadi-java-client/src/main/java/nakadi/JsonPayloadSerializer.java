@@ -22,7 +22,7 @@ public class JsonPayloadSerializer implements PayloadSerializer {
 
     @Override
     public String payloadMimeType() {
-        return "application/json";
+        return "application/json; charset=utf8";
     }
 
 }

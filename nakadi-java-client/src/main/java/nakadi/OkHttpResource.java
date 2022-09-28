@@ -21,7 +21,6 @@ class OkHttpResource implements Resource {
   private static final Logger logger = LoggerFactory.getLogger(NakadiClient.class.getSimpleName());
 
   private static final String HEADER_AUTHORIZATION = "Authorization";
-  private static final String APPLICATION_JSON_CHARSET_UTF8 = "application/json; charset=utf8";
 
   private final OkHttpClient okHttpClient;
   private final JsonSupport jsonSupport;
@@ -197,8 +196,9 @@ class OkHttpResource implements Resource {
     Request.Builder builder;
     if (body != null) {
       {
+
         RequestBody requestBody =
-            RequestBody.create(MediaType.parse(APPLICATION_JSON_CHARSET_UTF8), body.content());
+            RequestBody.create(MediaType.parse((String) options.headers().get("Content-Type")), body.content());
         builder = new Request.Builder().url(url).method(method, requestBody);
       }
     } else {
