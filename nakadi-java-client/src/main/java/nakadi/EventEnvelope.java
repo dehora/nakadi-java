@@ -1,6 +1,8 @@
 package nakadi;
 
-public class EventEnvelope<T> {
+import org.apache.avro.generic.GenericRecord;
+
+public class EventEnvelope<T extends GenericRecord> implements Event<T>{
     private final T data;
     private final EventMetadata metadata;
 
@@ -9,7 +11,7 @@ public class EventEnvelope<T> {
         this.metadata = metadata;
     }
 
-    public T getData() {
+    public T data() {
         return data;
     }
 

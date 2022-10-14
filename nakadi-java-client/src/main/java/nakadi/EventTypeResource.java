@@ -206,4 +206,12 @@ public interface EventTypeResource {
    * @return the result from the server.
    */
   PartitionCollection lag(String eventTypeName, List<Cursor> cursors);
+
+  Response createSchema(String eventTypeName, EventTypeSchema eventTypeSchema)
+          throws AuthorizationException, ClientException, ServerException, InvalidException,
+          RateLimitException, NakadiException;
+
+  Optional<EventTypeSchema> fetchSchema(String eventTypeName, EventTypeSchema eventTypeSchema)
+          throws AuthorizationException, ClientException, ServerException, InvalidException,
+          RateLimitException, NakadiException;;
 }

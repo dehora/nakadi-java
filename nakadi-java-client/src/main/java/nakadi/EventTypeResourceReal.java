@@ -152,7 +152,11 @@ class EventTypeResourceReal implements EventTypeResource {
       throws AuthorizationException, ClientException, ServerException,
       RateLimitException, NakadiException {
     return loadSchemaPage(
-        collectionUri().path(eventTypeName).path(PATH_SCHEMAS).buildString());
+            schemaUrl(eventTypeName).buildString());
+  }
+
+  private UriBuilder schemaUrl(String eventTypeName) {
+    return collectionUri().path(eventTypeName).path(PATH_SCHEMAS);
   }
 
   @Override public CursorCollection shift(String eventTypeName, List<Cursor> cursorList) {
@@ -251,7 +255,39 @@ class EventTypeResourceReal implements EventTypeResource {
         client);
   }
 
-  private ResourceOptions prepareOptions() {
+  @Override
+  public Response createSchema(String eventTypeName, EventTypeSchema eventTypeSchema)
+          throws AuthorizationException, ClientException, ServerException, InvalidException,
+          RateLimitException, NakadiException {
+
+    ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
+    return client.resourceProvider()
+            .newResource()
+            .retryPolicy(retryPolicy)
+            .requestThrowing(Resource.POST, schemaUrl(eventTypeName).buildString(), options,
+                    () -> client.jsonSupport().toJsonBytes(eventTypeSchema));
+  }
+
+  @Override
+  public Optional<EventTypeSchema> fetchSchema(String eventTypeName, EventTypeSchema eventTypeSchema)
+          throws AuthorizationException, ClientException, ServerException, InvalidException,
+          RateLimitException, NakadiException {
+
+    ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
+    try {
+      EventTypeSchema ets = client.resourceProvider()
+              .newResource()
+              .retryPolicy(retryPolicy)
+              .requestThrowing(Resource.POST,
+                      schemaUrl(eventTypeName).query("fetch", "true").buildString(),
+                      options, () -> client.jsonSupport().toJsonBytes(eventTypeSchema), EventTypeSchema.class);
+      return Optional.of(ets);
+    } catch (NotFoundException notFoundException) {
+      return Optional.empty();
+    }
+  }
+
+    private ResourceOptions prepareOptions() {
     return ResourceSupport.options(APPLICATION_JSON)
         .tokenProvider(client.resourceTokenProvider());
   }

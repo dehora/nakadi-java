@@ -2,6 +2,17 @@ package nakadi;
 
 import org.apache.avro.Schema;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static nakadi.EventTypeSchema.Type.avro_schema;
 /**
  * Allows access to the API via resource classes.
  */
@@ -56,13 +67,29 @@ public class Resources {
    *
    * @return a resource for working with events
    */
-  public EventResource eventsBinary(final String eventType,
-                                    final String schemaVersion,  // TODO have a look at it again, maybe the check should be inside the method
-                                    final Schema schema) {
+  public EventResource eventsBinary(EventTypeSchemaPair<Schema>... etSchemaPairs) {
+
+    EventTypeResource etResource = eventTypes();
+    Map<String, EventTypeSchemaPair<Schema>> etSchemaMap = new HashMap<>();
+    Function<EventTypeSchemaPair<Schema>, Optional<EventTypeSchema>> toSchema =
+            (etS) -> etResource.fetchSchema(etS.eventTypeName(), new EventTypeSchema().schema(etS.schema().toString()).type(avro_schema));
+
+
+    Arrays.stream(etSchemaPairs).
+            forEach(etS -> {
+              Optional<EventTypeSchema> out = toSchema.apply(etS);
+              etSchemaMap.put(etS.eventTypeName(), out.isPresent()? etS.version(out.get().version()): null);
+            });
+    List<String> etsWithNoMatchingSchema = etSchemaMap.keySet().stream().
+            filter(etName -> Objects.isNull(etSchemaMap.get(etName))).collect(Collectors.toList());
+
+    if(!etsWithNoMatchingSchema.isEmpty())
+      throw new InvalidSchemaException("No matching schemas found for event types "+ etsWithNoMatchingSchema);
+
     return new EventResourceReal(client,
             client.jsonSupport(),
             client.compressionSupport(),
-            new AvroPayloadSerializer(eventType, schemaVersion, schema));
+            new AvroPayloadSerializer(etSchemaMap));
   }
 
   /**

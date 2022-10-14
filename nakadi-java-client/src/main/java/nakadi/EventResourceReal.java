@@ -111,7 +111,7 @@ public class EventResourceReal implements EventResource {
 
   @Override
   public final <T> Response send(String eventTypeName, Collection<T> events) {
-    return send(eventTypeName,events, SENTINEL_HEADERS);
+    return send(eventTypeName, events, SENTINEL_HEADERS);
   }
 
   @Override public <T> Response send(String eventTypeName, Collection<T> events,
