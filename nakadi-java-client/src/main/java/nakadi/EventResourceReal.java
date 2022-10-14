@@ -74,7 +74,7 @@ public class EventResourceReal implements EventResource {
         emitMetric(client, response, eventCount);
       }
       client.metricCollector().duration(
-          MetricCollector.Timer.eventSend, (System.nanoTime() - start), TimeUnit.NANOSECONDS);
+              MetricCollector.Timer.eventSend, (System.nanoTime() - start), TimeUnit.NANOSECONDS);
     }
   }
 
@@ -115,7 +115,7 @@ public class EventResourceReal implements EventResource {
   }
 
   @Override public <T> Response send(String eventTypeName, Collection<T> events,
-      Map<String, Object> headers) {
+                                     Map<String, Object> headers) {
     NakadiException.throwNonNull(eventTypeName, "Please provide an event type name");
     NakadiException.throwNonNull(events, "Please provide one or more events");
     NakadiException.throwNonNull(headers, "Please provide some headers");
@@ -124,14 +124,11 @@ public class EventResourceReal implements EventResource {
       throw new NakadiException(Problem.localProblem("event send called with zero events", ""));
     }
 
-    List<EventRecord<T>> collect =
-        events.stream().map(e -> new EventRecord<>(eventTypeName, e)).collect(Collectors.toList());
-
-    if (collect.get(0).event() instanceof String) {
+    if (new ArrayList<>(events).get(0) instanceof String) {
       return sendUsingSupplier(eventTypeName,
-          () -> ("[" + Joiner.on(",").join(events) + "]").getBytes(Charsets.UTF_8), headers);
+              () -> ("[" + Joiner.on(",").join(events) + "]").getBytes(Charsets.UTF_8), headers);
     } else {
-      return sendBatchOfEvents(collect, headers);
+      return sendBatchOfEvents(eventTypeName, events, headers);
     }
   }
 
@@ -170,7 +167,7 @@ public class EventResourceReal implements EventResource {
   }
 
   @Override public <T> BatchItemResponseCollection sendBatch(String eventTypeName, List<T> events,
-      Map<String, Object> headers) {
+                                                             Map<String, Object> headers) {
 
     List<BatchItemResponse> items = Lists.newArrayList();
     try (Response send = send(eventTypeName, events, headers)) {
@@ -183,70 +180,62 @@ public class EventResourceReal implements EventResource {
   }
 
   private Response sendUsingSupplier(String eventTypeName, ContentSupplier supplier,
-      Map<String, Object> headers) {
+                                     Map<String, Object> headers) {
     // todo: close
     return timed(() -> client.resourceProvider()
-                     .newResource()
-                     .retryPolicy(retryPolicy)
-                     .postEventsThrowing(
-                         collectionUri(eventTypeName).buildString(), options(headers), supplier),
-                 client,
-                 1);
+                    .newResource()
+                    .retryPolicy(retryPolicy)
+                    .postEventsThrowing(
+                            collectionUri(eventTypeName).buildString(), options(headers), supplier),
+            client,
+            1);
   }
 
-  private <T> Response sendBatchOfEvents(List<EventRecord<T>> events, Map<String, Object> headers) {
+  private <T> Response sendBatchOfEvents(final String eventTypeName, Collection<T> events, Map<String, Object> headers) {
     NakadiException.throwNonNull(events, "Please provide one or more event records");
-
-    String topic = events.get(0).eventType();
-    List<Object> eventList =
-        events.stream().map(this::mapEventRecordToSerdes).collect(Collectors.toList());
 
     ContentSupplier supplier;
 
     if(enablePublishingCompression) {
-      supplier =  supplyObjectAsCompressedAndSetHeaders(eventList, headers);
+      supplier =  supplyObjectAsCompressedAndSetHeaders(eventTypeName, events, headers);
     } else {
-      supplier = () -> payloadSerializer.toBytes(eventList);
+      supplier = () -> payloadSerializer.toBytes(eventTypeName, events);
     }
 
     final ContentSupplier finalSupplier = supplier;
 
     // todo: close
     return timed(() -> client.resourceProvider()
-                     .newResource()
-                     .retryPolicy(retryPolicy)
-                     .postEventsThrowing(
-                         collectionUri(topic).buildString(),
-                         options(headers),
-                         finalSupplier),
-              client,
-        eventList.size());
-  }
-
-  @VisibleForTesting <T> Object mapEventRecordToSerdes(EventRecord<T> er) {
-    return payloadSerializer.transformEventRecord(er);
+                    .newResource()
+                    .retryPolicy(retryPolicy)
+                    .postEventsThrowing(
+                            collectionUri(eventTypeName).buildString(),
+                            options(headers),
+                            finalSupplier),
+            client,
+            events.size());
   }
 
   private ResourceOptions options(Map<String, Object> headers) {
-      final ResourceOptions options = ResourceSupport.options(APPLICATION_JSON);
-      options.tokenProvider(client.resourceTokenProvider());
-      if (flowId != null) {
-          options.flowId(flowId);
-      }
-      options.header("Content-Type", payloadSerializer.payloadMimeType());
-      options.headers(headers);
-      return options;
+    final ResourceOptions options = ResourceSupport.options(APPLICATION_JSON);
+    options.tokenProvider(client.resourceTokenProvider());
+    if (flowId != null) {
+      options.flowId(flowId);
+    }
+    options.header("Content-Type", payloadSerializer.payloadMimeType());
+    options.headers(headers);
+    return options;
   }
 
   private UriBuilder collectionUri(String topic) {
     return UriBuilder.builder(client.baseURI())
-        .path(PATH_EVENT_TYPES)
-        .path(topic)
-        .path(PATH_COLLECTION);
+            .path(PATH_EVENT_TYPES)
+            .path(topic)
+            .path(PATH_COLLECTION);
   }
 
-  private <T> ContentSupplier supplyObjectAsCompressedAndSetHeaders(List<T> sending, Map<String, Object> headers) {
-    final byte[] json = payloadSerializer.toBytes(sending);
+  private <T> ContentSupplier supplyObjectAsCompressedAndSetHeaders(String eventTypeName, Collection<T> sending, Map<String, Object> headers) {
+    final byte[] json = payloadSerializer.toBytes(eventTypeName, sending);
     return supplyBytesAsCompressedAndSetHeaders(json, headers);
   }
 
@@ -260,7 +249,7 @@ public class EventResourceReal implements EventResource {
   }
 
   private ContentSupplier supplyBytesAsCompressedAndSetHeaders(
-      byte[] json, Map<String, Object> headers) {
+          byte[] json, Map<String, Object> headers) {
 
     // force the compression outside the lambda to access the length
     final byte[] compressed = compressionSupport.compress(json);

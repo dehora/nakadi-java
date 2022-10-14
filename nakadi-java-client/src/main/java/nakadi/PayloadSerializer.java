@@ -1,12 +1,10 @@
 package nakadi;
 
-import java.util.List;
+import java.util.Collection;
 
 public interface PayloadSerializer {
 
-    <T> byte[] toBytes(List<T> o);
-
-    <T> Object transformEventRecord(EventRecord<T> eventRecord);
+    <T> byte[] toBytes(String eventTypeName, Collection<T> o);
 
     String payloadMimeType();
 }

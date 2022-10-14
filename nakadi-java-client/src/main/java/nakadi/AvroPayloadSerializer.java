@@ -10,6 +10,7 @@ import org.zalando.nakadi.generated.avro.PublishingBatch;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,11 +19,11 @@ public class AvroPayloadSerializer implements PayloadSerializer {
 
     private Map<String, EventTypeSchemaPair<Schema>> etSchemas;
     public AvroPayloadSerializer(Map<String, EventTypeSchemaPair<Schema>> etSchemas) {
-    this.etSchemas = etSchemas;
+        this.etSchemas = etSchemas;
     }
 
     @Override
-    public <T> byte[] toBytes(final List<T> events) {
+    public <T> byte[] toBytes(final String eventTypeName, final Collection<T> events) {
         try {
             final List<Envelope> envelops = events.stream()
                     .map(event -> {
@@ -58,11 +59,6 @@ public class AvroPayloadSerializer implements PayloadSerializer {
         } catch (IOException io) {
             throw new RuntimeException();
         }
-    }
-
-    @Override
-    public <T> Object transformEventRecord(EventRecord<T> eventRecord) {
-        return eventRecord.event();
     }
 
     @Override

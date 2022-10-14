@@ -1,6 +1,8 @@
 package nakadi;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class JsonPayloadSerializer implements PayloadSerializer {
 
@@ -11,13 +13,13 @@ public class JsonPayloadSerializer implements PayloadSerializer {
     }
 
     @Override
-    public <T> byte[] toBytes(List<T> o) {
-        return jsonSupport.toJsonBytesCompressed(o);
-    }
+    public <T> byte[] toBytes(String eventTypeName, Collection<T> events) {
+        List<EventRecord<T>> collect =
+                events.stream().map(e -> new EventRecord<>(eventTypeName, e)).collect(Collectors.toList());
+        List<Object> eventList =
+                collect.stream().map(jsonSupport::transformEventRecord).collect(Collectors.toList());
 
-    @Override
-    public <T> Object transformEventRecord(EventRecord<T> eventRecord) {
-        return jsonSupport.transformEventRecord(eventRecord);
+        return jsonSupport.toJsonBytesCompressed(eventList);
     }
 
     @Override
