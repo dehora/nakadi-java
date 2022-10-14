@@ -269,7 +269,7 @@ class EventTypeResourceReal implements EventTypeResource {
   }
 
   @Override
-  public Optional<EventTypeSchema> fetchSchema(String eventTypeName, EventTypeSchema eventTypeSchema)
+  public Optional<EventTypeSchema> fetchMatchingSchema(String eventTypeName, EventTypeSchema eventTypeSchema)
           throws AuthorizationException, ClientException, ServerException, InvalidException,
           RateLimitException, NakadiException {
 

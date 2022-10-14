@@ -199,7 +199,7 @@ public interface EventTypeResource {
   CursorDistanceCollection distance(String eventTypeName, List<CursorDistance> cursorDistanceList);
 
   /**
-   * Check the the number of unconsumed events for each cursor's partition.
+   * Check the number of unconsumed events for each cursor's partition.
    *
    * @param eventTypeName the event type
    * @param cursors the cursors to check.
@@ -207,11 +207,38 @@ public interface EventTypeResource {
    */
   PartitionCollection lag(String eventTypeName, List<Cursor> cursors);
 
+  /**
+   * Create a Schema resource.
+   *
+   * @param eventTypeName
+   * @param eventTypeSchema
+   * @return
+   * @throws AuthorizationException
+   * @throws ClientException
+   * @throws ServerException
+   * @throws InvalidException
+   * @throws RateLimitException
+   * @throws NakadiException
+   */
   Response createSchema(String eventTypeName, EventTypeSchema eventTypeSchema)
           throws AuthorizationException, ClientException, ServerException, InvalidException,
           RateLimitException, NakadiException;
 
-  Optional<EventTypeSchema> fetchSchema(String eventTypeName, EventTypeSchema eventTypeSchema)
+  /**
+   * Fetches a schema that matches the one supplied in the argument. The EventTypeSchema returned
+   * has the version field filled.
+   *
+   * @param eventTypeName
+   * @param eventTypeSchema
+   * @return
+   * @throws AuthorizationException
+   * @throws ClientException
+   * @throws ServerException
+   * @throws InvalidException
+   * @throws RateLimitException
+   * @throws NakadiException
+   */
+  Optional<EventTypeSchema> fetchMatchingSchema(String eventTypeName, EventTypeSchema eventTypeSchema)
           throws AuthorizationException, ClientException, ServerException, InvalidException,
           RateLimitException, NakadiException;;
 }

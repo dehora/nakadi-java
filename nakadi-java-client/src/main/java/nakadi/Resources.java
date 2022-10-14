@@ -3,7 +3,6 @@ package nakadi;
 import org.apache.avro.Schema;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +71,7 @@ public class Resources {
     EventTypeResource etResource = eventTypes();
     Map<String, EventTypeSchemaPair<Schema>> etSchemaMap = new HashMap<>();
     Function<EventTypeSchemaPair<Schema>, Optional<EventTypeSchema>> toSchema =
-            (etS) -> etResource.fetchSchema(etS.eventTypeName(), new EventTypeSchema().schema(etS.schema().toString()).type(avro_schema));
+            (etS) -> etResource.fetchMatchingSchema(etS.eventTypeName(), new EventTypeSchema().schema(etS.schema().toString()).type(avro_schema));
 
 
     Arrays.stream(etSchemaPairs).
