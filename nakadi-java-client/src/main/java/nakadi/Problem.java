@@ -156,7 +156,7 @@ public class Problem {
    */
   public static Problem rawProblem(int statusCode, String body, String errorDetail) {
     return new Problem()
-            .title(body)
+            .title(body.substring(0, Math.min(200, body.length())))
             .detail(errorDetail)
             .data(SENTINEL_MAP)
             .status(statusCode)
