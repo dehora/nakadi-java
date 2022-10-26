@@ -120,7 +120,7 @@ public class Problem {
    *
    * @param title the problem title
    * @param detail the problem detail
-   * @return a Problem object with a status of 500 and a type of "about:contract"
+   * @return a Problem object with a status of 500 and a type of "about:contract_retryable"
    */
   public static Problem contractRetryableProblem(String title, String detail) {
     return new Problem()
