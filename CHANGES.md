@@ -1,5 +1,9 @@
 ### Changes
 
+### 0.17.1
+
+- Non-json payloads on error responses are handled [#364](https://github.com/dehora/nakadi-java/pull/364)
+
 ### 0.17.0
 
 - Adds support for event publishing GZIP compression [#369](https://github.com/dehora/nakadi-java/pull/369)
