@@ -453,7 +453,7 @@ public class EventResourceRealTest {
     EventThing et = new EventThing("a", "b");
     EventRecord<EventThing> er = new EventRecord<>("topic", et);
 
-    Object o = eventResource.mapEventRecordToSerdes(er);
+    Object o = new GsonSupport().transformEventRecord(er);
 
     assertEquals(et, o);
   }
@@ -467,7 +467,7 @@ public class EventResourceRealTest {
     UndefinedEventMapped<Map<String, Object>> ue =
         new UndefinedEventMapped<Map<String, Object>>().data(uemap);
     EventRecord<UndefinedEventMapped> er = new EventRecord<>("topic", ue);
-    Map<String, Object> outmap = (Map<String, Object>) eventResource.mapEventRecordToSerdes(er);
+    Map<String, Object> outmap = (Map<String, Object>)  new GsonSupport().transformEventRecord(er);
     assertTrue(outmap.size() == 1);
     assertTrue(outmap.containsKey("a"));
     assertEquals("1", outmap.get("a"));
@@ -489,7 +489,7 @@ public class EventResourceRealTest {
     be.metadata(em);
 
     EventRecord<BusinessEventMapped> er = new EventRecord<>("topic", be);
-    JsonObject outmap = (JsonObject) eventResource.mapEventRecordToSerdes(er);
+    JsonObject outmap = (JsonObject) new GsonSupport().transformEventRecord(er);
     assertTrue(outmap.size() == 5);
     assertTrue(outmap.get("metadata") != null);
     assertTrue(outmap.get("a") != null);
