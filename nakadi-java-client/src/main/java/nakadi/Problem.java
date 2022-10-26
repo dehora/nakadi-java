@@ -152,7 +152,7 @@ public class Problem {
    * @param statusCode the HTTP status code of the server's response
    * @param body the HTTP body of the server's response
    * @param errorDetail details about why it failed to convert the server's response to a Problem object
-   * @return a Problem object with a status of {@param statusCode} and a type of "about:contract_retryable"
+   * @return a Problem object with a status of {@code statusCode} and a type of "about:contract_retryable"
    */
   public static Problem rawProblem(int statusCode, String body, String errorDetail) {
     return new Problem()
