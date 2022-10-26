@@ -19,7 +19,9 @@ public class Problem {
   private static final URI CONTRACT_RETRYABLE_TYPE = URI.create("about:contract_retryable");
   private static final URI OBSERVER_TYPE = URI.create("about:observer");
   private static final URI NETWORK_TYPE = URI.create("about:wire");
+  private static final URI MARSHAL_ENTITY_TYPE = URI.create("about:marshal_entity");
   private static final Map SENTINEL_MAP = new HashMap();
+  public static final int MAX_RAW_ERR_LEN = 200;
   private URI type = DEFAULT_TYPE;
   private String title;
   private int status;
@@ -146,21 +148,22 @@ public class Problem {
   }
 
   /**
-   * Quick way to create a Problem object that indicates a server responded with an error but the message could not be converted to a Problem
-   * object automatically; typically this happens when a server responds with a non-json payload.
+   * Quick way to create a Problem object that indicates a server responded with an error but
+   * the message could not be converted to a Problem object automatically; typically this happens
+   * when a server responds with a non-json payload.
    *
    * @param statusCode the HTTP status code of the server's response
    * @param body the HTTP body of the server's response
-   * @param errorDetail details about why it failed to convert the server's response to a Problem object
-   * @return a Problem object with a status of {@code statusCode} and a type of "about:contract_retryable"
+   * @param errorDetail details about why it failed to convert the server's response to a Problem
+   * @return a Problem with a status of {@code statusCode} and a type of "about:marshal_entity"
    */
   public static Problem rawProblem(int statusCode, String body, String errorDetail) {
     return new Problem()
-            .title(body.substring(0, Math.min(200, body.length())))
+            .title(body.substring(0, Math.min(MAX_RAW_ERR_LEN, body.length())))
             .detail(errorDetail)
             .data(SENTINEL_MAP)
             .status(statusCode)
-            .type(CONTRACT_RETRYABLE_TYPE);
+            .type(MARSHAL_ENTITY_TYPE);
   }
 
   public String toMessage() {
