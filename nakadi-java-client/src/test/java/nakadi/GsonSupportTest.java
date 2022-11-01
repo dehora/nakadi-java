@@ -1,7 +1,14 @@
 package nakadi;
 
+import com.google.common.collect.Maps;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Map;
+import java.util.Objects;
 
 import static junit.framework.TestCase.assertSame;
 import static junit.framework.TestCase.assertTrue;
@@ -102,6 +109,92 @@ public class GsonSupportTest {
     // to minify cleanly we need to read the string from raw and minify the object representation
     minified = gsonSupport.toJsonCompressed(gsonSupport.fromJson(raw, Object.class));
     assertTrue(minified.startsWith("{\"m"));
+  }
+
+  @Test
+  public void serdesDomain() {
+    JsonSupport jsonSupport = new GsonSupport();
+
+    EventThing et = new EventThing("a", "b");
+    EventRecord<EventThing> er = new EventRecord<>("topic", et);
+
+    Object o = jsonSupport.transformEventRecord(er);
+    assertEquals(et, o);
+  }
+
+  @Test
+  public void serdesUndefinedEventMapped() {
+    JsonSupport jsonSupport = new GsonSupport();
+
+    Map<String, Object> uemap = Maps.newHashMap();
+    uemap.put("a", "1");
+    UndefinedEventMapped<Map<String, Object>> ue =
+            new UndefinedEventMapped<Map<String, Object>>().data(uemap);
+    EventRecord<UndefinedEventMapped> er = new EventRecord<>("topic", ue);
+    Map<String, Object> outmap = (Map<String, Object>) jsonSupport.transformEventRecord(er);
+    Assert.assertTrue(outmap.size() == 1);
+    Assert.assertTrue(outmap.containsKey("a"));
+    assertEquals("1", outmap.get("a"));
+  }
+
+  @Test
+  public void serdesBusinessEventMapped() {
+    JsonSupport jsonSupport = new GsonSupport();
+
+    BusinessEventMapped<Map<String, Object>> be = new BusinessEventMapped<>();
+    EventMetadata em = new EventMetadata();
+    em.eid("eid1").withFlowId().withOccurredAt();
+    Map<String, Object> uemap = Maps.newHashMap();
+    uemap.put("a", 1);
+    uemap.put("b", 22.0001);
+    uemap.put("c", "40.0001");
+    uemap.put("d", "c22.0001");
+    be.data(uemap);
+    be.metadata(em);
+
+    EventRecord<BusinessEventMapped> er = new EventRecord<>("topic", be);
+    JsonObject outmap = (JsonObject) jsonSupport.transformEventRecord(er);
+    Assert.assertTrue(outmap.size() == 5);
+    Assert.assertTrue(outmap.get("metadata") != null);
+    Assert.assertTrue(outmap.get("a") != null);
+    assertEquals(1, outmap.get("a").getAsInt());
+    assertEquals(22.0001, outmap.get("b").getAsDouble(), 0.0d);
+    assertEquals("40.0001", outmap.get("c").getAsString());
+    assertEquals("c22.0001", outmap.get("d").getAsString());
+
+    final JsonElement metadata = outmap.get("metadata");
+    assertEquals(em.eid(), metadata.getAsJsonObject().get("eid").getAsString());
+    assertEquals(em.flowId(), metadata.getAsJsonObject().get("flow_id").getAsString());
+    assertEquals(
+            em.occurredAt(),
+            new OffsetDateTimeSerdes().toOffsetDateTime(
+                    metadata.getAsJsonObject().get("occurred_at").getAsString()));
+  }
+
+  static class EventThing implements Event {
+    final String a;
+    final String b;
+
+    public EventThing(String a, String b) {
+      this.a = a;
+      this.b = b;
+    }
+
+    @Override public Object data() {
+      return null;
+    }
+
+    @Override public int hashCode() {
+      return Objects.hash(a, b);
+    }
+
+    @Override public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      EventThing that = (EventThing) o;
+      return Objects.equals(a, that.a) &&
+              Objects.equals(b, that.b);
+    }
   }
 
 }
