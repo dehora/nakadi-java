@@ -223,6 +223,7 @@ public class EventResourceReal implements EventResource {
           options.flowId(flowId);
       }
       options.headers(headers);
+      ResourceSupport.optionsWithJsonContent(options);
       return options;
   }
 
