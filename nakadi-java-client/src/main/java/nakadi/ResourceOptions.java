@@ -6,6 +6,10 @@ import java.util.Optional;
 
 class ResourceOptions {
 
+  static final String HEADER_ACCEPT = "Accept";
+  static final String HEADER_ACCEPT_CHARSET = "Accept-Charset";
+  static final String HEADER_CONTENT_TYPE = "Content-Type";
+
   //multimap would be correct, but a client for this api doesn't setting multiple same headers
   private final Map<String, Object> headers = new HashMap<>();
   private TokenProvider provider;
@@ -28,6 +32,40 @@ class ResourceOptions {
     this.headers.putAll(headers);
     return this;
   }
+
+  /**
+   * Convenience method to set the Accept header for the request.
+   *
+   * @param accept the value of the Content-Type header
+   * @return this updated
+   */
+  public ResourceOptions accept(String accept) {
+    this.header(HEADER_ACCEPT, accept);
+    return this;
+  }
+
+  /**
+   * Convenience method to set the Accept Charset header for the request.
+   *
+   * @param charset the value of the Content-Type header
+   * @return this updated
+   */
+  public ResourceOptions acceptCharset(String charset) {
+    this.header(HEADER_ACCEPT_CHARSET, charset);
+    return this;
+  }
+
+  /**
+   * Convenience method to set the Content-Type header for the request.
+   *
+   * @param contentType the value of the Content-Type header
+   * @return this updated
+   */
+  public ResourceOptions contentType(String contentType) {
+    this.header(HEADER_CONTENT_TYPE, contentType);
+    return this;
+  }
+
 
   /**
    * Deprecated since 0.9.7 and will be removed in 0.10.0.
