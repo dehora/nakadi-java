@@ -54,7 +54,7 @@ class EventTypeResourceReal implements EventTypeResource {
       RateLimitException, NakadiException {
 
     // todo: close
-    ResourceOptions options = prepareOptions();
+    ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -66,7 +66,7 @@ class EventTypeResourceReal implements EventTypeResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
     String url = collectionUri().path(eventType.name()).buildString();
-    ResourceOptions options = prepareOptions();
+    ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
     // todo: close
     return client.resourceProvider()
         .newResource()
@@ -159,7 +159,7 @@ class EventTypeResourceReal implements EventTypeResource {
     NakadiException.throwNotNullOrEmpty(cursorList, "Please provide at least one cursor");
 
     final String url = collectionUri().path(eventTypeName).path(PATH_CURSOR_SHIFTS).buildString();
-    final ResourceOptions options = prepareOptions();
+    final ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
     final Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -177,7 +177,7 @@ class EventTypeResourceReal implements EventTypeResource {
       String eventTypeName, List<CursorDistance> cursorDistanceList) {
 
     final String url = collectionUri().path(eventTypeName).path(PATH_CURSOR_DISTANCE).buildString();
-    final ResourceOptions options = prepareOptions();
+    final ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
     final Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -192,7 +192,7 @@ class EventTypeResourceReal implements EventTypeResource {
 
   @Override public PartitionCollection lag(String eventTypeName, List<Cursor> cursors) {
     final String url = collectionUri().path(eventTypeName).path("cursors-lag").buildString();
-    final ResourceOptions options = prepareOptions();
+    final ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
 
     final Response response = client.resourceProvider()
         .newResource()

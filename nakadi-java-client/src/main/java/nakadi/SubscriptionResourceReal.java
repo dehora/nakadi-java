@@ -70,7 +70,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
       RateLimitException, NakadiException {
     //todo:filebug: nakadi.event_stream.read is in the yaml but this is a write action
     NakadiException.throwNonNull(subscription, "Please provide a subscription");
-    ResourceOptions options = prepareOptions();
+    ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -82,7 +82,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, ConflictException, NakadiException {
     NakadiException.throwNonNull(subscription, "Please provide a subscription");
-    ResourceOptions options = prepareOptions();
+    ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -189,7 +189,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
         .path(SubscriptionResourceReal.PATH_CURSORS)
         .buildString();
 
-    ResourceOptions options = prepareOptions();
+    ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
 
     options.header(StreamResourceSupport.X_NAKADI_STREAM_ID, streamId);
 
@@ -284,7 +284,7 @@ class SubscriptionResourceReal implements SubscriptionResource {
     final Resource resource = client.resourceProvider().newResource().retryPolicy(retryPolicy);
     final String url = collectionUri().path(id).path(PATH_CURSORS).buildString();
     // read scope: see https://github.com/zalando/nakadi/issues/648
-    final ResourceOptions options = prepareOptions();
+    final ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
     final List<Cursor> cleaned = Cursor.prepareRequiringEventType(cursors);
 
     return timed(() ->

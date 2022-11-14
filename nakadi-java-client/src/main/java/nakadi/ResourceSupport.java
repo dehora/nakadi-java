@@ -21,4 +21,9 @@ class ResourceSupport {
         .header("User-Agent", NakadiClient.USER_AGENT)
         .flowId(ResourceSupport.nextFlowId());
   }
+
+  public static ResourceOptions optionsWithJsonContent(ResourceOptions options) {
+    return options.header("Content-Type", "application/json; charset=utf8");
+  }
+
 }

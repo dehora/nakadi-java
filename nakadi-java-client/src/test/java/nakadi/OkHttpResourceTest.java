@@ -112,7 +112,7 @@ public class OkHttpResourceTest {
       try {
         server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
 
-        buildResource().requestThrowing("POST", baseUrl(), buildOptions(), () -> json.toJsonBytes("{}"));
+          buildResource().requestThrowing("POST", baseUrl(), buildOptionsWithJsonContent(), () -> json.toJsonBytes("{}"));
         fail("expected exception for " + entry.getValue());
 
       } catch (NakadiException e) {
@@ -145,7 +145,7 @@ public class OkHttpResourceTest {
       try {
         server.enqueue(new MockResponse().setResponseCode(entry.getKey()));
 
-        buildResource().requestThrowing("POST", baseUrl(), buildOptions(), () -> json.toJsonBytes("{}"), String.class);
+        buildResource().requestThrowing("POST", baseUrl(), buildOptionsWithJsonContent(), () -> json.toJsonBytes("{}"), String.class);
         fail("expected exception for " + entry.getValue());
       } catch (NakadiException e) {
         assertEquals(entry.getValue(), e.getClass());
@@ -164,7 +164,7 @@ public class OkHttpResourceTest {
     Subscription response = buildResource().requestThrowing(
         "POST",
         baseUrl(),
-        buildOptions(),
+        buildOptionsWithJsonContent(),
         () -> json.toJsonBytes(request),
         Subscription.class);
 
@@ -173,6 +173,11 @@ public class OkHttpResourceTest {
 
   private ResourceOptions buildOptions() {
     return ResourceSupport.options("application/json").tokenProvider(scope -> Optional.empty());
+  }
+
+  private ResourceOptions buildOptionsWithJsonContent() {
+    return ResourceSupport.
+            optionsWithJsonContent(ResourceSupport.options("application/json").tokenProvider(scope -> Optional.empty()));
   }
 
   private Map<Integer, Class> responseCodesToExceptions() {
@@ -377,7 +382,7 @@ public class OkHttpResourceTest {
     server.enqueue(new MockResponse().setResponseCode(200));
 
     OkHttpResource r = buildResource();
-    ResourceOptions options = buildOptions();
+    ResourceOptions options = buildOptionsWithJsonContent();
 
     Subscription subscription = buildSubscription();
 
@@ -553,7 +558,7 @@ public class OkHttpResourceTest {
   public void requestThrowingBody() throws Exception {
 
     OkHttpResource r = buildResource();
-    ResourceOptions options = buildOptions();
+    ResourceOptions options = buildOptionsWithJsonContent();
     server.enqueue(new MockResponse().setResponseCode(200));
 
     Subscription subscription = buildSubscription();

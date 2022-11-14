@@ -218,7 +218,7 @@ public class EventResourceReal implements EventResource {
       }
       options.headers(headers);
       options.header("Content-Type", payloadSerializer.payloadMimeType());
-    return options;
+      return options;
   }
 
   private UriBuilder collectionUri(String topic) {
