@@ -252,7 +252,7 @@ public class EventResourceRealTest {
       RecordedRequest request = server.takeRequest();
 
       assertEquals("POST /event-types/ue-1-1479125860/events HTTP/1.1", request.getRequestLine());
-      assertEquals("application/json; charset=utf8", request.getHeaders().get("Content-Type"));
+      assertEquals(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8, request.getHeaders().get("Content-Type"));
       assertEquals(NakadiClient.USER_AGENT, request.getHeaders().get("User-Agent"));
       TestCase.assertTrue(request.getHeaders().get("X-Flow-Id") != null);
 
@@ -311,7 +311,7 @@ public class EventResourceRealTest {
       RecordedRequest request = server.takeRequest();
 
       assertEquals("POST /event-types/be-1-1479125860/events HTTP/1.1", request.getRequestLine());
-      assertEquals("application/json; charset=utf8", request.getHeaders().get("Content-Type"));
+      assertEquals(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8, request.getHeaders().get("Content-Type"));
       assertEquals(NakadiClient.USER_AGENT, request.getHeaders().get("User-Agent"));
       TestCase.assertTrue(request.getHeaders().get("X-Flow-Id") != null);
 

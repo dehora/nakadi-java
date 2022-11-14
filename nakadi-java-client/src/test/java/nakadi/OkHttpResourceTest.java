@@ -390,7 +390,7 @@ public class OkHttpResourceTest {
     RecordedRequest request = server.takeRequest();
 
     assertEquals("POST /subscriptions HTTP/1.1", request.getRequestLine());
-    assertEquals("application/json; charset=utf8", request.getHeaders().get("Content-Type"));
+    assertEquals(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8, request.getHeaders().get("Content-Type"));
     assertEquals(NakadiClient.USER_AGENT, request.getHeaders().get("User-Agent"));
     assertTrue(request.getHeaders().get("X-Flow-Id") != null);
 
@@ -568,7 +568,7 @@ public class OkHttpResourceTest {
     RecordedRequest request = server.takeRequest();
 
     assertEquals("POST /subscriptions HTTP/1.1", request.getRequestLine());
-    assertEquals("application/json; charset=utf8", request.getHeaders().get("Content-Type"));
+    assertEquals(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8, request.getHeaders().get("Content-Type"));
     assertEquals(NakadiClient.USER_AGENT, request.getHeaders().get("User-Agent"));
     assertTrue(request.getHeaders().get("X-Flow-Id") != null);
 
