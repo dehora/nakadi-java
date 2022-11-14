@@ -27,7 +27,7 @@ class ResourceSupport {
   }
 
   public static ResourceOptions optionsWithJsonContent(ResourceOptions options) {
-    return options.header(ResourceOptions.HEADER_CONTENT_TYPE, APPLICATION_JSON_CHARSET_UTF_8);
+    return options.contentType(APPLICATION_JSON_CHARSET_UTF_8);
   }
 
 }
