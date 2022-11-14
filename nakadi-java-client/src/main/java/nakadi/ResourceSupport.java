@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 class ResourceSupport {
 
   public static final String CHARSET_UTF_8 = "UTF-8";
+  public static final String APPLICATION_JSON_CHARSET_UTF_8 = "application/json; charset=utf8";
 
   static String nextEid() {
     return UUID.randomUUID().toString();
@@ -25,7 +26,7 @@ class ResourceSupport {
   }
 
   public static ResourceOptions optionsWithJsonContent(ResourceOptions options) {
-    return options.header("Content-Type", "application/json; charset=utf8");
+    return options.header("Content-Type", APPLICATION_JSON_CHARSET_UTF_8);
   }
 
 }
