@@ -222,9 +222,7 @@ public class EventResourceReal implements EventResource {
       if (flowId != null) {
           options.flowId(flowId);
       }
-      options.headers(headers);
-      ResourceSupport.optionsWithJsonContent(options);
-      return options;
+      return options.headers(headers).contentType(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8);
   }
 
   private UriBuilder collectionUri(String topic) {

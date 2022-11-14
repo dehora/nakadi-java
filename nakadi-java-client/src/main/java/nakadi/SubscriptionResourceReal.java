@@ -70,7 +70,8 @@ class SubscriptionResourceReal implements SubscriptionResource {
       RateLimitException, NakadiException {
     //todo:filebug: nakadi.event_stream.read is in the yaml but this is a write action
     NakadiException.throwNonNull(subscription, "Please provide a subscription");
-    ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
+    ResourceOptions options = prepareOptions()
+        .contentType(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8);
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -82,7 +83,8 @@ class SubscriptionResourceReal implements SubscriptionResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, ConflictException, NakadiException {
     NakadiException.throwNonNull(subscription, "Please provide a subscription");
-    ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
+    ResourceOptions options = prepareOptions()
+        .contentType(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8);
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -189,7 +191,8 @@ class SubscriptionResourceReal implements SubscriptionResource {
         .path(SubscriptionResourceReal.PATH_CURSORS)
         .buildString();
 
-    ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
+    ResourceOptions options = prepareOptions()
+        .contentType(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8);
 
     options.header(StreamResourceSupport.X_NAKADI_STREAM_ID, streamId);
 
@@ -284,7 +287,8 @@ class SubscriptionResourceReal implements SubscriptionResource {
     final Resource resource = client.resourceProvider().newResource().retryPolicy(retryPolicy);
     final String url = collectionUri().path(id).path(PATH_CURSORS).buildString();
     // read scope: see https://github.com/zalando/nakadi/issues/648
-    final ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
+    final ResourceOptions options = prepareOptions()
+        .contentType(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8);
     final List<Cursor> cleaned = Cursor.prepareRequiringEventType(cursors);
 
     return timed(() ->

@@ -54,7 +54,8 @@ class EventTypeResourceReal implements EventTypeResource {
       RateLimitException, NakadiException {
 
     // todo: close
-    ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
+    ResourceOptions options = prepareOptions()
+        .contentType(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8);
     return client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -66,7 +67,8 @@ class EventTypeResourceReal implements EventTypeResource {
       throws AuthorizationException, ClientException, ServerException, InvalidException,
       RateLimitException, NakadiException {
     String url = collectionUri().path(eventType.name()).buildString();
-    ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
+    ResourceOptions options = prepareOptions()
+        .contentType(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8);
     // todo: close
     return client.resourceProvider()
         .newResource()
@@ -159,7 +161,8 @@ class EventTypeResourceReal implements EventTypeResource {
     NakadiException.throwNotNullOrEmpty(cursorList, "Please provide at least one cursor");
 
     final String url = collectionUri().path(eventTypeName).path(PATH_CURSOR_SHIFTS).buildString();
-    final ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
+    final ResourceOptions options = prepareOptions()
+        .contentType(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8);
     final Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -177,7 +180,8 @@ class EventTypeResourceReal implements EventTypeResource {
       String eventTypeName, List<CursorDistance> cursorDistanceList) {
 
     final String url = collectionUri().path(eventTypeName).path(PATH_CURSOR_DISTANCE).buildString();
-    final ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
+    final ResourceOptions options = prepareOptions()
+        .contentType(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8);
     final Response response = client.resourceProvider()
         .newResource()
         .retryPolicy(retryPolicy)
@@ -192,7 +196,8 @@ class EventTypeResourceReal implements EventTypeResource {
 
   @Override public PartitionCollection lag(String eventTypeName, List<Cursor> cursors) {
     final String url = collectionUri().path(eventTypeName).path("cursors-lag").buildString();
-    final ResourceOptions options = ResourceSupport.optionsWithJsonContent(prepareOptions());
+    final ResourceOptions options = prepareOptions()
+        .contentType(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8);
 
     final Response response = client.resourceProvider()
         .newResource()

@@ -176,8 +176,9 @@ public class OkHttpResourceTest {
   }
 
   private ResourceOptions buildOptionsWithJsonContent() {
-    return ResourceSupport.
-            optionsWithJsonContent(ResourceSupport.options("application/json").tokenProvider(scope -> Optional.empty()));
+    return ResourceSupport.options("application/json")
+        .contentType(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8)
+        .tokenProvider(scope -> Optional.empty());
   }
 
   private Map<Integer, Class> responseCodesToExceptions() {
