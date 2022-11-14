@@ -101,7 +101,7 @@ public class SubscriptionResourceRealTest {
       final RecordedRequest request = server.takeRequest();
 
       assertEquals("PATCH /subscriptions/5-19/cursors HTTP/1.1", request.getRequestLine());
-      assertEquals("application/json; charset=utf8", request.getHeaders().get("Content-Type"));
+      assertEquals(ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8, request.getHeaders().get("Content-Type"));
       assertEquals(NakadiClient.USER_AGENT, request.getHeaders().get("User-Agent"));
 
       final String body = request.getBody().readUtf8();
