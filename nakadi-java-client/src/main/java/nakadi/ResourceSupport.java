@@ -5,6 +5,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 class ResourceSupport {
 
+  public static final String CHARSET_UTF_8 = "UTF-8";
+
   static String nextEid() {
     return UUID.randomUUID().toString();
   }
@@ -17,7 +19,7 @@ class ResourceSupport {
   public static ResourceOptions options(String accept) {
     return new ResourceOptions()
         .header("Accept", accept)
-        .header("Accept-Charset", "UTF-8")
+        .header("Accept-Charset", CHARSET_UTF_8)
         .header("User-Agent", NakadiClient.USER_AGENT)
         .flowId(ResourceSupport.nextFlowId());
   }
