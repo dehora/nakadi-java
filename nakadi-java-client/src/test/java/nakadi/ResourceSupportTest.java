@@ -25,7 +25,7 @@ public class ResourceSupportTest extends TestCase {
     assertEquals(options.headers().get(ResourceOptions.HEADER_ACCEPT), accept);
 
     assertEquals(options.headers().get(ResourceOptions.HEADER_ACCEPT_CHARSET),
-        "UTF-8");
+        ResourceSupport.CHARSET_UTF_8);
 
     assertNull(options.headers().get(ResourceOptions.HEADER_CONTENT_TYPE));
 
