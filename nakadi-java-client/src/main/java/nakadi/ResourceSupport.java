@@ -20,14 +20,14 @@ class ResourceSupport {
 
   public static ResourceOptions options(String accept) {
     return new ResourceOptions()
-        .header("Accept", accept)
-        .header("Accept-Charset", CHARSET_UTF_8)
+        .header(ResourceOptions.HEADER_ACCEPT, accept)
+        .header(ResourceOptions.HEADER_ACCEPT_CHARSET, CHARSET_UTF_8)
         .header("User-Agent", NakadiClient.USER_AGENT)
         .flowId(ResourceSupport.nextFlowId());
   }
 
   public static ResourceOptions optionsWithJsonContent(ResourceOptions options) {
-    return options.header("Content-Type", APPLICATION_JSON_CHARSET_UTF_8);
+    return options.header(ResourceOptions.HEADER_CONTENT_TYPE, APPLICATION_JSON_CHARSET_UTF_8);
   }
 
 }
