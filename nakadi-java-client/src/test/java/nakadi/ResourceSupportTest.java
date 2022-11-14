@@ -32,6 +32,6 @@ public class ResourceSupportTest extends TestCase {
     ResourceOptions options1 = ResourceSupport.optionsWithJsonContent(options);
 
     assertEquals(options1.headers().get(ResourceOptions.HEADER_CONTENT_TYPE),
-        "application/json; charset=utf8");
+        ResourceSupport.APPLICATION_JSON_CHARSET_UTF_8);
   }
 }
