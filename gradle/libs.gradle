@@ -13,7 +13,9 @@ versions += [
   rxjava2: "2.0.9",
   slf4j: "1.8.0-beta2",
   logback: "1.3.0-alpha5",
-  mockito: "1.+"
+  mockito: "1.+",
+  avro: "1.11.1",
+  jacksonavro: "2.14.1"
 ]
 
 libs += [
@@ -29,7 +31,9 @@ libs += [
   slf4jsimple: "org.slf4j:slf4j-simple:$versions.slf4j",
   logback_core: "ch.qos.logback:logback-core:$versions.logback",
   logback_classic: "ch.qos.logback:logback-classic:$versions.logback",
-  mockito_core: "org.mockito:mockito-core:$versions.mockito"
+  mockito_core: "org.mockito:mockito-core:$versions.mockito",
+  avro: "org.apache.avro:avro:$versions.avro",
+  jacksonavro: "com.fasterxml.jackson.dataformat:jackson-dataformat-avro:$versions.jacksonavro"
 ]
 
 ext {
