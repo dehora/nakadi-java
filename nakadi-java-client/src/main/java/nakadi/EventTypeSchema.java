@@ -40,6 +40,11 @@ public class EventTypeSchema {
     return version;
   }
 
+  public EventTypeSchema version(String version) {
+    this.version = version;
+    return this;
+  }
+
   /**
    * @return the time the event type was created.
    */
@@ -71,6 +76,7 @@ public class EventTypeSchema {
   }
 
   public enum Type {
-    json_schema
+    json_schema,
+    avro_schema
   }
 }

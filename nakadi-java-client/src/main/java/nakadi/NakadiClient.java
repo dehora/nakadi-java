@@ -27,6 +27,7 @@ public class NakadiClient {
   private final String certificatePath;
   private final boolean enablePublishingCompression;
   private final CompressionSupport compressionSupport;
+  private final SerializationSupport serializationSupport;
 
   private NakadiClient(Builder builder) {
     NakadiException.throwNonNull(builder.baseURI, "Please provide a base URI.");
@@ -39,6 +40,7 @@ public class NakadiClient {
     this.certificatePath = builder.certificatePath;
     this.enablePublishingCompression = builder.enablePublishingCompression;
     this.compressionSupport = builder.compressionSupport;
+    this.serializationSupport = builder.serializationSupport;
   }
 
   /**
@@ -108,7 +110,11 @@ public class NakadiClient {
     return resources;
   }
 
-  @SuppressWarnings("WeakerAccess")
+  public SerializationSupport getSerializationSupport() {
+    return serializationSupport;
+  }
+
+    @SuppressWarnings("WeakerAccess")
   public static class Builder {
 
     private URI baseURI;
@@ -123,6 +129,7 @@ public class NakadiClient {
     private boolean enablePublishingCompression;
     private CompressionSupport compressionSupport;
     private String certificatePath;
+    private SerializationSupport serializationSupport;
 
     Builder() {
       connectTimeout = 20_000;
@@ -143,6 +150,10 @@ public class NakadiClient {
 
       if (jsonSupport == null) {
         jsonSupport = new GsonSupport();
+      }
+
+      if (serializationSupport == null) {
+        serializationSupport = JsonSerializationSupport.newInstance(jsonSupport);
       }
 
       if (compressionSupport == null) {
@@ -309,6 +320,11 @@ public class NakadiClient {
      */
     public Builder jsonSupport(JsonSupport jsonSupport) {
       this.jsonSupport = jsonSupport;
+      return this;
+    }
+
+    public Builder serializationSupport(SerializationSupport serializationSupport) {
+      this.serializationSupport = serializationSupport;
       return this;
     }
   }
