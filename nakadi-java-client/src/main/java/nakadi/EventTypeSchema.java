@@ -30,6 +30,11 @@ public class EventTypeSchema {
     return this;
   }
 
+  public EventTypeSchema version(String version) {
+    this.version = version;
+    return this;
+  }
+
   /**
    * The version of the schema used to validate this event.
    *
@@ -71,6 +76,7 @@ public class EventTypeSchema {
   }
 
   public enum Type {
-    json_schema
+    json_schema,
+    avro_schema
   }
 }
