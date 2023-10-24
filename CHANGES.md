@@ -1,5 +1,13 @@
 ### Changes
 
+### 0.19.0
+
+- Fixes implementation of onStart for buffered observers [#391](https://github.com/dehora/nakadi-java/pull/391).  @fghibellini
+- Provides an avro module for binary publishing [#390](https://github.com/dehora/nakadi-java/pull/390). @adyach
+- Refactoring content type handling to enable alternate formats [#381](https://github.com/dehora/nakadi-java/pull/381).
+- Supply content type from headers to enable alternate formats [#379](https://github.com/dehora/nakadi-java/pull/379). @adyach, @samizzy
+- Fixes to Problem type Javadoc and adds a marshal_entity problem [#377](https://github.com/dehora/nakadi-java/pull/377).
+
 ### 0.18.0
 
 - Non-json payloads on error responses are handled [#364](https://github.com/dehora/nakadi-java/pull/364). @f-sander
