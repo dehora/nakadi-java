@@ -18,7 +18,7 @@ class StreamBatchRecordBufferingSubscriber<T> extends
 
   @Override protected void onStart() {
     super.onStart();
-    observer.onStart();
+    observer.onBegin();
   }
 
   @Override public void onNext(List<StreamBatchRecord<T>> records) {
